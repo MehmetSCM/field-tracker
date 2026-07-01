@@ -185,6 +185,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
         <span class="lbl">Start Station <span id="lki-hint" style="color:var(--accent);font-weight:400;text-transform:none;letter-spacing:0;font-size:11px"></span></span>
         <input class="inp" id="s-st" type="number" inputmode="numeric" placeholder="e.g. 44896">
       </div>
+      <div class="mb">
+        <span class="lbl">Milling Start Time</span>
+        <input class="inp" id="s-time" type="time" style="font-size:18px">
+      </div>
       <button class="btn btn-accent" onclick="startSession()">Start Session →</button>
     </div>
   </div>
@@ -233,6 +237,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     <div class="mstat"><span>Total Length</span><span class="mv" id="m-len">—</span></div>
     <div class="mstat"><span>Avg Width</span><span class="mv" id="m-avw">—</span></div>
     <div class="mstat"><span>Total Area</span><span class="mv" id="m-ar">—</span></div>
+    <div class="mstat" style="align-items:center">
+      <span>Milling End Time</span>
+      <input type="time" id="m-endtime" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:16px;font-weight:600;padding:6px 12px;width:130px;text-align:center">
+    </div>
     <div class="mbtns">
       <button class="btn btn-accent" id="m-ok" onclick="endSession()">Save & End Session</button>
       <button class="btn btn-ghost" onclick="closeModal()">Keep Working</button>
@@ -547,7 +555,8 @@ function startSession() {
     date:dateStr, tab:tabFromDate(dateStr), activity:'Milling',
     segId:selectedSeg.id, segName:selectedSeg.name,
     dir:selectedDir, dirLabel:dirConf.label,
-    startSt:st, increment:dirConf.increment, rollovers:dirConf.rollovers||[]
+    startSt:st, increment:dirConf.increment, rollovers:dirConf.rollovers||[],
+    startTime: document.getElementById('s-time').value || ''
   };
   rows = []; isReadOnly = false;
   persist(); resumeTracker();
@@ -732,6 +741,11 @@ function openEndModal() {
   document.getElementById('m-len').textContent=totLen.toFixed(0)+' m';
   document.getElementById('m-avw').textContent=avgW.toFixed(2)+' m';
   document.getElementById('m-ar').textContent=last.cum.toFixed(2)+' m²';
+  // Pre-fill end time with current time
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('m-endtime').value = hh + ':' + mm;
   document.getElementById('modal').classList.add('on');
 }
 function closeModal(){document.getElementById('modal').classList.remove('on');}
@@ -804,7 +818,9 @@ async function doSync(closing=false) {
     summary:{date:sess.date,direction:sess.dir,activity:sess.activity||'Milling',
       segment:sess.segName,dirLabel:sess.dirLabel,
       startStation:sess.startSt,endStation:last.station,
-      totalLength:totLen.toFixed(1),avgWidth:avgW.toFixed(2),totalArea:last.cum.toFixed(2)}
+      totalLength:totLen.toFixed(1),avgWidth:avgW.toFixed(2),totalArea:last.cum.toFixed(2),
+      startTime:sess.startTime||'',
+      endTime:closing?(document.getElementById('m-endtime').value||''):''}
   };
 
   const pushResult=await jsonpCall(SCRIPT_URL+'?data='+encodeURIComponent(JSON.stringify(payload)));
