@@ -1,22 +1,17 @@
-// Field Tracker — Google Sheets Backend v3
+// Field Tracker — Google Sheets Backend v4
 const SHEET_ID = '1gbXUYxZPkpLBISI-p4mC5BXlF_qkQ6gRVYjs3cYFKyY';
 
 function doGet(e) {
   const callback = e.parameter.callback || null;
   try {
-    // Simple ping test — if ?ping=1, just return ok immediately
-    if (e.parameter.ping) {
-      return respond({ ok: true, msg: 'Script is alive' }, callback);
-    }
+    if (e.parameter.ping) return respond({ ok: true, msg: 'alive' }, callback);
     const raw = e.parameter.data;
-    if (!raw) return respond({ ok: false, error: 'No data parameter' }, callback);
+    if (!raw) return respond({ ok: false, error: 'No data' }, callback);
     const data = JSON.parse(decodeURIComponent(raw));
-    if (data.action === 'save_session') {
-      return respond(saveSession(data), callback);
-    }
-    return respond({ ok: false, error: 'Unknown action: ' + data.action }, callback);
+    if (data.action === 'save_session') return respond(saveSession(data), callback);
+    return respond({ ok: false, error: 'Unknown action' }, callback);
   } catch(err) {
-    return respond({ ok: false, error: 'doGet error: ' + err.toString() }, callback);
+    return respond({ ok: false, error: err.toString() }, callback);
   }
 }
 
@@ -38,38 +33,101 @@ function saveSession(data) {
     let sheet = ss.getSheetByName(tabName);
     if (sheet) {
       sheet.clearContents();
+      sheet.clearFormats();
     } else {
       sheet = ss.insertSheet(tabName);
     }
 
-    const headers = ['Station', 'Width (m)', 'Length (m)', 'Seg Area (m2)', 'Cum Area (m2)', 'Timestamp'];
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-    sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+    // Tab color — amber so FT- tabs stand out
+    sheet.setTabColor('#F59E0B');
 
     const s = data.summary;
-    const summary = [
-      ['Date', s.date], ['Direction', s.direction], ['Activity', s.activity],
-      ['Start Station', s.startStation], ['End Station', s.endStation],
-      ['Total Length (m)', s.totalLength], ['Avg Width (m)', s.avgWidth],
-      ['Total Area (m2)', s.totalArea], ['Entries', data.entries.length],
-    ];
-    sheet.getRange(1, 8, summary.length, 2).setValues(summary);
-    sheet.getRange(1, 8, summary.length, 1).setFontWeight('bold');
 
+    // ── SUMMARY BLOCK (rows 1–5, cols A–D) ──────────────────────────────
+    // Row 1: big title
+    sheet.getRange('A1').setValue('Field Tracker — Milling Session');
+    sheet.getRange('A1').setFontSize(14).setFontWeight('bold');
+    sheet.getRange('A1:G1').merge();
+
+    // Row 2: date / direction / project
+    sheet.getRange('A2').setValue(s.date + '  ·  ' + s.direction + '  ·  ' + data.tabName);
+    sheet.getRange('A2').setFontColor('#888888').setFontSize(11);
+    sheet.getRange('A2:G2').merge();
+
+    // Row 3: blank separator
+    sheet.getRange('A3').setValue('');
+
+    // Row 4–8: key stats in two columns
+    const stats = [
+      ['Start Station', s.startStation, 'End Station', s.endStation],
+      ['Total Length (m)', s.totalLength, 'Avg Width (m)', s.avgWidth],
+      ['Total Area (m²)', s.totalArea, 'Entries', data.entries.length],
+    ];
+    stats.forEach((row, i) => {
+      const r = 4 + i;
+      sheet.getRange(r, 1).setValue(row[0]).setFontWeight('bold');
+      sheet.getRange(r, 2).setValue(row[1]).setHorizontalAlignment('right');
+      sheet.getRange(r, 4).setValue(row[2]).setFontWeight('bold');
+      sheet.getRange(r, 5).setValue(row[3]).setHorizontalAlignment('right');
+    });
+
+    // ── ENTRY LOG (starts row 9) ─────────────────────────────────────────
+    const LOG_START = 9;
+
+    // Header row
+    const headers = ['Station', 'Width (m)', 'Length (m)', 'Seg Area (m²)', 'Cum Area (m²)', 'Time (UTC)'];
+    const headerRange = sheet.getRange(LOG_START, 1, 1, headers.length);
+    headerRange.setValues([headers]);
+    headerRange.setFontWeight('bold');
+    headerRange.setBackground('#F59E0B');
+    headerRange.setFontColor('#111111');
+
+    // Data rows
     if (data.entries.length > 0) {
       const rows = data.entries.map(entry => [
-        entry.station, entry.width, entry.length,
-        entry.segArea, entry.cumArea, entry.timestamp || ''
+        entry.station,
+        entry.width,
+        entry.length,
+        entry.segArea,
+        entry.cumArea,
+        entry.timestamp ? entry.timestamp.replace('T',' ').replace('Z','') : ''
       ]);
-      sheet.getRange(2, 1, rows.length, 6).setValues(rows);
-      sheet.getRange(2, 1, rows.length, 6).setNumberFormat('0.00');
-      sheet.getRange(2, 1, rows.length, 1).setNumberFormat('0');
+      const dataRange = sheet.getRange(LOG_START + 1, 1, rows.length, 6);
+      dataRange.setValues(rows);
+
+      // Number formats
+      sheet.getRange(LOG_START+1, 1, rows.length, 1).setNumberFormat('0');        // Station: integer
+      sheet.getRange(LOG_START+1, 2, rows.length, 5).setNumberFormat('0.00');     // rest: 2dp
+      sheet.getRange(LOG_START+1, 5, rows.length, 1).setNumberFormat('0.0');      // Cum area: 1dp
+      sheet.getRange(LOG_START+1, 6, rows.length, 1).setNumberFormat('@');        // Timestamp: text
+
+      // Alternating row shading
+      for (let i = 0; i < rows.length; i++) {
+        if (i % 2 === 0) {
+          sheet.getRange(LOG_START+1+i, 1, 1, 6).setBackground('#FAFAFA');
+        }
+      }
+
+      // Bold the last cum area (final total)
+      sheet.getRange(LOG_START + rows.length, 5).setFontWeight('bold');
     }
 
-    sheet.autoResizeColumns(1, 9);
+    // ── COLUMN WIDTHS ────────────────────────────────────────────────────
+    sheet.setColumnWidth(1, 90);   // Station
+    sheet.setColumnWidth(2, 90);   // Width
+    sheet.setColumnWidth(3, 90);   // Length
+    sheet.setColumnWidth(4, 110);  // Seg Area
+    sheet.setColumnWidth(5, 110);  // Cum Area
+    sheet.setColumnWidth(6, 160);  // Timestamp
+    sheet.setColumnWidth(4, 110);  // stat col D
+    sheet.setColumnWidth(5, 90);   // stat col E
+
+    // Freeze header row
+    sheet.setFrozenRows(LOG_START);
+
     return { ok: true, tabName: tabName, rows: data.entries.length };
   } catch(err) {
-    return { ok: false, error: 'saveSession error: ' + err.toString() };
+    return { ok: false, error: 'saveSession: ' + err.toString() };
   }
 }
 
