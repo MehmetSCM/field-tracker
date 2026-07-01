@@ -4,227 +4,155 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>Field Tracker</title>
 <style>
-:root {
-  --bg: #111;
-  --surface: #1E1E1E;
-  --surface2: #2A2A2A;
-  --border: #383838;
-  --accent: #F59E0B;
-  --accent-dim: rgba(245,158,11,0.12);
-  --ok: #22C55E;
-  --danger: #EF4444;
-  --text: #F3F3F3;
-  --muted: #888;
-  --radius: 14px;
-  --tap: 58px;
-}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;overflow-x:hidden}
-
-/* ── LAYOUT ── */
-.screen{display:none;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto}
-.screen.active{display:flex}
-
-/* ── SETUP SCREEN ── */
-.setup-body{flex:1;overflow-y:auto;padding:20px 16px 32px}
-.setup-title{font-size:22px;font-weight:800;margin-bottom:4px}
-.setup-sub{font-size:13px;color:var(--muted);margin-bottom:28px}
-.field-block{margin-bottom:20px}
-.field-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block}
-.field-input{width:100%;height:var(--tap);background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:20px;font-weight:600;padding:0 16px;-webkit-appearance:none}
-.field-input:focus{outline:none;border-color:var(--accent)}
-.seg-input{font-size:15px}
-.toggle-row{display:flex;gap:10px}
-.toggle-btn{flex:1;height:var(--tap);border-radius:var(--radius);border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-size:17px;font-weight:700;cursor:pointer;transition:all .15s}
-.toggle-btn.on{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
-.btn-start{width:100%;height:var(--tap);background:var(--accent);border:none;border-radius:var(--radius);color:#111;font-size:17px;font-weight:800;cursor:pointer;margin-top:8px;letter-spacing:.01em}
-.btn-start:active{opacity:.85}
-
-/* ── TRACKER SCREEN ── */
-/* Top info bar */
-.info-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:0;flex-shrink:0}
-.info-bar-left{flex:1}
-.info-project{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
-.info-meta{font-size:12px;color:var(--muted);margin-top:1px}
-
-/* Dashboard */
-.dashboard{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0;flex-shrink:0}
-.dash-item{text-align:center;padding:0 4px}
-.dash-item+.dash-item{border-left:1px solid var(--border)}
-.dash-val{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
-.dash-lbl{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-top:3px}
-.dash-val.accent{color:var(--accent)}
-
-/* Entry form */
-.entry-form{padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg)}
-.entry-row{display:flex;gap:10px;margin-bottom:10px;align-items:flex-end}
-.entry-field{flex:1}
-.entry-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block}
-.entry-input{width:100%;height:54px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:22px;font-weight:700;padding:0 14px;-webkit-appearance:none;text-align:center}
-.entry-input:focus{outline:none;border-color:var(--accent)}
-.entry-input.hint{color:var(--muted)}
-.btn-save{width:100%;height:54px;background:var(--accent);border:none;border-radius:12px;color:#111;font-size:17px;font-weight:800;cursor:pointer;letter-spacing:.01em}
-.btn-save:active{opacity:.85}
-.lki-note{font-size:11px;color:var(--muted);text-align:center;padding:6px 0 0;display:none}
-.lki-note.show{display:block}
-
-/* Log list */
-.log-area{flex:1;overflow-y:auto;padding:0 16px 16px}
-.log-empty{text-align:center;padding:48px 0;color:var(--muted);font-size:14px}
-.log-item{background:var(--surface);border-radius:12px;padding:14px 16px;margin-top:12px;display:grid;grid-template-columns:1fr auto;gap:4px 16px;align-items:center}
-.log-item:first-child{margin-top:12px}
-.log-station{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
-.log-width{font-size:15px;color:var(--muted);font-weight:600}
-.log-seg{font-size:13px;color:var(--muted)}
-.log-cum{font-size:20px;font-weight:700;color:var(--accent);text-align:right}
-.log-cum-lbl{font-size:10px;color:var(--muted);text-align:right;letter-spacing:.05em;text-transform:uppercase}
-.log-delete{background:none;border:none;color:var(--border);font-size:18px;cursor:pointer;padding:4px;margin-top:-4px}
-.log-delete:active{color:var(--danger)}
-
-/* Bottom actions */
-.bottom-bar{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0;background:var(--bg)}
-.btn-end{flex:1;height:52px;background:transparent;border:1.5px solid var(--border);border-radius:12px;color:var(--muted);font-size:15px;font-weight:700;cursor:pointer}
-.btn-end:active{border-color:var(--danger);color:var(--danger)}
-.btn-sync{width:52px;height:52px;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center}
-.btn-sync.syncing{animation:spin 1s linear infinite}
-.btn-sync.synced{border-color:var(--ok);color:var(--ok)}
-.btn-sync.error{border-color:var(--danger);color:var(--danger)}
+:root{
+  --bg:#111;--surface:#1E1E1E;--surface2:#2A2A2A;--border:#383838;
+  --accent:#F59E0B;--ok:#22C55E;--danger:#EF4444;
+  --text:#F3F3F3;--muted:#777;--r:14px;--h:56px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif}
+/* screens */
+.pg{display:none;flex-direction:column;height:100svh;max-width:480px;margin:0 auto}
+.pg.on{display:flex}
+/* setup */
+.setup-scroll{flex:1;overflow-y:auto;padding:24px 16px 40px}
+h1{font-size:24px;font-weight:800;margin-bottom:4px}
+.sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+.lbl{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.inp{width:100%;height:var(--h);background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:20px;font-weight:600;padding:0 16px;appearance:none;-webkit-appearance:none;margin-bottom:18px}
+.inp:focus{outline:none;border-color:var(--accent)}
+.row{display:flex;gap:10px;margin-bottom:18px}
+.tog{flex:1;height:var(--h);border-radius:var(--r);border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-size:16px;font-weight:700;cursor:pointer}
+.tog.on{border-color:var(--accent);background:rgba(245,158,11,.12);color:var(--accent)}
+.btn{width:100%;height:var(--h);border:none;border-radius:var(--r);font-size:17px;font-weight:800;cursor:pointer;letter-spacing:.01em}
+.btn-accent{background:var(--accent);color:#111}
+.btn-ghost{background:var(--surface2);color:var(--muted);border:1.5px solid var(--border)}
+.btn-danger{background:transparent;color:var(--danger);border:1.5px solid var(--danger)}
+/* tracker top */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;flex-shrink:0}
+.proj{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.meta{font-size:12px;color:var(--muted);margin-top:2px}
+/* dashboard */
+.dash{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)}
+.dc{padding:12px 4px;text-align:center}
+.dc+.dc{border-left:1px solid var(--border)}
+.dv{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.dv.a{color:var(--accent)}
+.dl{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+/* entry */
+.entry{padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.erow{display:flex;gap:10px;margin-bottom:10px}
+.ef{flex:1}
+.el{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.ei{width:100%;height:52px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:22px;font-weight:700;padding:0 12px;text-align:center;appearance:none;-webkit-appearance:none}
+.ei:focus{outline:none;border-color:var(--accent)}
+.ei.dim{color:var(--muted)}
+.savebtn{width:100%;height:52px;background:var(--accent);border:none;border-radius:12px;color:#111;font-size:17px;font-weight:800;cursor:pointer}
+/* log */
+.logarea{flex:1;overflow-y:auto;padding:12px 16px}
+.empty{text-align:center;padding:40px 0;color:var(--muted);font-size:14px}
+.li{background:var(--surface);border-radius:12px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.li-l .st{font-size:22px;font-weight:800}
+.li-l .w{font-size:13px;color:var(--muted);margin-top:2px}
+.li-r{text-align:right}
+.li-r .ca{font-size:20px;font-weight:700;color:var(--accent)}
+.li-r .cl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.del{background:none;border:none;color:var(--border);font-size:16px;cursor:pointer;padding:4px 6px;margin-left:8px}
+/* bottom */
+.bot{display:flex;gap:10px;padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0}
+.endbtn{flex:1;height:50px;background:transparent;border:1.5px solid var(--border);border-radius:12px;color:var(--muted);font-size:15px;font-weight:700;cursor:pointer}
+.synbtn{width:50px;height:50px;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.synbtn.ok{border-color:var(--ok);color:var(--ok)}
+.synbtn.err{border-color:var(--danger);color:var(--danger)}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* End session modal */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:flex-end;justify-content:center}
-.modal-overlay.show{display:flex}
-.modal{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:480px}
-.modal-title{font-size:18px;font-weight:800;margin-bottom:6px}
-.modal-sub{font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.5}
-.modal-stat{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:15px}
-.modal-stat:last-of-type{border-bottom:none;margin-bottom:16px}
-.modal-stat-val{font-weight:700;color:var(--accent)}
-.modal-btns{display:flex;flex-direction:column;gap:10px}
-.btn-modal-primary{height:54px;background:var(--accent);border:none;border-radius:12px;color:#111;font-size:16px;font-weight:800;cursor:pointer}
-.btn-modal-secondary{height:54px;background:transparent;border:1.5px solid var(--border);border-radius:12px;color:var(--muted);font-size:15px;font-weight:600;cursor:pointer}
-
-/* Toast */
-.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:#333;color:#fff;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:600;opacity:0;transition:all .25s;pointer-events:none;z-index:200;white-space:nowrap}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.spinning{animation:spin .8s linear infinite;display:inline-block}
+/* modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:50;align-items:flex-end;justify-content:center}
+.overlay.on{display:flex}
+.modal{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px 44px;width:100%;max-width:480px}
+.mtitle{font-size:18px;font-weight:800;margin-bottom:6px}
+.msub{font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.5}
+.mstat{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:15px}
+.mstat:last-of-type{border:none;margin-bottom:16px}
+.mv{font-weight:700;color:var(--accent)}
+.mbtns{display:flex;flex-direction:column;gap:10px}
+/* toast */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:#333;color:#fff;padding:10px 22px;border-radius:30px;font-size:14px;font-weight:600;opacity:0;transition:all .2s;pointer-events:none;z-index:100;white-space:nowrap}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 
-<!-- ═══ SETUP SCREEN ═══ -->
-<div class="screen active" id="screen-setup">
-  <div class="setup-body">
-    <div class="setup-title">New Session</div>
-    <div class="setup-sub">Set up today's milling entry</div>
+<!-- SETUP -->
+<div class="pg on" id="pg-setup">
+  <div class="setup-scroll">
+    <h1>New Session</h1>
+    <div class="sub">Configure today's milling entry</div>
 
-    <div class="field-block">
-      <span class="field-label">Project</span>
-      <input class="field-input seg-input" id="s-project" type="text" placeholder="26754-0000" value="26754-0000">
+    <label class="lbl">Project</label>
+    <input class="inp" id="s-proj" type="text" value="26754-0000">
+
+    <label class="lbl">Segment / LKI</label>
+    <input class="inp" id="s-seg" type="text" placeholder="e.g. Segment 2 NB" style="font-size:16px">
+
+    <label class="lbl">Direction</label>
+    <div class="row">
+      <button class="tog on" id="bnb" onclick="setDir('NB')">NB ↑</button>
+      <button class="tog" id="bsb" onclick="setDir('SB')">SB ↓</button>
     </div>
 
-    <div class="field-block">
-      <span class="field-label">Segment / LKI</span>
-      <input class="field-input seg-input" id="s-segment" type="text" placeholder="e.g. Segment 2 NB">
-    </div>
+    <label class="lbl">Start Station</label>
+    <input class="inp" id="s-st" type="number" inputmode="numeric" placeholder="e.g. 43170">
 
-    <div class="field-block">
-      <span class="field-label">Direction</span>
-      <div class="toggle-row">
-        <button class="toggle-btn on" id="btn-nb" onclick="setDir('NB')">NB ↑</button>
-        <button class="toggle-btn" id="btn-sb" onclick="setDir('SB')">SB ↓</button>
-      </div>
-    </div>
+    <label class="lbl">Date</label>
+    <input class="inp" id="s-dt" type="text" placeholder="2 Jul 26" style="font-size:16px">
 
-    <div class="field-block">
-      <span class="field-label">Start Station</span>
-      <input class="field-input" id="s-start" type="number" inputmode="numeric" placeholder="e.g. 43170">
-    </div>
-
-    <div class="field-block">
-      <span class="field-label">Date</span>
-      <input class="field-input seg-input" id="s-date" type="text" placeholder="e.g. 2 Jul 26">
-    </div>
-
-    <button class="btn-start" onclick="startSession()">Start Milling Session →</button>
+    <button class="btn btn-accent" id="start-btn" onclick="startSession()">Start Milling Session →</button>
   </div>
 </div>
 
-<!-- ═══ TRACKER SCREEN ═══ -->
-<div class="screen" id="screen-tracker">
-
-  <!-- Info bar -->
-  <div class="info-bar">
-    <div class="info-bar-left">
-      <div class="info-project" id="t-project-label">—</div>
-      <div class="info-meta" id="t-meta-label">—</div>
-    </div>
+<!-- TRACKER -->
+<div class="pg" id="pg-track">
+  <div class="topbar">
+    <div class="proj" id="t-proj">—</div>
+    <div class="meta" id="t-meta">—</div>
   </div>
-
-  <!-- Dashboard -->
-  <div class="dashboard">
-    <div class="dash-item">
-      <div class="dash-val" id="d-start">—</div>
-      <div class="dash-lbl">Start</div>
-    </div>
-    <div class="dash-item">
-      <div class="dash-val accent" id="d-current">—</div>
-      <div class="dash-lbl">Current</div>
-    </div>
-    <div class="dash-item">
-      <div class="dash-val" id="d-avgw">—</div>
-      <div class="dash-lbl">Avg W (m)</div>
-    </div>
-    <div class="dash-item">
-      <div class="dash-val accent" id="d-area">—</div>
-      <div class="dash-lbl">Area (m²)</div>
-    </div>
+  <div class="dash">
+    <div class="dc"><div class="dv" id="d-s">—</div><div class="dl">Start</div></div>
+    <div class="dc"><div class="dv a" id="d-c">—</div><div class="dl">Current</div></div>
+    <div class="dc"><div class="dv" id="d-w">—</div><div class="dl">Avg W (m)</div></div>
+    <div class="dc"><div class="dv a" id="d-a">—</div><div class="dl">Area m²</div></div>
   </div>
-
-  <!-- Entry form -->
-  <div class="entry-form">
-    <div class="entry-row">
-      <div class="entry-field">
-        <span class="entry-label">Station</span>
-        <input class="entry-input" id="e-station" type="number" inputmode="numeric" placeholder="—">
-      </div>
-      <div class="entry-field">
-        <span class="entry-label">Width (m)</span>
-        <input class="entry-input" id="e-width" type="number" inputmode="decimal" step="0.01" placeholder="—">
-      </div>
+  <div class="entry">
+    <div class="erow">
+      <div class="ef"><span class="el">Station</span><input class="ei" id="e-st" type="number" inputmode="numeric" placeholder="—"></div>
+      <div class="ef"><span class="el">Width (m)</span><input class="ei" id="e-w" type="number" inputmode="decimal" step="0.01" placeholder="—"></div>
     </div>
-    <button class="btn-save" onclick="saveEntry()">Save Reading</button>
-    <div class="lki-note" id="lki-note">⚠ Station jumped significantly — LKI change? Length set to 0.</div>
+    <button class="savebtn" onclick="addEntry()">Save Reading</button>
   </div>
-
-  <!-- Log -->
-  <div class="log-area" id="log-area">
-    <div class="log-empty" id="log-empty">Enter the first station and width above</div>
+  <div class="logarea" id="logarea"><div class="empty" id="empty">Enter the first reading above</div></div>
+  <div class="bot">
+    <button class="endbtn" onclick="openEndModal()">End Session</button>
+    <button class="synbtn" id="synbtn" onclick="sync()">☁</button>
   </div>
-
-  <!-- Bottom bar -->
-  <div class="bottom-bar">
-    <button class="btn-end" onclick="showEndModal()">End Session</button>
-    <button class="btn-sync" id="btn-sync" onclick="syncNow()" title="Sync to Google Sheets">☁</button>
-  </div>
-
 </div>
 
-<!-- ═══ END SESSION MODAL ═══ -->
-<div class="modal-overlay" id="modal-end">
+<!-- END MODAL -->
+<div class="overlay" id="modal">
   <div class="modal">
-    <div class="modal-title">End Session?</div>
-    <div class="modal-sub">This will save the session to Google Sheets and reset for a new session.</div>
-    <div class="modal-stat"><span>Readings</span><span class="modal-stat-val" id="m-readings">0</span></div>
-    <div class="modal-stat"><span>Start → End</span><span class="modal-stat-val" id="m-range">—</span></div>
-    <div class="modal-stat"><span>Total Length</span><span class="modal-stat-val" id="m-length">— m</span></div>
-    <div class="modal-stat"><span>Avg Width</span><span class="modal-stat-val" id="m-avgw">— m</span></div>
-    <div class="modal-stat"><span>Total Area</span><span class="modal-stat-val" id="m-area">— m²</span></div>
-    <div class="modal-btns">
-      <button class="btn-modal-primary" onclick="endSession()">Save & End Session</button>
-      <button class="btn-modal-secondary" onclick="closeModal()">Keep Working</button>
+    <div class="mtitle" id="m-title">End Session?</div>
+    <div class="msub" id="m-sub">Saves to Google Sheets then resets for a new session.</div>
+    <div class="mstat"><span>Readings</span><span class="mv" id="m-n">0</span></div>
+    <div class="mstat"><span>Start → End</span><span class="mv" id="m-rng">—</span></div>
+    <div class="mstat"><span>Total Length</span><span class="mv" id="m-len">—</span></div>
+    <div class="mstat"><span>Avg Width</span><span class="mv" id="m-avw">—</span></div>
+    <div class="mstat"><span>Total Area</span><span class="mv" id="m-ar">—</span></div>
+    <div class="mbtns">
+      <button class="btn btn-accent" id="m-ok" onclick="endSession()">Save & End Session</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Keep Working</button>
     </div>
   </div>
 </div>
@@ -232,367 +160,280 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 <div class="toast" id="toast"></div>
 
 <script>
-// ── CONFIG ────────────────────────────────────────────────────────────────
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz72wxCp12yzTbzkJzhpYVAwtaTziUKwoyiTIGerg0OQ15kX5JAm5oU7A0bLu7CrENiaQ/exec';
 
 // ── STATE ─────────────────────────────────────────────────────────────────
-let session = null; // {project, segment, direction, startStation, date, tabName}
-let entries = [];   // [{station, width, length, segArea, cumArea, timestamp}]
-let syncState = 'idle'; // idle | syncing | synced | error
+let dir = 'NB';
+let sess = null;
+let rows = [];
 
-function save() {
-  try { localStorage.setItem('ft_session', JSON.stringify(session));
-        localStorage.setItem('ft_entries', JSON.stringify(entries)); } catch(e){}
+function persist() {
+  localStorage.setItem('ft3_sess', JSON.stringify(sess));
+  localStorage.setItem('ft3_rows', JSON.stringify(rows));
 }
-function load() {
+
+function restore() {
   try {
-    const s = localStorage.getItem('ft_session');
-    const e = localStorage.getItem('ft_entries');
-    if(s) session = JSON.parse(s);
-    if(e) entries = JSON.parse(e);
-  } catch(e){}
+    const s = localStorage.getItem('ft3_sess');
+    const r = localStorage.getItem('ft3_rows');
+    if (s) sess = JSON.parse(s);
+    if (r) rows = JSON.parse(r);
+  } catch(e) { sess = null; rows = []; }
 }
 
 // ── DIRECTION ─────────────────────────────────────────────────────────────
-let setupDir = 'NB';
 function setDir(d) {
-  setupDir = d;
-  document.getElementById('btn-nb').classList.toggle('on', d==='NB');
-  document.getElementById('btn-sb').classList.toggle('on', d==='SB');
+  dir = d;
+  document.getElementById('bnb').classList.toggle('on', d === 'NB');
+  document.getElementById('bsb').classList.toggle('on', d === 'SB');
 }
 
-// ── SESSION START ─────────────────────────────────────────────────────────
+// ── SETUP → START ─────────────────────────────────────────────────────────
 function startSession() {
-  const project  = document.getElementById('s-project').value.trim() || '26754-0000';
-  const segment  = document.getElementById('s-segment').value.trim();
-  const startSt  = parseFloat(document.getElementById('s-start').value);
-  const dateStr  = document.getElementById('s-date').value.trim();
+  const proj = document.getElementById('s-proj').value.trim() || '26754-0000';
+  const seg  = document.getElementById('s-seg').value.trim();
+  const st   = parseFloat(document.getElementById('s-st').value);
+  const dt   = document.getElementById('s-dt').value.trim();
 
-  if(isNaN(startSt)) { toast('Enter a start station'); return; }
-  if(!dateStr)        { toast('Enter a date'); return; }
+  if (isNaN(st)) { showToast('Enter a start station'); return; }
+  if (!dt)       { showToast('Enter a date'); return; }
 
-  // Tab name: FT-{day}{mon}{yy} e.g. FT-2Jul26
-  const tabName = 'FT-' + dateStr.replace(/\s/g,'').replace(/\//g,'');
-
-  session = { project, segment, direction: setupDir, startStation: startSt, date: dateStr, tabName };
-  entries = [];
-  save();
-  showTracker();
+  const tab = 'FT-' + dt.replace(/\s+/g,'');
+  sess = { proj, seg, dir, startSt: st, date: dt, tab };
+  rows = [];
+  persist();
+  goTracker();
 }
 
-function showTracker() {
-  document.getElementById('screen-setup').classList.remove('active');
-  document.getElementById('screen-tracker').classList.add('active');
-  updateInfoBar();
-  updateDashboard();
+function goTracker() {
+  document.getElementById('pg-setup').classList.remove('on');
+  document.getElementById('pg-track').classList.add('on');
+  // Info bar
+  document.getElementById('t-proj').textContent =
+    sess.proj + (sess.seg ? ' · ' + sess.seg : '');
+  document.getElementById('t-meta').textContent =
+    sess.date + ' · ' + sess.dir + ' · Milling';
+  // Dashboard
+  document.getElementById('d-s').textContent = sess.startSt;
+  refreshDash();
   renderLog();
   // Pre-fill first station
-  if(entries.length === 0 && session) {
-    document.getElementById('e-station').value = session.startStation;
-  } else {
-    suggestNext();
-  }
-}
-
-function updateInfoBar() {
-  if(!session) return;
-  document.getElementById('t-project-label').textContent =
-    session.project + (session.segment ? ' · ' + session.segment : '');
-  document.getElementById('t-meta-label').textContent =
-    session.date + ' · ' + session.direction + ' · Milling';
-}
-
-// ── ENTRY SAVE ────────────────────────────────────────────────────────────
-function saveEntry() {
-  const stVal = document.getElementById('e-station').value;
-  const wVal  = document.getElementById('e-width').value;
-  const st    = parseFloat(stVal);
-  const w     = parseFloat(wVal);
-
-  if(isNaN(st)) { toast('Enter a station number'); return; }
-  if(isNaN(w) || w <= 0) { toast('Enter a valid width'); return; }
-
-  const prev = entries[entries.length - 1] || null;
-  let length = 0, segArea = 0, cumArea = 0;
-  const lkiNote = document.getElementById('lki-note');
-
-  if(prev) {
-    const rawLen = Math.abs(st - prev.station);
-    // LKI change detection: if jump > 1000m in wrong direction, treat as 0
-    const isSameStation = rawLen < 0.01;
-    const isLKIJump = rawLen > 5000;
-
-    if(isLKIJump) {
-      length = 0;
-      lkiNote.classList.add('show');
-      setTimeout(() => lkiNote.classList.remove('show'), 4000);
-    } else {
-      length = rawLen;
-      lkiNote.classList.remove('show');
-    }
-
-    if(isSameStation) {
-      // Width update at same station — zero area, update width only
-      length = 0;
-    }
-
-    const avgW = isSameStation ? w : (prev.width + w) / 2;
-    segArea = avgW * length;
-    cumArea = prev.cumArea + segArea;
-  } else {
-    cumArea = 0; segArea = 0; length = 0;
-  }
-
-  entries.push({
-    station: st, width: w, length, segArea, cumArea,
-    timestamp: new Date().toISOString()
-  });
-  save();
-
-  document.getElementById('e-width').value = '';
-  suggestNext();
-  updateDashboard();
-  renderLog();
-  document.getElementById('e-width').focus();
+  document.getElementById('e-st').value = rows.length === 0
+    ? sess.startSt
+    : nextSt();
 }
 
 // ── NEXT STATION SUGGESTION ───────────────────────────────────────────────
-function suggestNext() {
-  if(!session || entries.length === 0) return;
-  const last = entries[entries.length - 1].station;
-  const step = session.direction === 'NB' ? 50 : -50;
-  const next = last + step;
-  const inp = document.getElementById('e-station');
-  inp.value = next;
-  inp.classList.add('hint');
-  inp.addEventListener('focus', function clear() {
-    this.classList.remove('hint');
-    this.removeEventListener('focus', clear);
-  }, {once: true});
+function nextSt() {
+  if (!sess || rows.length === 0) return '';
+  const last = rows[rows.length - 1].station;
+  return last + (sess.dir === 'NB' ? 50 : -50);
 }
 
-// ── DELETE ENTRY ──────────────────────────────────────────────────────────
-function deleteEntry(idx) {
-  // Recalculate from the deleted point onward
-  entries.splice(idx, 1);
-  // Recalculate cumulative areas
-  for(let i = 0; i < entries.length; i++) {
-    if(i === 0) {
-      entries[i].cumArea = entries[i].segArea;
-      entries[i].length = 0;
-      entries[i].segArea = 0;
-    } else {
-      const prev = entries[i-1];
-      const rawLen = Math.abs(entries[i].station - prev.station);
-      const isLKI = rawLen > 5000;
-      entries[i].length = isLKI ? 0 : rawLen;
-      entries[i].segArea = isLKI ? 0 : ((prev.width + entries[i].width) / 2) * entries[i].length;
-      entries[i].cumArea = prev.cumArea + entries[i].segArea;
+// ── ADD ENTRY ─────────────────────────────────────────────────────────────
+function addEntry() {
+  const st = parseFloat(document.getElementById('e-st').value);
+  const w  = parseFloat(document.getElementById('e-w').value);
+  if (isNaN(st)) { showToast('Enter a station'); return; }
+  if (isNaN(w) || w <= 0) { showToast('Enter a valid width'); return; }
+
+  const prev = rows.length > 0 ? rows[rows.length - 1] : null;
+  let len = 0, seg = 0, cum = 0;
+
+  if (prev) {
+    const raw = Math.abs(st - prev.station);
+    const same = raw < 0.01;
+    const lki  = raw > 5000;
+    len = (same || lki) ? 0 : raw;
+    seg = len > 0 ? ((prev.width + w) / 2) * len : 0;
+    cum = prev.cum + seg;
+    if (lki) showToast('LKI change detected — length set to 0');
+  }
+
+  rows.push({ station: st, width: w, len, seg, cum, ts: new Date().toISOString() });
+  persist();
+
+  document.getElementById('e-w').value = '';
+  document.getElementById('e-st').value = st + (sess.dir === 'NB' ? 50 : -50);
+
+  refreshDash();
+  renderLog();
+  document.getElementById('e-w').focus();
+}
+
+// ── DELETE ────────────────────────────────────────────────────────────────
+function del(i) {
+  rows.splice(i, 1);
+  // Recalculate cumulative from scratch
+  for (let j = 0; j < rows.length; j++) {
+    if (j === 0) { rows[j].len = 0; rows[j].seg = 0; rows[j].cum = 0; }
+    else {
+      const prev = rows[j-1];
+      const raw = Math.abs(rows[j].station - prev.station);
+      const lki = raw > 5000;
+      rows[j].len = lki ? 0 : raw;
+      rows[j].seg = rows[j].len > 0 ? ((prev.width + rows[j].width)/2) * rows[j].len : 0;
+      rows[j].cum = prev.cum + rows[j].seg;
     }
   }
-  save();
-  updateDashboard();
+  persist();
+  refreshDash();
   renderLog();
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────
-function updateDashboard() {
-  if(!session) return;
-  const n = entries.length;
-  document.getElementById('d-start').textContent = session.startStation;
-
-  if(n === 0) {
-    document.getElementById('d-current').textContent = '—';
-    document.getElementById('d-avgw').textContent = '—';
-    document.getElementById('d-area').textContent = '—';
+function refreshDash() {
+  const n = rows.length;
+  if (n === 0) {
+    document.getElementById('d-c').textContent = '—';
+    document.getElementById('d-w').textContent = '—';
+    document.getElementById('d-a').textContent = '—';
     return;
   }
-
-  const last = entries[n-1];
-  document.getElementById('d-current').textContent = last.station;
-  document.getElementById('d-area').textContent = last.cumArea.toFixed(0);
-
-  // Avg width = total area / total length
-  const totalLen = entries.reduce((s,e) => s + e.length, 0);
-  const avgW = totalLen > 0 ? last.cumArea / totalLen : 0;
-  document.getElementById('d-avgw').textContent = avgW > 0 ? avgW.toFixed(2) : '—';
+  const last = rows[n-1];
+  document.getElementById('d-c').textContent = last.station;
+  document.getElementById('d-a').textContent = last.cum.toFixed(0);
+  const totLen = rows.reduce((s,r) => s+r.len, 0);
+  const avgW = totLen > 0 ? last.cum / totLen : 0;
+  document.getElementById('d-w').textContent = avgW > 0 ? avgW.toFixed(2) : '—';
 }
 
-// ── LOG RENDER ────────────────────────────────────────────────────────────
+// ── LOG ───────────────────────────────────────────────────────────────────
 function renderLog() {
-  const area = document.getElementById('log-area');
-  const empty = document.getElementById('log-empty');
-  if(entries.length === 0) {
-    empty.style.display = 'block';
-    // Remove any existing items
-    area.querySelectorAll('.log-item').forEach(e=>e.remove());
-    return;
-  }
+  const area = document.getElementById('logarea');
+  const empty = document.getElementById('empty');
+  // Remove old items
+  area.querySelectorAll('.li').forEach(e => e.remove());
+  if (rows.length === 0) { empty.style.display = 'block'; return; }
   empty.style.display = 'none';
-  // Rebuild in reverse order
-  area.querySelectorAll('.log-item').forEach(e=>e.remove());
   const frag = document.createDocumentFragment();
-  for(let i = entries.length-1; i >= 0; i--) {
-    const e = entries[i];
-    const div = document.createElement('div');
-    div.className = 'log-item';
-    div.innerHTML = `
-      <div>
-        <div class="log-station">ST ${e.station}</div>
-        <div class="log-width">${e.width.toFixed(2)} m wide${e.segArea > 0 ? ' · +' + e.segArea.toFixed(1) + ' m²' : ''}</div>
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const r = rows[i];
+    const d = document.createElement('div');
+    d.className = 'li';
+    d.innerHTML = `
+      <div class="li-l">
+        <div class="st">ST ${r.station}</div>
+        <div class="w">${r.width.toFixed(2)} m${r.seg > 0 ? ' · +' + r.seg.toFixed(1) + ' m²' : ''}</div>
       </div>
-      <div>
-        <div class="log-cum">${e.cumArea.toFixed(1)}</div>
-        <div class="log-cum-lbl">m² total</div>
+      <div class="li-r">
+        <div class="ca">${r.cum.toFixed(1)}</div>
+        <div class="cl">m² total</div>
       </div>
-      <button class="log-delete" onclick="deleteEntry(${i})" title="Delete">✕</button>`;
-    frag.appendChild(div);
+      <button class="del" onclick="del(${i})">✕</button>`;
+    frag.appendChild(d);
   }
   area.insertBefore(frag, area.firstChild);
 }
 
 // ── END SESSION MODAL ─────────────────────────────────────────────────────
-function showEndModal() {
-  if(entries.length === 0) { toast('No entries yet'); return; }
-  const n = entries.length;
-  const last = entries[n-1];
-  const totalLen = entries.reduce((s,e)=>s+e.length,0);
-  const avgW = totalLen > 0 ? last.cumArea/totalLen : 0;
-
-  document.getElementById('m-readings').textContent = n;
-  document.getElementById('m-range').textContent =
-    session.startStation + ' → ' + last.station;
-  document.getElementById('m-length').textContent = totalLen.toFixed(0) + ' m';
-  document.getElementById('m-avgw').textContent = avgW.toFixed(2) + ' m';
-  document.getElementById('m-area').textContent = last.cumArea.toFixed(2) + ' m²';
-  document.getElementById('modal-end').classList.add('show');
+function openEndModal() {
+  if (rows.length === 0) { showToast('No entries yet'); return; }
+  const last = rows[rows.length-1];
+  const totLen = rows.reduce((s,r)=>s+r.len,0);
+  const avgW = totLen > 0 ? last.cum/totLen : 0;
+  document.getElementById('m-title').textContent = 'End Session?';
+  document.getElementById('m-sub').textContent = 'Saves to Google Sheets then resets for a new session.';
+  document.getElementById('m-ok').textContent = 'Save & End Session';
+  document.getElementById('m-ok').onclick = endSession;
+  document.getElementById('m-n').textContent = rows.length;
+  document.getElementById('m-rng').textContent = sess.startSt + ' → ' + last.station;
+  document.getElementById('m-len').textContent = totLen.toFixed(0) + ' m';
+  document.getElementById('m-avw').textContent = avgW.toFixed(2) + ' m';
+  document.getElementById('m-ar').textContent = last.cum.toFixed(2) + ' m²';
+  document.getElementById('modal').classList.add('on');
 }
-function closeModal() {
-  document.getElementById('modal-end').classList.remove('show');
-  resetEndModal();
-}
+function closeModal() { document.getElementById('modal').classList.remove('on'); }
 
 async function endSession() {
   closeModal();
-  const ok = await syncNow();
-  if(!ok) {
-    // Sync failed — stay in session, show retry modal
-    showSyncFailModal();
+  const ok = await sync();
+  if (!ok) {
+    // Sync failed — keep session, show retry
+    document.getElementById('m-title').textContent = 'Sync Failed';
+    document.getElementById('m-sub').textContent = 'No connection. Your data is safe. Check signal and try again.';
+    document.getElementById('m-ok').textContent = 'Retry';
+    document.getElementById('m-ok').onclick = endSession;
+    document.getElementById('modal').classList.add('on');
     return;
   }
-  // Only reset after confirmed success
-  session = null; entries = [];
-  save();
-  document.getElementById('screen-tracker').classList.remove('active');
-  document.getElementById('screen-setup').classList.add('active');
-  setSyncState('idle');
-  toast('Session saved & reset ✓');
+  // Confirmed — reset
+  sess = null; rows = [];
+  persist();
+  document.getElementById('pg-track').classList.remove('on');
+  document.getElementById('pg-setup').classList.add('on');
+  showToast('Session saved ✓');
 }
 
 // ── SYNC ──────────────────────────────────────────────────────────────────
-async function syncNow() {
-  if(!session || entries.length === 0) { toast('Nothing to sync'); return false; }
+async function sync() {
+  if (!sess || rows.length === 0) { showToast('Nothing to sync'); return false; }
+  const btn = document.getElementById('synbtn');
+  btn.innerHTML = '<span class="spinning">↻</span>';
+  btn.className = 'synbtn';
 
-  setSyncState('syncing');
-  const last = entries[entries.length-1];
-  const totalLen = entries.reduce((s,e)=>s+e.length,0);
-  const avgW = totalLen > 0 ? last.cumArea/totalLen : 0;
+  const last = rows[rows.length-1];
+  const totLen = rows.reduce((s,r)=>s+r.len,0);
+  const avgW = totLen > 0 ? last.cum/totLen : 0;
 
   const payload = {
     action: 'save_session',
-    tabName: session.tabName,
-    entries,
+    tabName: sess.tab,
+    entries: rows.map(r => ({
+      station: r.station, width: r.width,
+      length: r.len, segArea: r.seg, cumArea: r.cum,
+      timestamp: r.ts
+    })),
     summary: {
-      date: session.date,
-      direction: session.direction,
-      activity: 'Milling',
-      startStation: session.startStation,
-      endStation: last.station,
-      totalLength: totalLen.toFixed(1),
-      avgWidth: avgW.toFixed(2),
-      totalArea: last.cumArea.toFixed(2),
+      date: sess.date, direction: sess.dir, activity: 'Milling',
+      startStation: sess.startSt, endStation: last.station,
+      totalLength: totLen.toFixed(1), avgWidth: avgW.toFixed(2),
+      totalArea: last.cum.toFixed(2)
     }
   };
 
-  // Apps Script requires GET with encoded data parameter (POST is blocked by CORS from browser)
   try {
     const url = SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(payload));
-    const res = await fetch(url, { method: 'GET' });
+    const res = await fetch(url);
     const json = await res.json();
-    if(json.ok) {
-      setSyncState('synced');
-      toast('Synced to Sheets ✓');
-      setTimeout(()=>setSyncState('idle'), 3000);
+    if (json.ok) {
+      btn.textContent = '✓'; btn.className = 'synbtn ok';
+      showToast('Synced to Sheets ✓');
+      setTimeout(() => { btn.textContent = '☁'; btn.className = 'synbtn'; }, 3000);
       return true;
-    } else {
-      throw new Error(json.error || 'Unknown error');
     }
-  } catch(err) {
-    setSyncState('error');
-    toast('Sync failed — session kept open');
-    setTimeout(()=>setSyncState('idle'), 4000);
+    throw new Error(json.error || 'Script error');
+  } catch(e) {
+    btn.textContent = '✕'; btn.className = 'synbtn err';
+    showToast('Sync failed — data safe on device');
+    setTimeout(() => { btn.textContent = '☁'; btn.className = 'synbtn'; }, 4000);
     return false;
   }
 }
 
-function showSyncFailModal() {
-  // Re-show the end modal but with a sync-failed message
-  document.getElementById('modal-end').classList.add('show');
-  document.querySelector('.modal-title').textContent = 'Sync Failed';
-  document.querySelector('.modal-sub').textContent =
-    'Could not reach Google Sheets. Check your connection and try again. Your session data is safe on this device.';
-  document.querySelector('.btn-modal-primary').textContent = 'Retry Sync';
-  document.querySelector('.btn-modal-primary').onclick = endSession;
-  document.querySelector('.btn-modal-secondary').textContent = 'Keep Working';
-}
-
-function resetEndModal() {
-  document.querySelector('.modal-title').textContent = 'End Session?';
-  document.querySelector('.modal-sub').textContent =
-    'This will save the session to Google Sheets and reset for a new session.';
-  document.querySelector('.btn-modal-primary').textContent = 'Save & End Session';
-  document.querySelector('.btn-modal-primary').onclick = endSession;
-  document.querySelector('.btn-modal-secondary').textContent = 'Keep Working';
-}
-  syncState = state;
-  const btn = document.getElementById('btn-sync');
-  btn.className = 'btn-sync';
-  if(state === 'syncing') { btn.textContent = '↻'; btn.classList.add('syncing'); }
-  else if(state === 'synced') { btn.textContent = '✓'; btn.classList.add('synced'); }
-  else if(state === 'error')  { btn.textContent = '✕'; btn.classList.add('error'); }
-  else { btn.textContent = '☁'; }
-}
-
 // ── TOAST ─────────────────────────────────────────────────────────────────
-function toast(msg) {
+function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2500);
+  t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 2800);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────
-// Set today's date as default
-const today = new Date();
-const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-document.getElementById('s-date').value =
-  today.getDate() + ' ' + months[today.getMonth()] + ' ' + String(today.getFullYear()).slice(2);
+// Default date
+const _d = new Date();
+const _m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+document.getElementById('s-dt').value =
+  _d.getDate() + ' ' + _m[_d.getMonth()] + ' ' + String(_d.getFullYear()).slice(2);
 
-load();
-if(session && session.startStation && entries && entries.length > 0) {
-  // Resume in-progress session
-  showTracker();
+// Restore session if one was in progress
+restore();
+if (sess && sess.startSt) {
+  dir = sess.dir || 'NB';
+  goTracker();
+} else {
+  sess = null; rows = [];
 }
-
-// Clear hint styling on station input when user types
-document.getElementById('e-station').addEventListener('input', function(){
-  this.classList.remove('hint');
-});
-
-// Enter key on width → save
-document.getElementById('e-width').addEventListener('keydown', function(e){
-  if(e.key === 'Enter') saveEntry();
-});
 </script>
 </body>
 </html>
