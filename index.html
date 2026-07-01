@@ -327,7 +327,7 @@ async function loadDateList() {
   const todayArea = todaySheet ? todaySheet.totalArea : (sess && sess.tab === todayTab && rows.length > 0 ? rows[rows.length-1].cum.toFixed(2) : '—');
   const todayClosed = todaySheet ? todaySheet.closed : false;
 
-  html += `<div class="date-card today" onclick="openDate('${today}', false)">
+  html += `<div class="date-card today" onclick="openDate('${todayTab}', false)">
     <div>
       <div class="dc-date">${today} <span class="today-badge">TODAY</span></div>
       <div class="dc-meta">${todayClosed ? 'Closed · ' : ''}${todayEntries || 0} readings</div>
@@ -337,8 +337,26 @@ async function loadDateList() {
     </div>
   </div>`;
 
-  // Past sessions from Sheets (excluding today)
-  const past = sheetSessions.filter(s => s.tab !== todayTab);
+  // Clean date display — format raw timestamps from Sheets into readable dates
+  function cleanDate(raw) {
+    if (!raw) return '—';
+    // Already clean (e.g. "27 Jun 26")
+    if (/^\d{1,2}\s[A-Z][a-z]{2}\s\d{2}$/.test(raw)) return raw;
+    // ISO timestamp — convert to local date string
+    try {
+      const d = new Date(raw);
+      if (!isNaN(d)) {
+        const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return d.getDate() + ' ' + m[d.getMonth()] + ' ' + String(d.getFullYear()).slice(2);
+      }
+    } catch(e) {}
+    return raw;
+  }
+
+  // Deduplicate: Sheets version wins over localStorage version for same tab
+  const past = sheetSessions
+    .filter(s => s.tab !== todayTab)
+    .map(s => ({ ...s, date: cleanDate(s.date), fromSheet: true }));
 
   // Also include seeded local sessions not yet in Sheets
   const localKeys = Object.keys(localStorage).filter(k => k.startsWith('fts_') && k !== 'fts_' + todayTab);
@@ -359,14 +377,19 @@ async function loadDateList() {
   allPast.forEach(s => {
     const closed = s.closed;
     const endSt = s.endStation || s.endSt || '—';
-    html += `<div class="date-card ${closed?'closed':''}" onclick="openDate('${s.date}', ${closed})">
+    const seg = s.segment || s.seg || '';
+    const dir = s.direction || s.dir || '';
+    const area = s.totalArea || s.area || '—';
+    const entries = s.entries || 0;
+    const displayDate = cleanDate(s.date);
+    html += `<div class="date-card ${closed?'closed':''}" onclick="openDate('${s.tab}', ${closed})">
       <div>
-        <div class="dc-date">${s.date}${closed?'<span class="closed-badge">Closed</span>':''}</div>
-        <div class="dc-meta">${s.segment||s.seg||''} · ${s.direction||s.dir||''} · ended ST ${endSt}</div>
+        <div class="dc-date">${displayDate}${closed?'<span class="closed-badge">Closed</span>':''}</div>
+        <div class="dc-meta">${seg} · ${dir} · ended ST ${endSt}</div>
       </div>
       <div style="text-align:right">
-        <div class="dc-area">${s.totalArea||s.area||'—'} m²</div>
-        <div class="dc-entries">${s.entries||0} readings</div>
+        <div class="dc-area">${area} m²</div>
+        <div class="dc-entries">${entries} readings</div>
       </div>
     </div>`;
   });
@@ -379,8 +402,19 @@ async function loadDateList() {
 }
 
 // ── OPEN A DATE ───────────────────────────────────────────────────────────
-async function openDate(dateStr, closed) {
-  const tab = tabFromDate(dateStr);
+async function openDate(tabOrDate, closed) {
+  // Accept either a tab name (FT-27Jun26) or a date string (27 Jun 26)
+  let tab, dateStr;
+  if (tabOrDate.startsWith('FT-')) {
+    tab = tabOrDate;
+    // Derive display date from tab name — FT-27Jun26 → 27 Jun 26
+    const raw = tab.replace('FT-','');
+    const m = raw.match(/^(\d{1,2})([A-Z][a-z]{2})(\d{2})$/);
+    dateStr = m ? m[1]+' '+m[2]+' '+m[3] : raw;
+  } else {
+    dateStr = tabOrDate;
+    tab = tabFromDate(dateStr);
+  }
 
   // If it's the active local session, go straight to tracker
   if (sess && sess.tab === tab && rows.length > 0 && !closed) {
