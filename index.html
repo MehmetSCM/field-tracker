@@ -5,44 +5,82 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<title>Field Tracker</title>
+<title>Field Tracker — 26754-0000</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#111;--surface:#1E1E1E;--surface2:#2A2A2A;--border:#383838;
-  --accent:#F59E0B;--ok:#22C55E;--danger:#EF4444;
+  --bg:#111;--surface:#1C1C1C;--surface2:#262626;--border:#333;
+  --accent:#F59E0B;--ok:#22C55E;--danger:#EF4444;--blue:#3B82F6;
   --text:#F3F3F3;--muted:#777;--r:14px;--h:56px;
 }
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif}
-/* screens */
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;overflow:hidden}
+/* ── SCREENS ── */
 .pg{display:none;flex-direction:column;height:100svh;max-width:480px;margin:0 auto}
 .pg.on{display:flex}
-/* setup */
-.setup-scroll{flex:1;overflow-y:auto;padding:24px 16px 40px}
-h1{font-size:24px;font-weight:800;margin-bottom:4px}
-.sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+/* ── COMMON ── */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;flex-shrink:0}
+.tb-title{font-size:16px;font-weight:800}
+.tb-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.back{background:none;border:none;color:var(--accent);font-size:15px;font-weight:600;cursor:pointer;padding:0;margin-bottom:4px}
 .lbl{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
-.inp{width:100%;height:var(--h);background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:20px;font-weight:600;padding:0 16px;appearance:none;-webkit-appearance:none;margin-bottom:18px}
+.inp{width:100%;height:var(--h);background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:20px;font-weight:600;padding:0 16px;appearance:none;-webkit-appearance:none}
 .inp:focus{outline:none;border-color:var(--accent)}
-.row{display:flex;gap:10px;margin-bottom:18px}
-.tog{flex:1;height:var(--h);border-radius:var(--r);border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-size:16px;font-weight:700;cursor:pointer}
-.tog.on{border-color:var(--accent);background:rgba(245,158,11,.12);color:var(--accent)}
-.btn{width:100%;height:var(--h);border:none;border-radius:var(--r);font-size:17px;font-weight:800;cursor:pointer;letter-spacing:.01em}
+.inp.sm{font-size:16px}
+.btn{width:100%;height:var(--h);border:none;border-radius:var(--r);font-size:17px;font-weight:800;cursor:pointer}
 .btn-accent{background:var(--accent);color:#111}
-.btn-ghost{background:var(--surface2);color:var(--muted);border:1.5px solid var(--border)}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1.5px solid var(--border)}
 .btn-danger{background:transparent;color:var(--danger);border:1.5px solid var(--danger)}
-/* tracker top */
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;flex-shrink:0}
-.proj{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
-.meta{font-size:12px;color:var(--muted);margin-top:2px}
-/* dashboard */
-.dash{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)}
-.dc{padding:12px 4px;text-align:center}
-.dc+.dc{border-left:1px solid var(--border)}
-.dv{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.section-pad{padding:20px 16px}
+.mb{margin-bottom:16px}
+.row{display:flex;gap:10px}
+
+/* ── HOME SCREEN ── */
+.home-header{padding:32px 20px 20px;flex-shrink:0}
+.home-proj{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.home-title{font-size:26px;font-weight:900;line-height:1.15}
+.home-sub{font-size:13px;color:var(--muted);margin-top:6px}
+.activity-list{padding:0 16px 32px}
+.activity-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:border-color .15s}
+.activity-card:active{border-color:var(--accent)}
+.ac-left{}
+.ac-name{font-size:18px;font-weight:800}
+.ac-desc{font-size:13px;color:var(--muted);margin-top:3px}
+.ac-arrow{font-size:22px;color:var(--border)}
+.activity-card.primary{border-color:rgba(245,158,11,.3)}
+
+/* ── DATE LIST SCREEN ── */
+.date-list{padding:12px 16px}
+.date-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.date-card.today{border-color:var(--accent)}
+.date-card:active{opacity:.75}
+.dc-left .dc-date{font-size:17px;font-weight:800}
+.dc-left .dc-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.dc-right{text-align:right}
+.dc-area{font-size:17px;font-weight:700;color:var(--accent)}
+.dc-entries{font-size:11px;color:var(--muted)}
+.today-badge{font-size:11px;font-weight:700;background:var(--accent);color:#111;padding:3px 8px;border-radius:20px;margin-left:8px}
+.new-session-btn{margin:4px 0 20px}
+
+/* ── SESSION SETUP SCREEN ── */
+.seg-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.seg-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;text-align:center}
+.seg-card.on{border-color:var(--accent);background:rgba(245,158,11,.08)}
+.seg-card:active{opacity:.75}
+.sc-id{font-size:20px;font-weight:800}
+.sc-name{font-size:12px;color:var(--muted);margin-top:2px}
+.sc-hw{font-size:11px;color:var(--muted);margin-top:1px}
+.dir-grid{display:flex;gap:10px;margin-bottom:16px}
+.dir-btn{flex:1;height:54px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-size:16px;font-weight:800;cursor:pointer}
+.dir-btn.on{border-color:var(--accent);background:rgba(245,158,11,.1);color:var(--accent)}
+
+/* ── TRACKER SCREEN ── */
+.dash{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.dc2{padding:12px 4px;text-align:center}
+.dc2+.dc2{border-left:1px solid var(--border)}
+.dv{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
 .dv.a{color:var(--accent)}
-.dl{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-top:3px}
-/* entry */
+.dl{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:3px}
 .entry{padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
 .erow{display:flex;gap:10px;margin-bottom:10px}
 .ef{flex:1}
@@ -51,17 +89,15 @@ h1{font-size:24px;font-weight:800;margin-bottom:4px}
 .ei:focus{outline:none;border-color:var(--accent)}
 .ei.dim{color:var(--muted)}
 .savebtn{width:100%;height:52px;background:var(--accent);border:none;border-radius:12px;color:#111;font-size:17px;font-weight:800;cursor:pointer}
-/* log */
-.logarea{flex:1;overflow-y:auto;padding:12px 16px}
+.logarea{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 16px 16px}
 .empty{text-align:center;padding:40px 0;color:var(--muted);font-size:14px}
-.li{background:var(--surface);border-radius:12px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
-.li-l .st{font-size:22px;font-weight:800}
+.li{background:var(--surface);border-radius:12px;padding:13px 14px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center}
+.li-l .st{font-size:21px;font-weight:800}
 .li-l .w{font-size:13px;color:var(--muted);margin-top:2px}
 .li-r{text-align:right}
-.li-r .ca{font-size:20px;font-weight:700;color:var(--accent)}
+.li-r .ca{font-size:19px;font-weight:700;color:var(--accent)}
 .li-r .cl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-.del{background:none;border:none;color:var(--border);font-size:16px;cursor:pointer;padding:4px 6px;margin-left:8px}
-/* bottom */
+.del{background:none;border:none;color:var(--border);font-size:15px;cursor:pointer;padding:4px 6px;margin-left:6px}
 .bot{display:flex;gap:10px;padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0}
 .endbtn{flex:1;height:50px;background:transparent;border:1.5px solid var(--border);border-radius:12px;color:var(--muted);font-size:15px;font-weight:700;cursor:pointer}
 .synbtn{width:50px;height:50px;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -69,7 +105,8 @@ h1{font-size:24px;font-weight:800;margin-bottom:4px}
 .synbtn.err{border-color:var(--danger);color:var(--danger)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinning{animation:spin .8s linear infinite;display:inline-block}
-/* modal */
+
+/* ── MODAL ── */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:50;align-items:flex-end;justify-content:center}
 .overlay.on{display:flex}
 .modal{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px 44px;width:100%;max-width:480px}
@@ -79,52 +116,104 @@ h1{font-size:24px;font-weight:800;margin-bottom:4px}
 .mstat:last-of-type{border:none;margin-bottom:16px}
 .mv{font-weight:700;color:var(--accent)}
 .mbtns{display:flex;flex-direction:column;gap:10px}
-/* toast */
-.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:#333;color:#fff;padding:10px 22px;border-radius:30px;font-size:14px;font-weight:600;opacity:0;transition:all .2s;pointer-events:none;z-index:100;white-space:nowrap}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:#222;color:#fff;padding:10px 22px;border-radius:30px;font-size:14px;font-weight:600;opacity:0;transition:all .2s;pointer-events:none;z-index:200;white-space:nowrap;border:1px solid #444}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 
-<!-- SETUP -->
-<div class="pg on" id="pg-setup">
-  <div class="setup-scroll">
-    <h1>New Session</h1>
-    <div class="sub">Configure today's milling entry</div>
-
-    <label class="lbl">Project</label>
-    <input class="inp" id="s-proj" type="text" value="26754-0000">
-
-    <label class="lbl">Segment / LKI</label>
-    <input class="inp" id="s-seg" type="text" placeholder="e.g. Segment 2 NB" style="font-size:16px">
-
-    <label class="lbl">Direction</label>
-    <div class="row">
-      <button class="tog on" id="bnb" onclick="setDir('NB')">NB ↑</button>
-      <button class="tog" id="bsb" onclick="setDir('SB')">SB ↓</button>
+<!-- ══ HOME ══ -->
+<div class="pg on" id="pg-home">
+  <div class="scroll">
+    <div class="home-header">
+      <div class="home-proj">Project 26754-0000</div>
+      <div class="home-title">Keywest Asphalt<br>Field Tracker</div>
+      <div class="home-sub">Hwy 1/97 Venables Valley</div>
     </div>
-
-    <label class="lbl">Start Station</label>
-    <input class="inp" id="s-st" type="number" inputmode="numeric" placeholder="e.g. 43170">
-
-    <label class="lbl">Date</label>
-    <input class="inp" id="s-dt" type="text" placeholder="2 Jul 26" style="font-size:16px">
-
-    <button class="btn btn-accent" id="start-btn" onclick="startSession()">Start Milling Session →</button>
+    <div class="activity-list">
+      <div class="activity-card primary" onclick="goActivity('milling')">
+        <div class="ac-left">
+          <div class="ac-name">Milling</div>
+          <div class="ac-desc">Cold mill 50mm — area tracking</div>
+        </div>
+        <div class="ac-arrow">›</div>
+      </div>
+      <div class="activity-card" onclick="showToast('Paving coming soon')">
+        <div class="ac-left">
+          <div class="ac-name">Paving</div>
+          <div class="ac-desc">Top lift & level course — rate tracking</div>
+        </div>
+        <div class="ac-arrow">›</div>
+      </div>
+      <div class="activity-card" onclick="showToast('Coming soon')">
+        <div class="ac-left">
+          <div class="ac-name">More activities</div>
+          <div class="ac-desc">Tack coat, hot joint sealant, shouldering…</div>
+        </div>
+        <div class="ac-arrow">›</div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- TRACKER -->
+<!-- ══ DATE LIST ══ -->
+<div class="pg" id="pg-dates">
+  <div class="topbar">
+    <button class="back" onclick="goHome()">← Activities</button>
+    <div class="tb-title" id="dl-title">Milling Sessions</div>
+    <div class="tb-sub">Select a date to continue or start new</div>
+  </div>
+  <div class="scroll">
+    <div class="date-list">
+      <div id="today-card"></div>
+      <div id="past-sessions"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SESSION SETUP ══ -->
+<div class="pg" id="pg-setup">
+  <div class="topbar">
+    <button class="back" onclick="goDates()">← Sessions</button>
+    <div class="tb-title" id="setup-title">New Session</div>
+    <div class="tb-sub" id="setup-date-label"></div>
+  </div>
+  <div class="scroll">
+    <div class="section-pad">
+
+      <div class="mb">
+        <span class="lbl">Segment</span>
+        <div class="seg-grid" id="seg-grid"></div>
+      </div>
+
+      <div class="mb">
+        <span class="lbl" id="dir-label">Direction</span>
+        <div class="dir-grid" id="dir-grid"></div>
+      </div>
+
+      <div class="mb">
+        <span class="lbl">Start Station <span id="lki-label" style="color:var(--accent);font-weight:400;text-transform:none;letter-spacing:0"></span></span>
+        <input class="inp" id="s-st" type="number" inputmode="numeric" placeholder="e.g. 44896">
+      </div>
+
+      <button class="btn btn-accent" onclick="startSession()">Start Session →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TRACKER ══ -->
 <div class="pg" id="pg-track">
   <div class="topbar">
-    <div class="proj" id="t-proj">—</div>
-    <div class="meta" id="t-meta">—</div>
+    <div class="tb-title" id="t-title">—</div>
+    <div class="tb-sub" id="t-sub">—</div>
   </div>
   <div class="dash">
-    <div class="dc"><div class="dv" id="d-s">—</div><div class="dl">Start</div></div>
-    <div class="dc"><div class="dv a" id="d-c">—</div><div class="dl">Current</div></div>
-    <div class="dc"><div class="dv" id="d-w">—</div><div class="dl">Avg W (m)</div></div>
-    <div class="dc"><div class="dv a" id="d-a">—</div><div class="dl">Area m²</div></div>
+    <div class="dc2"><div class="dv" id="d-s">—</div><div class="dl">Start</div></div>
+    <div class="dc2"><div class="dv a" id="d-c">—</div><div class="dl">Current</div></div>
+    <div class="dc2"><div class="dv" id="d-w">—</div><div class="dl">Avg W (m)</div></div>
+    <div class="dc2"><div class="dv a" id="d-a">—</div><div class="dl">Area m²</div></div>
   </div>
   <div class="entry">
     <div class="erow">
@@ -133,18 +222,20 @@ h1{font-size:24px;font-weight:800;margin-bottom:4px}
     </div>
     <button class="savebtn" onclick="addEntry()">Save Reading</button>
   </div>
-  <div class="logarea" id="logarea"><div class="empty" id="empty">Enter the first reading above</div></div>
+  <div class="logarea" id="logarea">
+    <div class="empty" id="log-empty">Enter the first reading above</div>
+  </div>
   <div class="bot">
     <button class="endbtn" onclick="openEndModal()">End Session</button>
-    <button class="synbtn" id="synbtn" onclick="sync()">☁</button>
+    <button class="synbtn" id="synbtn" onclick="doSync()">☁</button>
   </div>
 </div>
 
-<!-- END MODAL -->
+<!-- ══ END MODAL ══ -->
 <div class="overlay" id="modal">
   <div class="modal">
     <div class="mtitle" id="m-title">End Session?</div>
-    <div class="msub" id="m-sub">Saves to Google Sheets then resets for a new session.</div>
+    <div class="msub" id="m-sub">Saves to Google Sheets then returns to sessions list.</div>
     <div class="mstat"><span>Readings</span><span class="mv" id="m-n">0</span></div>
     <div class="mstat"><span>Start → End</span><span class="mv" id="m-rng">—</span></div>
     <div class="mstat"><span>Total Length</span><span class="mv" id="m-len">—</span></div>
@@ -160,84 +251,297 @@ h1{font-size:24px;font-weight:800;margin-bottom:4px}
 <div class="toast" id="toast"></div>
 
 <script>
+// ══ PROJECT CONFIG ══════════════════════════════════════════════════════════
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8FPePSr4ktna2fNgVUUU6-zTufCqR7Bwgc4W6JlHfadmIxguBBhd1GljanSaNQmgc9Q/exec';
 
-// ── STATE ─────────────────────────────────────────────────────────────────
-let dir = 'NB';
-let sess = null;
-let rows = [];
+const PROJECT = {
+  number: '26754-0000',
+  name: 'Hwy 1/97 Venables Valley',
+  target_rate: 124.35,
+  band_low: 100,
+  band_high: 102,
+  segments: [
+    {
+      id: 'S1', name: 'Segment 1', highway: 'Hwy 1',
+      directions: {
+        EB: { label: 'Hwy 1 EBL', increment: 1,  range: [25340, 35235], rollovers: [] },
+        WB: { label: 'Hwy 1 WBL', increment: -1, range: [35235, 25340], rollovers: [] }
+      }
+    },
+    {
+      id: 'S2', name: 'Segment 2', highway: 'Hwy 1/97/97C/99',
+      directions: {
+        NB: { label: 'Hwy 1 NBL', increment: 1,  range: [43170, 99999], rollovers: [{from:45060, to:0}] },
+        SB: { label: 'Hwy 1 SBL', increment: -1, range: [35235, 25340], rollovers: [] }
+      }
+    }
+  ]
+};
+
+// ══ STATE ═══════════════════════════════════════════════════════════════════
+let currentActivity = 'milling';
+let selectedSeg = null;    // segment object
+let selectedDir = null;    // direction key e.g. 'NB'
+let sess = null;           // active session metadata
+let rows = [];             // readings array
 
 function persist() {
-  localStorage.setItem('ft3_sess', JSON.stringify(sess));
-  localStorage.setItem('ft3_rows', JSON.stringify(rows));
+  try {
+    localStorage.setItem('ft4_sess', JSON.stringify(sess));
+    localStorage.setItem('ft4_rows', JSON.stringify(rows));
+  } catch(e) {}
 }
-
 function restore() {
   try {
-    const s = localStorage.getItem('ft3_sess');
-    const r = localStorage.getItem('ft3_rows');
+    const s = localStorage.getItem('ft4_sess');
+    const r = localStorage.getItem('ft4_rows');
     if (s) sess = JSON.parse(s);
     if (r) rows = JSON.parse(r);
   } catch(e) { sess = null; rows = []; }
 }
 
-// ── DIRECTION ─────────────────────────────────────────────────────────────
-function setDir(d) {
-  dir = d;
-  document.getElementById('bnb').classList.toggle('on', d === 'NB');
-  document.getElementById('bsb').classList.toggle('on', d === 'SB');
+// ══ NAVIGATION ══════════════════════════════════════════════════════════════
+function show(id) {
+  document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
 }
 
-// ── SETUP → START ─────────────────────────────────────────────────────────
+function goHome() { show('pg-home'); }
+
+function goActivity(activity) {
+  currentActivity = activity;
+  document.getElementById('dl-title').textContent =
+    activity.charAt(0).toUpperCase() + activity.slice(1) + ' Sessions';
+  buildDateList();
+  show('pg-dates');
+}
+
+function goDates() { buildDateList(); show('pg-dates'); }
+
+// ══ DATE LIST ═══════════════════════════════════════════════════════════════
+function todayStr() {
+  const d = new Date();
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + String(d.getFullYear()).slice(2);
+}
+function todayTab() {
+  return 'FT-' + todayStr().replace(/\s+/g,'');
+}
+
+function buildDateList() {
+  const today = todayStr();
+  const todayEl = document.getElementById('today-card');
+  const pastEl = document.getElementById('past-sessions');
+
+  // Today card — always shown
+  todayEl.innerHTML = `
+    <div class="date-card today" onclick="openSetup('${today}')">
+      <div class="dc-left">
+        <div class="dc-date">${today} <span class="today-badge">TODAY</span></div>
+        <div class="dc-meta">Tap to start or continue</div>
+      </div>
+      <div class="ac-arrow" style="color:var(--accent)">›</div>
+    </div>`;
+
+  // Past sessions — load from localStorage keys
+  pastEl.innerHTML = '';
+  const pastSessions = getPastSessions();
+  if (pastSessions.length === 0) {
+    pastEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0">No past sessions yet</div>';
+    return;
+  }
+  pastSessions.forEach(s => {
+    if (s.date === today) return; // skip today
+    pastEl.innerHTML += `
+      <div class="date-card" onclick="openSetup('${s.date}')">
+        <div class="dc-left">
+          <div class="dc-date">${s.date}</div>
+          <div class="dc-meta">${s.seg || ''} ${s.dir || ''} · ${s.entries} readings</div>
+        </div>
+        <div class="dc-right">
+          <div class="dc-area">${s.area} m²</div>
+          <div class="dc-entries">total area</div>
+        </div>
+      </div>`;
+  });
+}
+
+function getPastSessions() {
+  // Read saved sessions from localStorage (keyed by tab name)
+  const sessions = [];
+  try {
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('fts_'));
+    keys.sort().reverse();
+    keys.forEach(k => {
+      const d = JSON.parse(localStorage.getItem(k));
+      sessions.push(d);
+    });
+  } catch(e) {}
+  return sessions;
+}
+
+function savePastSession() {
+  if (!sess || rows.length === 0) return;
+  const last = rows[rows.length-1];
+  const totLen = rows.reduce((s,r) => s+r.len, 0);
+  const avgW = totLen > 0 ? last.cum/totLen : 0;
+  const key = 'fts_' + sess.tab;
+  const record = {
+    date: sess.date, tab: sess.tab,
+    seg: sess.segId, dir: sess.dir,
+    entries: rows.length,
+    area: last.cum.toFixed(2),
+    avgW: avgW.toFixed(2),
+    totLen: totLen.toFixed(0)
+  };
+  localStorage.setItem(key, JSON.stringify(record));
+}
+
+// ══ SESSION SETUP ════════════════════════════════════════════════════════════
+function openSetup(dateStr) {
+  // If there's an active session for this date, go straight to tracker
+  if (sess && sess.date === dateStr && rows.length > 0) {
+    resumeTracker();
+    return;
+  }
+  document.getElementById('setup-title').textContent = 'Session Setup';
+  document.getElementById('setup-date-label').textContent = dateStr;
+  buildSegGrid();
+  show('pg-setup');
+  // Default: restore last-used segment/direction
+  const lastSess = getLastSession();
+  if (lastSess) {
+    selectSeg(lastSess.seg || 'S1');
+    selectDir(lastSess.dir || Object.keys(PROJECT.segments[0].directions)[0]);
+    document.getElementById('s-st').value = lastSess.endSt || '';
+  } else {
+    selectSeg('S1');
+    selectDir('EB');
+  }
+  document.getElementById('setup-date-label').textContent = dateStr;
+  document.getElementById('_setup_date').value = dateStr;
+}
+
+function getLastSession() {
+  try {
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('fts_'));
+    if (keys.length === 0) return null;
+    keys.sort();
+    const last = JSON.parse(localStorage.getItem(keys[keys.length-1]));
+    return last;
+  } catch(e) { return null; }
+}
+
+function buildSegGrid() {
+  const grid = document.getElementById('seg-grid');
+  grid.innerHTML = PROJECT.segments.map(s => `
+    <div class="seg-card" id="sc-${s.id}" onclick="selectSeg('${s.id}')">
+      <div class="sc-id">${s.id}</div>
+      <div class="sc-name">${s.name}</div>
+      <div class="sc-hw">${s.highway}</div>
+    </div>`).join('');
+}
+
+function selectSeg(segId) {
+  selectedSeg = PROJECT.segments.find(s => s.id === segId);
+  document.querySelectorAll('.seg-card').forEach(c => c.classList.remove('on'));
+  const el = document.getElementById('sc-' + segId);
+  if (el) el.classList.add('on');
+  buildDirGrid();
+}
+
+function buildDirGrid() {
+  if (!selectedSeg) return;
+  const dirs = Object.keys(selectedSeg.directions);
+  const isEW = dirs.includes('EB');
+  document.getElementById('dir-label').textContent =
+    isEW ? 'Direction (East-West)' : 'Direction (North-South)';
+  const grid = document.getElementById('dir-grid');
+  grid.innerHTML = dirs.map(d => `
+    <button class="dir-btn" id="db-${d}" onclick="selectDir('${d}')">${d} ${d==='NB'||d==='EB'?'↑':'↓'}</button>`
+  ).join('');
+  selectDir(dirs[0]);
+}
+
+function selectDir(dirKey) {
+  if (!selectedSeg) return;
+  const dirs = selectedSeg.directions;
+  if (!dirs[dirKey]) return;
+  selectedDir = dirKey;
+  document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('on'));
+  const el = document.getElementById('db-' + dirKey);
+  if (el) el.classList.add('on');
+  // Show LKI label
+  const conf = dirs[dirKey];
+  document.getElementById('lki-label').textContent =
+    '(' + conf.label + ', range ' + conf.range[0] + '–' + conf.range[1] + ')';
+}
+
 function startSession() {
-  const proj = document.getElementById('s-proj').value.trim() || '26754-0000';
-  const seg  = document.getElementById('s-seg').value.trim();
-  const st   = parseFloat(document.getElementById('s-st').value);
-  const dt   = document.getElementById('s-dt').value.trim();
-
+  if (!selectedSeg || !selectedDir) { showToast('Select segment and direction'); return; }
+  const st = parseFloat(document.getElementById('s-st').value);
   if (isNaN(st)) { showToast('Enter a start station'); return; }
-  if (!dt)       { showToast('Enter a date'); return; }
-
-  const tab = 'FT-' + dt.replace(/\s+/g,'');
-  sess = { proj, seg, dir, startSt: st, date: dt, tab };
+  const dateStr = document.getElementById('setup-date-label').textContent;
+  const dirConf = selectedSeg.directions[selectedDir];
+  const tab = 'FT-' + dateStr.replace(/\s+/g,'');
+  sess = {
+    date: dateStr, tab, activity: 'Milling',
+    segId: selectedSeg.id, segName: selectedSeg.name,
+    dir: selectedDir, dirLabel: dirConf.label,
+    startSt: st, increment: dirConf.increment,
+    rollovers: dirConf.rollovers || []
+  };
   rows = [];
   persist();
-  goTracker();
+  resumeTracker();
 }
 
-function goTracker() {
-  document.getElementById('pg-setup').classList.remove('on');
-  document.getElementById('pg-track').classList.add('on');
-  // Info bar
-  document.getElementById('t-proj').textContent =
-    sess.proj + (sess.seg ? ' · ' + sess.seg : '');
-  document.getElementById('t-meta').textContent =
-    sess.date + ' · ' + sess.dir + ' · Milling';
-  // Dashboard
+// Hidden date field for passing date from date list to setup
+const _df = document.createElement('input');
+_df.id = '_setup_date'; _df.type = 'hidden'; document.body.appendChild(_df);
+
+// ══ TRACKER ══════════════════════════════════════════════════════════════════
+function resumeTracker() {
+  document.getElementById('t-title').textContent =
+    sess.segName + ' · ' + sess.dirLabel;
+  document.getElementById('t-sub').textContent =
+    sess.date + ' · ' + sess.activity;
   document.getElementById('d-s').textContent = sess.startSt;
   refreshDash();
   renderLog();
-  // Pre-fill first station
-  document.getElementById('e-st').value = rows.length === 0
-    ? sess.startSt
-    : nextSt();
+  prefillNextStation();
+  show('pg-track');
 }
 
-// ── NEXT STATION SUGGESTION ───────────────────────────────────────────────
-function nextSt() {
+function prefillNextStation() {
+  const inp = document.getElementById('e-st');
+  if (rows.length === 0) {
+    inp.value = sess.startSt;
+  } else {
+    inp.value = nextStation();
+  }
+  inp.classList.add('dim');
+}
+
+function nextStation() {
   if (!sess || rows.length === 0) return '';
-  const last = rows[rows.length - 1].station;
-  return last + (sess.dir === 'NB' ? 50 : -50);
+  const last = rows[rows.length-1].station;
+  const next = last + (sess.increment * 50);
+  // Check if this crosses a rollover
+  for (const rv of sess.rollovers) {
+    if (sess.increment > 0 && last <= rv.from && next > rv.from) return rv.to;
+    if (sess.increment < 0 && last >= rv.from && next < rv.from) return rv.to;
+  }
+  return next;
 }
 
-// ── ADD ENTRY ─────────────────────────────────────────────────────────────
 function addEntry() {
   const st = parseFloat(document.getElementById('e-st').value);
   const w  = parseFloat(document.getElementById('e-w').value);
   if (isNaN(st)) { showToast('Enter a station'); return; }
   if (isNaN(w) || w <= 0) { showToast('Enter a valid width'); return; }
 
-  const prev = rows.length > 0 ? rows[rows.length - 1] : null;
+  const prev = rows.length > 0 ? rows[rows.length-1] : null;
   let len = 0, seg = 0, cum = 0;
 
   if (prev) {
@@ -247,77 +551,76 @@ function addEntry() {
     len = (same || lki) ? 0 : raw;
     seg = len > 0 ? ((prev.width + w) / 2) * len : 0;
     cum = prev.cum + seg;
-    if (lki) showToast('LKI change detected — length set to 0');
+    if (lki) showToast('LKI rollover — length set to 0');
   }
 
   rows.push({ station: st, width: w, len, seg, cum, ts: new Date().toISOString() });
   persist();
 
   document.getElementById('e-w').value = '';
-  document.getElementById('e-st').value = st + (sess.dir === 'NB' ? 50 : -50);
-
+  document.getElementById('e-st').value = nextStation();
+  document.getElementById('e-st').classList.add('dim');
   refreshDash();
   renderLog();
   document.getElementById('e-w').focus();
 }
 
-// ── DELETE ────────────────────────────────────────────────────────────────
+document.getElementById('e-st').addEventListener('input', function() {
+  this.classList.remove('dim');
+});
+document.getElementById('e-w').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') addEntry();
+});
+
 function del(i) {
   rows.splice(i, 1);
-  // Recalculate cumulative from scratch
   for (let j = 0; j < rows.length; j++) {
     if (j === 0) { rows[j].len = 0; rows[j].seg = 0; rows[j].cum = 0; }
     else {
-      const prev = rows[j-1];
-      const raw = Math.abs(rows[j].station - prev.station);
-      const lki = raw > 5000;
-      rows[j].len = lki ? 0 : raw;
-      rows[j].seg = rows[j].len > 0 ? ((prev.width + rows[j].width)/2) * rows[j].len : 0;
-      rows[j].cum = prev.cum + rows[j].seg;
+      const p = rows[j-1];
+      const raw = Math.abs(rows[j].station - p.station);
+      rows[j].len = raw > 5000 ? 0 : raw;
+      rows[j].seg = rows[j].len > 0 ? ((p.width + rows[j].width)/2) * rows[j].len : 0;
+      rows[j].cum = p.cum + rows[j].seg;
     }
   }
-  persist();
-  refreshDash();
-  renderLog();
+  persist(); refreshDash(); renderLog();
 }
 
-// ── DASHBOARD ─────────────────────────────────────────────────────────────
 function refreshDash() {
+  if (!sess) return;
   const n = rows.length;
+  document.getElementById('d-s').textContent = sess.startSt;
   if (n === 0) {
-    document.getElementById('d-c').textContent = '—';
-    document.getElementById('d-w').textContent = '—';
-    document.getElementById('d-a').textContent = '—';
+    ['d-c','d-w','d-a'].forEach(id => document.getElementById(id).textContent = '—');
     return;
   }
   const last = rows[n-1];
   document.getElementById('d-c').textContent = last.station;
   document.getElementById('d-a').textContent = last.cum.toFixed(0);
-  const totLen = rows.reduce((s,r) => s+r.len, 0);
-  const avgW = totLen > 0 ? last.cum / totLen : 0;
+  const totLen = rows.reduce((s,r)=>s+r.len,0);
+  const avgW = totLen > 0 ? last.cum/totLen : 0;
   document.getElementById('d-w').textContent = avgW > 0 ? avgW.toFixed(2) : '—';
 }
 
-// ── LOG ───────────────────────────────────────────────────────────────────
 function renderLog() {
   const area = document.getElementById('logarea');
-  const empty = document.getElementById('empty');
-  // Remove old items
+  const empty = document.getElementById('log-empty');
   area.querySelectorAll('.li').forEach(e => e.remove());
   if (rows.length === 0) { empty.style.display = 'block'; return; }
   empty.style.display = 'none';
   const frag = document.createDocumentFragment();
-  for (let i = rows.length - 1; i >= 0; i--) {
+  for (let i = rows.length-1; i >= 0; i--) {
     const r = rows[i];
     const d = document.createElement('div');
     d.className = 'li';
     d.innerHTML = `
       <div class="li-l">
         <div class="st">ST ${r.station}</div>
-        <div class="w">${r.width.toFixed(2)} m${r.seg > 0 ? ' · +' + r.seg.toFixed(1) + ' m²' : ''}</div>
+        <div class="w">${r.width.toFixed(2)} m${r.seg>0?' · +'+r.seg.toFixed(2)+' m²':''}</div>
       </div>
       <div class="li-r">
-        <div class="ca">${r.cum.toFixed(1)}</div>
+        <div class="ca">${r.cum.toFixed(2)}</div>
         <div class="cl">m² total</div>
       </div>
       <button class="del" onclick="del(${i})">✕</button>`;
@@ -326,14 +629,14 @@ function renderLog() {
   area.insertBefore(frag, area.firstChild);
 }
 
-// ── END SESSION MODAL ─────────────────────────────────────────────────────
+// ══ END SESSION ══════════════════════════════════════════════════════════════
 function openEndModal() {
   if (rows.length === 0) { showToast('No entries yet'); return; }
   const last = rows[rows.length-1];
   const totLen = rows.reduce((s,r)=>s+r.len,0);
   const avgW = totLen > 0 ? last.cum/totLen : 0;
   document.getElementById('m-title').textContent = 'End Session?';
-  document.getElementById('m-sub').textContent = 'Saves to Google Sheets then resets for a new session.';
+  document.getElementById('m-sub').textContent = 'Saves to Google Sheets then returns to sessions list.';
   document.getElementById('m-ok').textContent = 'Save & End Session';
   document.getElementById('m-ok').onclick = endSession;
   document.getElementById('m-n').textContent = rows.length;
@@ -347,105 +650,94 @@ function closeModal() { document.getElementById('modal').classList.remove('on');
 
 async function endSession() {
   closeModal();
-  const ok = await sync();
+  const ok = await doSync();
   if (!ok) {
-    // Sync failed — keep session, show retry
     document.getElementById('m-title').textContent = 'Sync Failed';
-    document.getElementById('m-sub').textContent = 'No connection. Your data is safe. Check signal and try again.';
+    document.getElementById('m-sub').textContent = 'No connection. Your data is safe on this device. Check signal and retry.';
     document.getElementById('m-ok').textContent = 'Retry';
     document.getElementById('m-ok').onclick = endSession;
     document.getElementById('modal').classList.add('on');
     return;
   }
-  // Confirmed — reset
+  savePastSession();
   sess = null; rows = [];
   persist();
-  document.getElementById('pg-track').classList.remove('on');
-  document.getElementById('pg-setup').classList.add('on');
+  show('pg-dates');
+  buildDateList();
   showToast('Session saved ✓');
 }
 
-// ── SYNC (JSONP — works in Safari across origins) ─────────────────────────
-function jsonpCall(url, timeoutMs) {
-  return new Promise((resolve) => {
-    const cbName = 'ft_cb_' + Date.now();
-    const timer = setTimeout(() => {
-      cleanup(); resolve({ ok: false, error: 'timeout' });
-    }, timeoutMs || 12000);
-    window[cbName] = (result) => { cleanup(); resolve(result || { ok: false, error: 'empty response' }); };
+// ══ SYNC (JSONP) ═════════════════════════════════════════════════════════════
+function jsonpCall(url, ms) {
+  return new Promise(resolve => {
+    const cb = 'ft_cb_' + Date.now();
+    const timer = setTimeout(() => { cleanup(); resolve({ok:false,error:'timeout'}); }, ms||12000);
+    window[cb] = r => { cleanup(); resolve(r || {ok:false,error:'empty'}); };
     function cleanup() {
-      clearTimeout(timer); delete window[cbName];
-      const el = document.getElementById('_jscall'); if (el) el.remove();
+      clearTimeout(timer); delete window[cb];
+      const el = document.getElementById('_jsc'); if(el) el.remove();
     }
     const s = document.createElement('script');
-    s.id = '_jscall';
-    s.onerror = () => { cleanup(); resolve({ ok: false, error: 'script load error' }); };
-    s.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cbName;
+    s.id = '_jsc';
+    s.onerror = () => { cleanup(); resolve({ok:false,error:'load failed'}); };
+    s.src = url + (url.includes('?')?'&':'?') + 'callback=' + cb;
     document.head.appendChild(s);
   });
 }
 
-async function sync() {
+async function doSync() {
   if (!sess || rows.length === 0) { showToast('Nothing to sync'); return false; }
   const btn = document.getElementById('synbtn');
   btn.innerHTML = '<span class="spinning">↻</span>';
   btn.className = 'synbtn';
 
-  // Ping to verify connectivity
   const ping = await jsonpCall(SCRIPT_URL + '?ping=1', 8000);
   if (!ping.ok) {
-    btn.textContent = '✕'; btn.className = 'synbtn err';
+    btn.textContent='✕'; btn.className='synbtn err';
     showToast('No connection: ' + ping.error);
-    setTimeout(() => { btn.textContent = '☁'; btn.className = 'synbtn'; }, 5000);
+    setTimeout(()=>{ btn.textContent='☁'; btn.className='synbtn'; }, 5000);
     return false;
   }
 
-  // Send data
   const last = rows[rows.length-1];
-  const totLen = rows.reduce((s,r) => s + r.len, 0);
-  const avgW = totLen > 0 ? last.cum / totLen : 0;
+  const totLen = rows.reduce((s,r)=>s+r.len,0);
+  const avgW = totLen > 0 ? last.cum/totLen : 0;
   const payload = {
-    action: 'save_session', tabName: sess.tab,
-    entries: rows.map(r => ({ station: r.station, width: r.width, length: r.len, segArea: r.seg, cumArea: r.cum, timestamp: r.ts })),
-    summary: { date: sess.date, direction: sess.dir, activity: 'Milling', startStation: sess.startSt, endStation: last.station, totalLength: totLen.toFixed(1), avgWidth: avgW.toFixed(2), totalArea: last.cum.toFixed(2) }
+    action:'save_session', tabName: sess.tab,
+    entries: rows.map(r=>({station:r.station,width:r.width,length:r.len,segArea:r.seg,cumArea:r.cum,timestamp:r.ts})),
+    summary:{date:sess.date,direction:sess.dir,activity:'Milling',
+      segment:sess.segName,dirLabel:sess.dirLabel,
+      startStation:sess.startSt,endStation:last.station,
+      totalLength:totLen.toFixed(1),avgWidth:avgW.toFixed(2),totalArea:last.cum.toFixed(2)}
   };
 
   const result = await jsonpCall(SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(payload)));
   if (result.ok) {
-    btn.textContent = '✓'; btn.className = 'synbtn ok';
+    btn.textContent='✓'; btn.className='synbtn ok';
     showToast('Synced ✓ — ' + result.rows + ' rows');
-    setTimeout(() => { btn.textContent = '☁'; btn.className = 'synbtn'; }, 3000);
+    setTimeout(()=>{ btn.textContent='☁'; btn.className='synbtn'; }, 3000);
     return true;
   } else {
-    btn.textContent = '✕'; btn.className = 'synbtn err';
-    showToast('Script error: ' + (result.error || 'unknown'));
-    setTimeout(() => { btn.textContent = '☁'; btn.className = 'synbtn'; }, 5000);
+    btn.textContent='✕'; btn.className='synbtn err';
+    showToast('Error: ' + (result.error||'unknown'));
+    setTimeout(()=>{ btn.textContent='☁'; btn.className='synbtn'; }, 5000);
     return false;
   }
 }
 
-// ── TOAST ─────────────────────────────────────────────────────────────────
+// ══ TOAST ════════════════════════════════════════════════════════════════════
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('on');
-  setTimeout(() => t.classList.remove('on'), 2800);
+  setTimeout(()=>t.classList.remove('on'), 3000);
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────
-// Default date
-const _d = new Date();
-const _m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-document.getElementById('s-dt').value =
-  _d.getDate() + ' ' + _m[_d.getMonth()] + ' ' + String(_d.getFullYear()).slice(2);
-
-// Restore session if one was in progress
+// ══ INIT ═════════════════════════════════════════════════════════════════════
 restore();
-if (sess && sess.startSt) {
-  dir = sess.dir || 'NB';
-  goTracker();
-} else {
-  sess = null; rows = [];
+if (sess && sess.startSt && rows.length > 0) {
+  // Resume active session
+  resumeTracker();
 }
 </script>
 </body>
