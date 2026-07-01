@@ -356,7 +356,7 @@ function buildDateList() {
       <div class="date-card" onclick="openSetup('${s.date}')">
         <div class="dc-left">
           <div class="dc-date">${s.date}</div>
-          <div class="dc-meta">${s.seg || ''} ${s.dir || ''} · ${s.entries} readings</div>
+          <div class="dc-meta">${s.seg || ''} · ${s.dir || ''} · ended ST ${s.endSt || '—'} · ${s.entries} readings</div>
         </div>
         <div class="dc-right">
           <div class="dc-area">${s.area} m²</div>
@@ -389,6 +389,7 @@ function savePastSession() {
   const record = {
     date: sess.date, tab: sess.tab,
     seg: sess.segId, dir: sess.dir,
+    endSt: rows[rows.length-1].station,
     entries: rows.length,
     area: last.cum.toFixed(2),
     avgW: avgW.toFixed(2),
