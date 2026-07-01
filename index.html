@@ -3,766 +3,573 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Field Tracker — Keywest Asphalt</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Field Tracker</title>
 <style>
-  :root {
-    --bg: #1A1A1A;
-    --surface: #242424;
-    --surface2: #2E2E2E;
-    --border: #3A3A3A;
-    --accent: #E8750A;
-    --accent-dim: rgba(232,117,10,0.15);
-    --ok: #4CAF50;
-    --warn: #E8750A;
-    --danger: #E53935;
-    --text: #F5F5F5;
-    --label: #8A8A8A;
-    --radius: 12px;
-    --tap: 56px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: system-ui, -apple-system, sans-serif;
-    min-height: 100dvh;
-    max-width: 480px;
-    margin: 0 auto;
-    padding-bottom: 80px;
-  }
+:root {
+  --bg: #111;
+  --surface: #1E1E1E;
+  --surface2: #2A2A2A;
+  --border: #383838;
+  --accent: #F59E0B;
+  --accent-dim: rgba(245,158,11,0.12);
+  --ok: #22C55E;
+  --danger: #EF4444;
+  --text: #F3F3F3;
+  --muted: #888;
+  --radius: 14px;
+  --tap: 58px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;overflow-x:hidden}
 
-  /* HEADER */
-  .app-header {
-    padding: 16px 16px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .app-title { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--label); }
-  .session-badge {
-    font-size: 11px; color: var(--label); background: var(--surface2);
-    padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border);
-  }
+/* ── LAYOUT ── */
+.screen{display:none;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto}
+.screen.active{display:flex}
 
-  /* TABS */
-  .tabs {
-    display: flex; gap: 8px; padding: 14px 16px;
-    position: sticky; top: 0; background: var(--bg); z-index: 10;
-  }
-  .tab {
-    flex: 1; height: 44px; border-radius: var(--radius);
-    border: 1.5px solid var(--border); background: var(--surface);
-    color: var(--label); font-size: 15px; font-weight: 600;
-    cursor: pointer; transition: all .15s;
-  }
-  .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+/* ── SETUP SCREEN ── */
+.setup-body{flex:1;overflow-y:auto;padding:20px 16px 32px}
+.setup-title{font-size:22px;font-weight:800;margin-bottom:4px}
+.setup-sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+.field-block{margin-bottom:20px}
+.field-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block}
+.field-input{width:100%;height:var(--tap);background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:20px;font-weight:600;padding:0 16px;-webkit-appearance:none}
+.field-input:focus{outline:none;border-color:var(--accent)}
+.seg-input{font-size:15px}
+.toggle-row{display:flex;gap:10px}
+.toggle-btn{flex:1;height:var(--tap);border-radius:var(--radius);border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-size:17px;font-weight:700;cursor:pointer;transition:all .15s}
+.toggle-btn.on{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+.btn-start{width:100%;height:var(--tap);background:var(--accent);border:none;border-radius:var(--radius);color:#111;font-size:17px;font-weight:800;cursor:pointer;margin-top:8px;letter-spacing:.01em}
+.btn-start:active{opacity:.85}
 
-  /* PANELS */
-  .panel { display: none; padding: 0 16px; }
-  .panel.active { display: block; }
+/* ── TRACKER SCREEN ── */
+/* Top info bar */
+.info-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:0;flex-shrink:0}
+.info-bar-left{flex:1}
+.info-project{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.info-meta{font-size:12px;color:var(--muted);margin-top:1px}
 
-  /* SECTION HEADING */
-  .section-label {
-    font-size: 11px; font-weight: 700; letter-spacing: .1em;
-    text-transform: uppercase; color: var(--label); margin: 20px 0 10px;
-  }
+/* Dashboard */
+.dashboard{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0;flex-shrink:0}
+.dash-item{text-align:center;padding:0 4px}
+.dash-item+.dash-item{border-left:1px solid var(--border)}
+.dash-val{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.dash-lbl{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.dash-val.accent{color:var(--accent)}
 
-  /* CARD */
-  .card {
-    background: var(--surface); border-radius: var(--radius);
-    border: 1px solid var(--border); padding: 16px; margin-bottom: 12px;
-  }
+/* Entry form */
+.entry-form{padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg)}
+.entry-row{display:flex;gap:10px;margin-bottom:10px;align-items:flex-end}
+.entry-field{flex:1}
+.entry-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block}
+.entry-input{width:100%;height:54px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:22px;font-weight:700;padding:0 14px;-webkit-appearance:none;text-align:center}
+.entry-input:focus{outline:none;border-color:var(--accent)}
+.entry-input.hint{color:var(--muted)}
+.btn-save{width:100%;height:54px;background:var(--accent);border:none;border-radius:12px;color:#111;font-size:17px;font-weight:800;cursor:pointer;letter-spacing:.01em}
+.btn-save:active{opacity:.85}
+.lki-note{font-size:11px;color:var(--muted);text-align:center;padding:6px 0 0;display:none}
+.lki-note.show{display:block}
 
-  /* DIRECTION TOGGLE */
-  .dir-toggle { display: flex; gap: 8px; }
-  .dir-btn {
-    flex: 1; height: var(--tap); border-radius: var(--radius);
-    border: 1.5px solid var(--border); background: var(--surface2);
-    color: var(--label); font-size: 16px; font-weight: 700;
-    cursor: pointer; transition: all .15s;
-  }
-  .dir-btn.active { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+/* Log list */
+.log-area{flex:1;overflow-y:auto;padding:0 16px 16px}
+.log-empty{text-align:center;padding:48px 0;color:var(--muted);font-size:14px}
+.log-item{background:var(--surface);border-radius:12px;padding:14px 16px;margin-top:12px;display:grid;grid-template-columns:1fr auto;gap:4px 16px;align-items:center}
+.log-item:first-child{margin-top:12px}
+.log-station{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+.log-width{font-size:15px;color:var(--muted);font-weight:600}
+.log-seg{font-size:13px;color:var(--muted)}
+.log-cum{font-size:20px;font-weight:700;color:var(--accent);text-align:right}
+.log-cum-lbl{font-size:10px;color:var(--muted);text-align:right;letter-spacing:.05em;text-transform:uppercase}
+.log-delete{background:none;border:none;color:var(--border);font-size:18px;cursor:pointer;padding:4px;margin-top:-4px}
+.log-delete:active{color:var(--danger)}
 
-  /* FIELD ROW */
-  .field-row { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 10px; }
-  .field { flex: 1; }
-  .field label { display: block; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--label); margin-bottom: 6px; }
-  .field input {
-    width: 100%; height: var(--tap); background: var(--surface2);
-    border: 1.5px solid var(--border); border-radius: var(--radius);
-    color: var(--text); font-size: 22px; font-weight: 600;
-    padding: 0 14px; appearance: none; -webkit-appearance: none;
-  }
-  .field input:focus { outline: none; border-color: var(--accent); }
-  .field input.suggested { border-color: #4A4A4A; color: var(--label); }
+/* Bottom actions */
+.bottom-bar{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0;background:var(--bg)}
+.btn-end{flex:1;height:52px;background:transparent;border:1.5px solid var(--border);border-radius:12px;color:var(--muted);font-size:15px;font-weight:700;cursor:pointer}
+.btn-end:active{border-color:var(--danger);color:var(--danger)}
+.btn-sync{width:52px;height:52px;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center}
+.btn-sync.syncing{animation:spin 1s linear infinite}
+.btn-sync.synced{border-color:var(--ok);color:var(--ok)}
+.btn-sync.error{border-color:var(--danger);color:var(--danger)}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-  /* BUTTONS */
-  .btn {
-    width: 100%; height: var(--tap); border-radius: var(--radius);
-    border: none; font-size: 16px; font-weight: 700;
-    cursor: pointer; transition: all .15s; letter-spacing: .02em;
-  }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:active { background: #c5620a; }
-  .btn-secondary { background: var(--surface2); color: var(--text); border: 1.5px solid var(--border); }
-  .btn-secondary:active { background: var(--border); }
-  .btn-danger { background: transparent; color: var(--danger); border: 1.5px solid var(--danger); }
-  .btn-sm {
-    height: 40px; padding: 0 16px; border-radius: 8px;
-    border: none; font-size: 14px; font-weight: 600;
-    cursor: pointer; white-space: nowrap;
-  }
-  .btn-sm.accent { background: var(--accent); color: #fff; }
-  .btn-sm.ghost { background: var(--surface2); color: var(--text); border: 1.5px solid var(--border); }
+/* End session modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:flex-end;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:480px}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:6px}
+.modal-sub{font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.5}
+.modal-stat{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:15px}
+.modal-stat:last-of-type{border-bottom:none;margin-bottom:16px}
+.modal-stat-val{font-weight:700;color:var(--accent)}
+.modal-btns{display:flex;flex-direction:column;gap:10px}
+.btn-modal-primary{height:54px;background:var(--accent);border:none;border-radius:12px;color:#111;font-size:16px;font-weight:800;cursor:pointer}
+.btn-modal-secondary{height:54px;background:transparent;border:1.5px solid var(--border);border-radius:12px;color:var(--muted);font-size:15px;font-weight:600;cursor:pointer}
 
-  /* RATE GAUGE */
-  .gauge-card {
-    background: var(--surface); border-radius: var(--radius);
-    border: 1px solid var(--border); padding: 20px 16px 16px;
-    margin-bottom: 12px; text-align: center;
-  }
-  .gauge-wrap { position: relative; display: inline-block; margin-bottom: 8px; }
-  svg.gauge { display: block; }
-  .gauge-label-center {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-44%);
-    text-align: center;
-  }
-  .gauge-pct {
-    font-size: 42px; font-weight: 800; line-height: 1;
-    font-variant-numeric: tabular-nums;
-  }
-  .gauge-unit { font-size: 13px; color: var(--label); margin-top: 2px; }
-  .gauge-status {
-    font-size: 14px; font-weight: 700; letter-spacing: .06em;
-    text-transform: uppercase; padding: 6px 18px; border-radius: 20px;
-    display: inline-block; margin-top: 4px;
-  }
-  .status-ok { background: rgba(76,175,80,.15); color: var(--ok); }
-  .status-thin { background: rgba(229,57,53,.15); color: var(--danger); }
-  .status-thick { background: rgba(232,117,10,.15); color: var(--warn); }
-  .status-none { background: var(--surface2); color: var(--label); }
-
-  /* CHECKPOINT FIELDS */
-  .checkpoint-row { display: flex; gap: 10px; margin-bottom: 10px; }
-  .checkpoint-row .field { flex: 1; }
-
-  /* LOG TABLE */
-  .log-header {
-    display: grid; gap: 0;
-    font-size: 10px; font-weight: 700; letter-spacing: .08em;
-    text-transform: uppercase; color: var(--label);
-    padding: 8px 12px; border-bottom: 1px solid var(--border);
-  }
-  .log-row {
-    display: grid; gap: 0;
-    font-size: 14px; padding: 12px 12px;
-    border-bottom: 1px solid var(--border);
-    align-items: center;
-  }
-  .log-row:last-child { border-bottom: none; }
-  .log-number { font-size: 11px; color: var(--label); }
-
-  /* Truck log grid */
-  .truck-grid { grid-template-columns: 28px 1fr 80px 100px; }
-
-  /* Stake log grid */
-  .stake-grid { grid-template-columns: 70px 70px 80px 1fr; }
-
-  .cum-area-box {
-    background: var(--surface2); border-radius: 8px; padding: 10px 14px;
-    display: flex; justify-content: space-between; align-items: center;
-    margin-top: 4px;
-  }
-  .cum-area-label { font-size: 12px; color: var(--label); }
-  .cum-area-val { font-size: 22px; font-weight: 700; color: var(--text); }
-
-  /* TOTALS ROW */
-  .totals-bar {
-    background: var(--surface2); border-radius: 8px;
-    display: flex; padding: 10px 14px; gap: 0; margin-bottom: 12px;
-  }
-  .total-item { flex: 1; text-align: center; }
-  .total-item + .total-item { border-left: 1px solid var(--border); }
-  .total-val { font-size: 20px; font-weight: 700; }
-  .total-lbl { font-size: 10px; color: var(--label); text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
-
-  /* EMPTY STATE */
-  .empty { text-align: center; padding: 32px 0; color: var(--label); font-size: 14px; }
-
-  .divider { height: 1px; background: var(--border); margin: 4px 0 16px; }
-
-  /* MILLING specific colors */
-  .mill-accent { --accent: #5B8DB8; --accent-dim: rgba(91,141,184,0.15); }
+/* Toast */
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:#333;color:#fff;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:600;opacity:0;transition:all .25s;pointer-events:none;z-index:200;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 
-<div class="app-header">
-  <span class="app-title">Field Tracker</span>
-  <span class="session-badge" id="session-date"></span>
-</div>
+<!-- ═══ SETUP SCREEN ═══ -->
+<div class="screen active" id="screen-setup">
+  <div class="setup-body">
+    <div class="setup-title">New Session</div>
+    <div class="setup-sub">Set up today's milling entry</div>
 
-<div class="tabs">
-  <button class="tab active" onclick="switchTab('paving')">Paving</button>
-  <button class="tab" onclick="switchTab('milling')">Milling</button>
-</div>
+    <div class="field-block">
+      <span class="field-label">Project</span>
+      <input class="field-input seg-input" id="s-project" type="text" placeholder="26754-0000" value="26754-0000">
+    </div>
 
-<!-- ═══════════════════ PAVING PANEL ═══════════════════ -->
-<div class="panel active" id="panel-paving">
+    <div class="field-block">
+      <span class="field-label">Segment / LKI</span>
+      <input class="field-input seg-input" id="s-segment" type="text" placeholder="e.g. Segment 2 NB">
+    </div>
 
-  <!-- LIVE RATE GAUGE -->
-  <div class="section-label">Live Rate</div>
-  <div class="gauge-card">
-    <div class="gauge-wrap">
-      <svg class="gauge" width="200" height="120" viewBox="0 0 200 120">
-        <path d="M20,110 A90,90 0 0,1 180,110" fill="none" stroke="#2E2E2E" stroke-width="14" stroke-linecap="round"/>
-        <path id="gauge-arc" d="M20,110 A90,90 0 0,1 180,110" fill="none" stroke="#E8750A" stroke-width="14" stroke-linecap="round"
-              stroke-dasharray="283" stroke-dashoffset="283"/>
-      </svg>
-      <div class="gauge-label-center">
-        <div class="gauge-pct" id="gauge-pct">—</div>
-        <div class="gauge-unit">% of target</div>
+    <div class="field-block">
+      <span class="field-label">Direction</span>
+      <div class="toggle-row">
+        <button class="toggle-btn on" id="btn-nb" onclick="setDir('NB')">NB ↑</button>
+        <button class="toggle-btn" id="btn-sb" onclick="setDir('SB')">SB ↓</button>
       </div>
     </div>
-    <div><span class="gauge-status status-none" id="gauge-status">No data yet</span></div>
-  </div>
 
-  <!-- CHECKPOINT -->
-  <div class="section-label">Rate Checkpoint</div>
-  <div class="card">
-    <div class="checkpoint-row">
-      <div class="field">
-        <label>Station</label>
-        <input type="number" id="cp-station" placeholder="e.g. 45033" inputmode="numeric">
-      </div>
-      <div class="field">
-        <label>Width (m)</label>
-        <input type="number" id="cp-width" placeholder="9.5" inputmode="decimal" step="0.01">
-      </div>
+    <div class="field-block">
+      <span class="field-label">Start Station</span>
+      <input class="field-input" id="s-start" type="number" inputmode="numeric" placeholder="e.g. 43170">
     </div>
-    <button class="btn btn-primary" onclick="calcCheckpoint()">Calculate Rate</button>
-  </div>
 
-  <!-- DIRECTION + SESSION START -->
-  <div class="section-label">Direction & Start Station</div>
-  <div class="card">
-    <div class="field-row">
-      <div class="field">
-        <label>Direction</label>
-        <div class="dir-toggle">
-          <button class="dir-btn active" id="pave-nb" onclick="setDir('paving','NB')">NB ↑</button>
-          <button class="dir-btn" id="pave-sb" onclick="setDir('paving','SB')">SB ↓</button>
-        </div>
-      </div>
+    <div class="field-block">
+      <span class="field-label">Date</span>
+      <input class="field-input seg-input" id="s-date" type="text" placeholder="e.g. 2 Jul 26">
     </div>
-    <div class="field-row" style="margin-top:10px">
-      <div class="field">
-        <label>Start Station</label>
-        <input type="number" id="pave-start-st" placeholder="44896" inputmode="numeric">
-      </div>
-      <button class="btn-sm accent" style="margin-bottom:0" onclick="setStartStation('paving')">Set</button>
-    </div>
-  </div>
 
-  <!-- TRUCK TONNAGE LOG -->
-  <div class="section-label">Truck Tonnage Log</div>
-  <div class="card" style="padding:0; overflow:hidden;">
-    <div class="log-header truck-grid" style="padding:10px 12px;">
-      <span>#</span><span>Vehicle</span><span>Ticket</span><span style="text-align:right">Tonnage (t)</span>
-    </div>
-    <div id="truck-log"></div>
-    <div style="padding:10px 12px; border-top:1px solid var(--border);">
-      <div class="field-row">
-        <div class="field">
-          <label>Vehicle</label>
-          <input type="text" id="truck-vehicle" placeholder="e.g. 59" inputmode="numeric" style="font-size:18px">
-        </div>
-        <div class="field">
-          <label>Ticket #</label>
-          <input type="text" id="truck-ticket" placeholder="20253503" inputmode="numeric" style="font-size:18px">
-        </div>
-        <div class="field">
-          <label>Tonnage</label>
-          <input type="number" id="truck-tonnage" placeholder="34.96" inputmode="decimal" step="0.01" style="font-size:18px">
-        </div>
-      </div>
-      <button class="btn btn-primary" onclick="addTruck()">Add Truck</button>
-    </div>
-  </div>
-
-  <!-- TOTALS -->
-  <div class="totals-bar" id="pave-totals" style="display:none">
-    <div class="total-item">
-      <div class="total-val" id="total-trucks">0</div>
-      <div class="total-lbl">Trucks</div>
-    </div>
-    <div class="total-item">
-      <div class="total-val" id="total-tonnage">0.00</div>
-      <div class="total-lbl">Total (t)</div>
-    </div>
-    <div class="total-item">
-      <div class="total-val" id="total-area-pave">—</div>
-      <div class="total-lbl">Area (m²)</div>
-    </div>
-  </div>
-
-  <!-- STAKE WIDTH LOG (PAVING) -->
-  <div class="section-label">Stake Width Log</div>
-  <div class="card" style="padding:0; overflow:hidden;">
-    <div class="log-header stake-grid" style="padding:10px 12px;">
-      <span>Station</span><span>Width(m)</span><span>Seg Area</span><span style="text-align:right">Cum Area</span>
-    </div>
-    <div id="pave-stake-log"></div>
-    <div style="padding:10px 12px; border-top:1px solid var(--border);">
-      <div class="field-row">
-        <div class="field">
-          <label>Next Station</label>
-          <input type="number" id="pave-next-st" inputmode="numeric" class="suggested" style="font-size:20px">
-        </div>
-        <div class="field">
-          <label>Width (m)</label>
-          <input type="number" id="pave-width" placeholder="9.5" inputmode="decimal" step="0.01" style="font-size:20px">
-        </div>
-      </div>
-      <button class="btn btn-primary" onclick="addPaveStake()">Add Reading</button>
-    </div>
-  </div>
-
-  <div style="margin-top:8px">
-    <button class="btn btn-danger" onclick="resetActivity('paving')">Reset Paving Session</button>
+    <button class="btn-start" onclick="startSession()">Start Milling Session →</button>
   </div>
 </div>
 
-<!-- ═══════════════════ MILLING PANEL ═══════════════════ -->
-<div class="panel mill-accent" id="panel-milling">
+<!-- ═══ TRACKER SCREEN ═══ -->
+<div class="screen" id="screen-tracker">
 
-  <!-- DIRECTION + SESSION START -->
-  <div class="section-label">Direction & Start Station</div>
-  <div class="card">
-    <div class="field-row">
-      <div class="field">
-        <label>Direction</label>
-        <div class="dir-toggle">
-          <button class="dir-btn active" id="mill-nb" onclick="setDir('milling','NB')">NB ↑</button>
-          <button class="dir-btn" id="mill-sb" onclick="setDir('milling','SB')">SB ↓</button>
-        </div>
-      </div>
-    </div>
-    <div class="field-row" style="margin-top:10px">
-      <div class="field">
-        <label>Start Station</label>
-        <input type="number" id="mill-start-st" placeholder="44896" inputmode="numeric">
-      </div>
-      <button class="btn-sm" style="background:#5B8DB8;color:#fff;margin-bottom:0" onclick="setStartStation('milling')">Set</button>
+  <!-- Info bar -->
+  <div class="info-bar">
+    <div class="info-bar-left">
+      <div class="info-project" id="t-project-label">—</div>
+      <div class="info-meta" id="t-meta-label">—</div>
     </div>
   </div>
 
-  <!-- STAKE WIDTH LOG (MILLING) -->
-  <div class="section-label">Stake Width Log</div>
-  <div class="card" style="padding:0; overflow:hidden;">
-    <div class="log-header stake-grid" style="padding:10px 12px;">
-      <span>Station</span><span>Width(m)</span><span>Seg Area</span><span style="text-align:right">Cum Area</span>
+  <!-- Dashboard -->
+  <div class="dashboard">
+    <div class="dash-item">
+      <div class="dash-val" id="d-start">—</div>
+      <div class="dash-lbl">Start</div>
     </div>
-    <div id="mill-stake-log"></div>
-    <div style="padding:10px 12px; border-top:1px solid var(--border);">
-      <div class="field-row">
-        <div class="field">
-          <label>Next Station</label>
-          <input type="number" id="mill-next-st" inputmode="numeric" class="suggested" style="font-size:20px">
-        </div>
-        <div class="field">
-          <label>Width (m)</label>
-          <input type="number" id="mill-width" placeholder="9.5" inputmode="decimal" step="0.01" style="font-size:20px">
-        </div>
+    <div class="dash-item">
+      <div class="dash-val accent" id="d-current">—</div>
+      <div class="dash-lbl">Current</div>
+    </div>
+    <div class="dash-item">
+      <div class="dash-val" id="d-avgw">—</div>
+      <div class="dash-lbl">Avg W (m)</div>
+    </div>
+    <div class="dash-item">
+      <div class="dash-val accent" id="d-area">—</div>
+      <div class="dash-lbl">Area (m²)</div>
+    </div>
+  </div>
+
+  <!-- Entry form -->
+  <div class="entry-form">
+    <div class="entry-row">
+      <div class="entry-field">
+        <span class="entry-label">Station</span>
+        <input class="entry-input" id="e-station" type="number" inputmode="numeric" placeholder="—">
       </div>
-      <button class="btn btn-primary" style="background:#5B8DB8" onclick="addMillStake()">Add Reading</button>
+      <div class="entry-field">
+        <span class="entry-label">Width (m)</span>
+        <input class="entry-input" id="e-width" type="number" inputmode="decimal" step="0.01" placeholder="—">
+      </div>
     </div>
+    <button class="btn-save" onclick="saveEntry()">Save Reading</button>
+    <div class="lki-note" id="lki-note">⚠ Station jumped significantly — LKI change? Length set to 0.</div>
   </div>
 
-  <!-- MILLING TOTALS -->
-  <div class="totals-bar" id="mill-totals" style="display:none">
-    <div class="total-item">
-      <div class="total-val" id="mill-readings">0</div>
-      <div class="total-lbl">Readings</div>
-    </div>
-    <div class="total-item">
-      <div class="total-val" id="mill-total-area">0.00</div>
-      <div class="total-lbl">Total Area (m²)</div>
-    </div>
-    <div class="total-item">
-      <div class="total-val" id="mill-avg-width">—</div>
-      <div class="total-lbl">Avg Width (m)</div>
-    </div>
+  <!-- Log -->
+  <div class="log-area" id="log-area">
+    <div class="log-empty" id="log-empty">Enter the first station and width above</div>
   </div>
 
-  <div style="margin-top:8px">
-    <button class="btn btn-danger" onclick="resetActivity('milling')">Reset Milling Session</button>
+  <!-- Bottom bar -->
+  <div class="bottom-bar">
+    <button class="btn-end" onclick="showEndModal()">End Session</button>
+    <button class="btn-sync" id="btn-sync" onclick="syncNow()" title="Sync to Google Sheets">☁</button>
+  </div>
+
+</div>
+
+<!-- ═══ END SESSION MODAL ═══ -->
+<div class="modal-overlay" id="modal-end">
+  <div class="modal">
+    <div class="modal-title">End Session?</div>
+    <div class="modal-sub">This will save the session to Google Sheets and reset for a new session.</div>
+    <div class="modal-stat"><span>Readings</span><span class="modal-stat-val" id="m-readings">0</span></div>
+    <div class="modal-stat"><span>Start → End</span><span class="modal-stat-val" id="m-range">—</span></div>
+    <div class="modal-stat"><span>Total Length</span><span class="modal-stat-val" id="m-length">— m</span></div>
+    <div class="modal-stat"><span>Avg Width</span><span class="modal-stat-val" id="m-avgw">— m</span></div>
+    <div class="modal-stat"><span>Total Area</span><span class="modal-stat-val" id="m-area">— m²</span></div>
+    <div class="modal-btns">
+      <button class="btn-modal-primary" onclick="endSession()">Save & End Session</button>
+      <button class="btn-modal-secondary" onclick="closeModal()">Keep Working</button>
+    </div>
   </div>
 </div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-// ── STATE ──────────────────────────────────────────────────────────────────
-const TARGET_RATE = 124.35; // kg/m2
-const BAND_LOW = 100;
-const BAND_HIGH = 102;
+// ── CONFIG ────────────────────────────────────────────────────────────────
+const SCRIPT_URL = 'PASTE_YOUR_SCRIPT_URL_HERE';
 
-let state = {
-  paving: {
-    direction: 'NB',
-    startStation: null,
-    stakes: [],      // [{station, width, segArea, cumArea}]
-    trucks: [],      // [{vehicle, ticket, tonnage, cumTonnage}]
-  },
-  milling: {
-    direction: 'NB',
-    startStation: null,
-    stakes: [],
-  }
-};
+// ── STATE ─────────────────────────────────────────────────────────────────
+let session = null; // {project, segment, direction, startStation, date, tabName}
+let entries = [];   // [{station, width, length, segArea, cumArea, timestamp}]
+let syncState = 'idle'; // idle | syncing | synced | error
 
 function save() {
-  try { localStorage.setItem('fieldtracker', JSON.stringify(state)); } catch(e){}
+  try { localStorage.setItem('ft_session', JSON.stringify(session));
+        localStorage.setItem('ft_entries', JSON.stringify(entries)); } catch(e){}
 }
 function load() {
   try {
-    const d = localStorage.getItem('fieldtracker');
-    if(d) state = JSON.parse(d);
+    const s = localStorage.getItem('ft_session');
+    const e = localStorage.getItem('ft_entries');
+    if(s) session = JSON.parse(s);
+    if(e) entries = JSON.parse(e);
   } catch(e){}
 }
 
-// ── TABS ───────────────────────────────────────────────────────────────────
-function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach((t,i)=>{
-    t.classList.toggle('active', (i===0&&tab==='paving')||(i===1&&tab==='milling'));
-  });
-  document.getElementById('panel-paving').classList.toggle('active', tab==='paving');
-  document.getElementById('panel-milling').classList.toggle('active', tab==='milling');
+// ── DIRECTION ─────────────────────────────────────────────────────────────
+let setupDir = 'NB';
+function setDir(d) {
+  setupDir = d;
+  document.getElementById('btn-nb').classList.toggle('on', d==='NB');
+  document.getElementById('btn-sb').classList.toggle('on', d==='SB');
 }
 
-// ── DIRECTION ──────────────────────────────────────────────────────────────
-function setDir(activity, dir) {
-  state[activity].direction = dir;
-  if(activity==='paving') {
-    document.getElementById('pave-nb').classList.toggle('active', dir==='NB');
-    document.getElementById('pave-sb').classList.toggle('active', dir==='SB');
-  } else {
-    document.getElementById('mill-nb').classList.toggle('active', dir==='NB');
-    document.getElementById('mill-sb').classList.toggle('active', dir==='SB');
-  }
+// ── SESSION START ─────────────────────────────────────────────────────────
+function startSession() {
+  const project  = document.getElementById('s-project').value.trim() || '26754-0000';
+  const segment  = document.getElementById('s-segment').value.trim();
+  const startSt  = parseFloat(document.getElementById('s-start').value);
+  const dateStr  = document.getElementById('s-date').value.trim();
+
+  if(isNaN(startSt)) { toast('Enter a start station'); return; }
+  if(!dateStr)        { toast('Enter a date'); return; }
+
+  // Tab name: FT-{day}{mon}{yy} e.g. FT-2Jul26
+  const tabName = 'FT-' + dateStr.replace(/\s/g,'').replace(/\//g,'');
+
+  session = { project, segment, direction: setupDir, startStation: startSt, date: dateStr, tabName };
+  entries = [];
   save();
-  suggestNextStation(activity);
+  showTracker();
 }
 
-function nextStake(station, dir) {
-  return dir === 'NB' ? station + 50 : station - 50;
-}
-
-function suggestNextStation(activity) {
-  const s = state[activity];
-  const inputId = activity==='paving' ? 'pave-next-st' : 'mill-next-st';
-  const inp = document.getElementById(inputId);
-  if(s.stakes.length === 0) {
-    inp.value = s.startStation || '';
-    inp.classList.add('suggested');
+function showTracker() {
+  document.getElementById('screen-setup').classList.remove('active');
+  document.getElementById('screen-tracker').classList.add('active');
+  updateInfoBar();
+  updateDashboard();
+  renderLog();
+  // Pre-fill first station
+  if(entries.length === 0 && session) {
+    document.getElementById('e-station').value = session.startStation;
   } else {
-    const last = s.stakes[s.stakes.length-1].station;
-    inp.value = nextStake(last, s.direction);
-    inp.classList.add('suggested');
+    suggestNext();
   }
 }
 
-// ── START STATION ──────────────────────────────────────────────────────────
-function setStartStation(activity) {
-  const id = activity==='paving' ? 'pave-start-st' : 'mill-start-st';
-  const val = parseFloat(document.getElementById(id).value);
-  if(isNaN(val)) return alert('Enter a valid start station.');
-  state[activity].startStation = val;
-  save();
-  suggestNextStation(activity);
+function updateInfoBar() {
+  if(!session) return;
+  document.getElementById('t-project-label').textContent =
+    session.project + (session.segment ? ' · ' + session.segment : '');
+  document.getElementById('t-meta-label').textContent =
+    session.date + ' · ' + session.direction + ' · Milling';
 }
 
-// ── ADD STAKE (shared logic) ───────────────────────────────────────────────
-function addStake(activity) {
-  const stId = activity==='paving' ? 'pave-next-st' : 'mill-next-st';
-  const wId  = activity==='paving' ? 'pave-width'   : 'mill-width';
-  const st   = parseFloat(document.getElementById(stId).value);
-  const w    = parseFloat(document.getElementById(wId).value);
+// ── ENTRY SAVE ────────────────────────────────────────────────────────────
+function saveEntry() {
+  const stVal = document.getElementById('e-station').value;
+  const wVal  = document.getElementById('e-width').value;
+  const st    = parseFloat(stVal);
+  const w     = parseFloat(wVal);
 
-  if(isNaN(st)) return alert('Enter a station number.');
-  if(isNaN(w) || w <= 0) return alert('Enter a valid width.');
+  if(isNaN(st)) { toast('Enter a station number'); return; }
+  if(isNaN(w) || w <= 0) { toast('Enter a valid width'); return; }
 
-  const s = state[activity];
-  const prev = s.stakes[s.stakes.length - 1] || null;
+  const prev = entries[entries.length - 1] || null;
+  let length = 0, segArea = 0, cumArea = 0;
+  const lkiNote = document.getElementById('lki-note');
 
-  let segArea = 0;
-  let cumArea = 0;
   if(prev) {
-    const avgW = (prev.width + w) / 2;
-    const len  = Math.abs(st - prev.station); // abs handles SB (decreasing)
-    segArea = avgW * len;
+    const rawLen = Math.abs(st - prev.station);
+    // LKI change detection: if jump > 1000m in wrong direction, treat as 0
+    const isSameStation = rawLen < 0.01;
+    const isLKIJump = rawLen > 5000;
+
+    if(isLKIJump) {
+      length = 0;
+      lkiNote.classList.add('show');
+      setTimeout(() => lkiNote.classList.remove('show'), 4000);
+    } else {
+      length = rawLen;
+      lkiNote.classList.remove('show');
+    }
+
+    if(isSameStation) {
+      // Width update at same station — zero area, update width only
+      length = 0;
+    }
+
+    const avgW = isSameStation ? w : (prev.width + w) / 2;
+    segArea = avgW * length;
     cumArea = prev.cumArea + segArea;
   } else {
-    // First reading: no segment yet (this is the anchor point)
-    segArea = 0;
-    cumArea = 0;
+    cumArea = 0; segArea = 0; length = 0;
   }
 
-  s.stakes.push({ station: st, width: w, segArea, cumArea });
+  entries.push({
+    station: st, width: w, length, segArea, cumArea,
+    timestamp: new Date().toISOString()
+  });
   save();
 
-  document.getElementById(wId).value = '';
-  document.getElementById(stId).classList.add('suggested');
-  suggestNextStation(activity);
-
-  if(activity==='paving') {
-    renderPaveStakeLog();
-    renderPaveTotals();
-    updateGauge();
-  } else {
-    renderMillStakeLog();
-    renderMillTotals();
-  }
+  document.getElementById('e-width').value = '';
+  suggestNext();
+  updateDashboard();
+  renderLog();
+  document.getElementById('e-width').focus();
 }
 
-function addPaveStake() { addStake('paving'); }
-function addMillStake() { addStake('milling'); }
-
-// ── ADD TRUCK ──────────────────────────────────────────────────────────────
-function addTruck() {
-  const vehicle = document.getElementById('truck-vehicle').value.trim();
-  const ticket  = document.getElementById('truck-ticket').value.trim();
-  const tonnage = parseFloat(document.getElementById('truck-tonnage').value);
-  if(isNaN(tonnage) || tonnage <= 0) return alert('Enter a valid tonnage.');
-
-  const trucks = state.paving.trucks;
-  const prev = trucks[trucks.length-1];
-  const cumTonnage = (prev ? prev.cumTonnage : 0) + tonnage;
-
-  trucks.push({ vehicle, ticket, tonnage, cumTonnage });
-  save();
-
-  document.getElementById('truck-vehicle').value = '';
-  document.getElementById('truck-ticket').value  = '';
-  document.getElementById('truck-tonnage').value = '';
-
-  renderTruckLog();
-  renderPaveTotals();
-  updateGauge();
+// ── NEXT STATION SUGGESTION ───────────────────────────────────────────────
+function suggestNext() {
+  if(!session || entries.length === 0) return;
+  const last = entries[entries.length - 1].station;
+  const step = session.direction === 'NB' ? 50 : -50;
+  const next = last + step;
+  const inp = document.getElementById('e-station');
+  inp.value = next;
+  inp.classList.add('hint');
+  inp.addEventListener('focus', function clear() {
+    this.classList.remove('hint');
+    this.removeEventListener('focus', clear);
+  }, {once: true});
 }
 
-// ── CHECKPOINT RATE CALC ───────────────────────────────────────────────────
-function calcCheckpoint() {
-  const cpSt = parseFloat(document.getElementById('cp-station').value);
-  const cpW  = parseFloat(document.getElementById('cp-width').value);
-  const trucks = state.paving.trucks;
-  const stakes = state.paving.stakes;
-
-  if(isNaN(cpSt) || isNaN(cpW)) return alert('Enter both station and width for the checkpoint.');
-  if(trucks.length === 0) return alert('No trucks logged yet.');
-  if(stakes.length === 0) return alert('No stake readings logged yet.');
-
-  // Build cumulative area up to checkpoint station
-  // Find the last stake before or at the checkpoint station (direction-aware)
-  const dir = state.paving.direction;
-  let cpArea = 0;
-  let lastStake = null;
-
-  for(let i = 0; i < stakes.length; i++) {
-    const s = stakes[i];
-    const beyondCP = dir==='NB' ? s.station > cpSt : s.station < cpSt;
-    if(beyondCP) break;
-    lastStake = s;
-    cpArea = s.cumArea;
-  }
-
-  // Add the partial segment from last stake to checkpoint
-  if(lastStake) {
-    const avgW = (lastStake.width + cpW) / 2;
-    const len  = Math.abs(cpSt - lastStake.station);
-    cpArea += avgW * len;
-  } else {
-    // Checkpoint is before any stake — use checkpoint width as a rough estimate
-    // from start station to checkpoint
-    if(state.paving.startStation != null) {
-      const len = Math.abs(cpSt - state.paving.startStation);
-      cpArea = cpW * len;
+// ── DELETE ENTRY ──────────────────────────────────────────────────────────
+function deleteEntry(idx) {
+  // Recalculate from the deleted point onward
+  entries.splice(idx, 1);
+  // Recalculate cumulative areas
+  for(let i = 0; i < entries.length; i++) {
+    if(i === 0) {
+      entries[i].cumArea = entries[i].segArea;
+      entries[i].length = 0;
+      entries[i].segArea = 0;
     } else {
-      return alert('No stakes logged and no start station set — cannot calculate area.');
+      const prev = entries[i-1];
+      const rawLen = Math.abs(entries[i].station - prev.station);
+      const isLKI = rawLen > 5000;
+      entries[i].length = isLKI ? 0 : rawLen;
+      entries[i].segArea = isLKI ? 0 : ((prev.width + entries[i].width) / 2) * entries[i].length;
+      entries[i].cumArea = prev.cumArea + entries[i].segArea;
     }
   }
-
-  const totalTonnage = trucks[trucks.length-1].cumTonnage;
-  const rate = (totalTonnage * 1000) / cpArea;
-  const pct = rate / TARGET_RATE * 100;
-
-  updateGaugeValues(pct, totalTonnage, cpArea);
-}
-
-// ── GAUGE ─────────────────────────────────────────────────────────────────
-function updateGauge() {
-  const trucks = state.paving.trucks;
-  const stakes = state.paving.stakes;
-  if(trucks.length === 0 || stakes.length < 2) return;
-
-  const totalTonnage = trucks[trucks.length-1].cumTonnage;
-  const totalArea    = stakes[stakes.length-1].cumArea;
-  if(totalArea <= 0) return;
-
-  const rate = (totalTonnage * 1000) / totalArea;
-  const pct  = rate / TARGET_RATE * 100;
-  updateGaugeValues(pct, totalTonnage, totalArea);
-}
-
-function updateGaugeValues(pct, tonnage, area) {
-  const arcLen = 283;
-  const clampedPct = Math.min(Math.max(pct, 0), 130);
-  const fill = arcLen * (clampedPct / 130);
-  const offset = arcLen - fill;
-
-  let color, status, statusClass;
-  if(pct < BAND_LOW) {
-    color='#E8750A'; status='THICKEN'; statusClass='status-thick';
-  } else if(pct > BAND_HIGH) {
-    color='#E53935'; status='THIN'; statusClass='status-thin';
-  } else {
-    color='#4CAF50'; status='OK'; statusClass='status-ok';
-  }
-
-  const arc = document.getElementById('gauge-arc');
-  arc.style.stroke = color;
-  arc.setAttribute('stroke-dashoffset', offset);
-
-  document.getElementById('gauge-pct').textContent = pct.toFixed(1) + '%';
-  document.getElementById('gauge-pct').style.color = color;
-
-  const statusEl = document.getElementById('gauge-status');
-  statusEl.textContent = status;
-  statusEl.className = 'gauge-status ' + statusClass;
-}
-
-// ── RENDER: TRUCK LOG ─────────────────────────────────────────────────────
-function renderTruckLog() {
-  const trucks = state.paving.trucks;
-  const el = document.getElementById('truck-log');
-  if(trucks.length === 0) {
-    el.innerHTML = '<div class="empty">No trucks yet</div>';
-    return;
-  }
-  el.innerHTML = trucks.map((t,i)=>`
-    <div class="log-row truck-grid">
-      <span class="log-number">${i+1}</span>
-      <span>${t.vehicle||'—'}</span>
-      <span style="color:var(--label);font-size:12px">${t.ticket||'—'}</span>
-      <span style="text-align:right;font-weight:700">${t.tonnage.toFixed(2)}</span>
-    </div>`).join('');
-
-  document.getElementById('pave-totals').style.display = 'flex';
-}
-
-// ── RENDER: PAVE STAKE LOG ────────────────────────────────────────────────
-function renderPaveStakeLog() {
-  const stakes = state.paving.stakes;
-  const el = document.getElementById('pave-stake-log');
-  if(stakes.length === 0) {
-    el.innerHTML = '<div class="empty">No readings yet</div>';
-    return;
-  }
-  el.innerHTML = stakes.map((s,i)=>`
-    <div class="log-row stake-grid">
-      <span style="font-weight:700">${s.station}</span>
-      <span>${s.width.toFixed(2)}</span>
-      <span style="color:var(--label)">${s.segArea>0?s.segArea.toFixed(1):'—'}</span>
-      <span style="text-align:right;font-weight:600">${s.cumArea>0?s.cumArea.toFixed(1):'—'}</span>
-    </div>`).join('');
-}
-
-// ── RENDER: MILL STAKE LOG ────────────────────────────────────────────────
-function renderMillStakeLog() {
-  const stakes = state.milling.stakes;
-  const el = document.getElementById('mill-stake-log');
-  if(stakes.length === 0) {
-    el.innerHTML = '<div class="empty">No readings yet</div>';
-    return;
-  }
-  el.innerHTML = stakes.map((s,i)=>`
-    <div class="log-row stake-grid">
-      <span style="font-weight:700">${s.station}</span>
-      <span>${s.width.toFixed(2)}</span>
-      <span style="color:var(--label)">${s.segArea>0?s.segArea.toFixed(1):'—'}</span>
-      <span style="text-align:right;font-weight:600">${s.cumArea>0?s.cumArea.toFixed(1):'—'}</span>
-    </div>`).join('');
-}
-
-// ── RENDER: PAVE TOTALS ───────────────────────────────────────────────────
-function renderPaveTotals() {
-  const trucks = state.paving.trucks;
-  const stakes = state.paving.stakes;
-  const totEl = document.getElementById('pave-totals');
-  if(trucks.length===0) return;
-  totEl.style.display='flex';
-  document.getElementById('total-trucks').textContent = trucks.length;
-  document.getElementById('total-tonnage').textContent = trucks[trucks.length-1].cumTonnage.toFixed(2);
-  const area = stakes.length>0 ? stakes[stakes.length-1].cumArea : 0;
-  document.getElementById('total-area-pave').textContent = area>0 ? area.toFixed(1) : '—';
-}
-
-// ── RENDER: MILL TOTALS ───────────────────────────────────────────────────
-function renderMillTotals() {
-  const stakes = state.milling.stakes;
-  const totEl = document.getElementById('mill-totals');
-  if(stakes.length<2) return;
-  totEl.style.display='flex';
-  const totalArea = stakes[stakes.length-1].cumArea;
-  const totalLen = Math.abs(stakes[stakes.length-1].station - stakes[0].station);
-  const avgW = totalLen>0 ? totalArea/totalLen : 0;
-  document.getElementById('mill-readings').textContent = stakes.length;
-  document.getElementById('mill-total-area').textContent = totalArea.toFixed(2);
-  document.getElementById('mill-avg-width').textContent = avgW>0 ? avgW.toFixed(2) : '—';
-}
-
-// ── RESET ─────────────────────────────────────────────────────────────────
-function resetActivity(activity) {
-  if(!confirm(`Reset all ${activity} data for today? This cannot be undone.`)) return;
-  state[activity] = { direction:'NB', startStation:null, stakes:[] };
-  if(activity==='paving') state.paving.trucks = [];
   save();
-  if(activity==='paving') {
-    renderTruckLog(); renderPaveStakeLog(); renderPaveTotals();
-    document.getElementById('gauge-pct').textContent='—';
-    document.getElementById('gauge-pct').style.color='var(--text)';
-    document.getElementById('gauge-status').textContent='No data yet';
-    document.getElementById('gauge-status').className='gauge-status status-none';
-    document.getElementById('gauge-arc').setAttribute('stroke-dashoffset','283');
-  } else {
-    renderMillStakeLog(); renderMillTotals();
+  updateDashboard();
+  renderLog();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────
+function updateDashboard() {
+  if(!session) return;
+  const n = entries.length;
+  document.getElementById('d-start').textContent = session.startStation;
+
+  if(n === 0) {
+    document.getElementById('d-current').textContent = '—';
+    document.getElementById('d-avgw').textContent = '—';
+    document.getElementById('d-area').textContent = '—';
+    return;
   }
+
+  const last = entries[n-1];
+  document.getElementById('d-current').textContent = last.station;
+  document.getElementById('d-area').textContent = last.cumArea.toFixed(0);
+
+  // Avg width = total area / total length
+  const totalLen = entries.reduce((s,e) => s + e.length, 0);
+  const avgW = totalLen > 0 ? last.cumArea / totalLen : 0;
+  document.getElementById('d-avgw').textContent = avgW > 0 ? avgW.toFixed(2) : '—';
+}
+
+// ── LOG RENDER ────────────────────────────────────────────────────────────
+function renderLog() {
+  const area = document.getElementById('log-area');
+  const empty = document.getElementById('log-empty');
+  if(entries.length === 0) {
+    empty.style.display = 'block';
+    // Remove any existing items
+    area.querySelectorAll('.log-item').forEach(e=>e.remove());
+    return;
+  }
+  empty.style.display = 'none';
+  // Rebuild in reverse order
+  area.querySelectorAll('.log-item').forEach(e=>e.remove());
+  const frag = document.createDocumentFragment();
+  for(let i = entries.length-1; i >= 0; i--) {
+    const e = entries[i];
+    const div = document.createElement('div');
+    div.className = 'log-item';
+    div.innerHTML = `
+      <div>
+        <div class="log-station">ST ${e.station}</div>
+        <div class="log-width">${e.width.toFixed(2)} m wide${e.segArea > 0 ? ' · +' + e.segArea.toFixed(1) + ' m²' : ''}</div>
+      </div>
+      <div>
+        <div class="log-cum">${e.cumArea.toFixed(1)}</div>
+        <div class="log-cum-lbl">m² total</div>
+      </div>
+      <button class="log-delete" onclick="deleteEntry(${i})" title="Delete">✕</button>`;
+    frag.appendChild(div);
+  }
+  area.insertBefore(frag, area.firstChild);
+}
+
+// ── END SESSION MODAL ─────────────────────────────────────────────────────
+function showEndModal() {
+  if(entries.length === 0) { toast('No entries yet'); return; }
+  const n = entries.length;
+  const last = entries[n-1];
+  const totalLen = entries.reduce((s,e)=>s+e.length,0);
+  const avgW = totalLen > 0 ? last.cumArea/totalLen : 0;
+
+  document.getElementById('m-readings').textContent = n;
+  document.getElementById('m-range').textContent =
+    session.startStation + ' → ' + last.station;
+  document.getElementById('m-length').textContent = totalLen.toFixed(0) + ' m';
+  document.getElementById('m-avgw').textContent = avgW.toFixed(2) + ' m';
+  document.getElementById('m-area').textContent = last.cumArea.toFixed(2) + ' m²';
+  document.getElementById('modal-end').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modal-end').classList.remove('show');
+}
+
+async function endSession() {
+  closeModal();
+  await syncNow();
+  // Reset
+  session = null; entries = [];
+  save();
+  document.getElementById('screen-tracker').classList.remove('active');
+  document.getElementById('screen-setup').classList.add('active');
+  setSyncState('idle');
+  toast('Session saved & reset ✓');
+}
+
+// ── SYNC ──────────────────────────────────────────────────────────────────
+async function syncNow() {
+  if(!session || entries.length === 0) { toast('Nothing to sync'); return; }
+  if(SCRIPT_URL === 'PASTE_YOUR_SCRIPT_URL_HERE') {
+    toast('⚠ Script URL not set yet'); return;
+  }
+
+  setSyncState('syncing');
+  const last = entries[entries.length-1];
+  const totalLen = entries.reduce((s,e)=>s+e.length,0);
+  const avgW = totalLen > 0 ? last.cumArea/totalLen : 0;
+
+  const payload = {
+    action: 'save_session',
+    tabName: session.tabName,
+    entries,
+    summary: {
+      date: session.date,
+      direction: session.direction,
+      activity: 'Milling',
+      startStation: session.startStation,
+      endStation: last.station,
+      totalLength: totalLen.toFixed(1),
+      avgWidth: avgW.toFixed(2),
+      totalArea: last.cumArea.toFixed(2),
+    }
+  };
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    if(json.ok) {
+      setSyncState('synced');
+      toast('Synced to Sheets ✓');
+      setTimeout(()=>setSyncState('idle'), 3000);
+    } else {
+      throw new Error(json.error || 'Unknown error');
+    }
+  } catch(err) {
+    setSyncState('error');
+    toast('Sync failed: ' + err.message);
+    setTimeout(()=>setSyncState('idle'), 4000);
+  }
+}
+
+function setSyncState(state) {
+  syncState = state;
+  const btn = document.getElementById('btn-sync');
+  btn.className = 'btn-sync';
+  if(state === 'syncing') { btn.textContent = '↻'; btn.classList.add('syncing'); }
+  else if(state === 'synced') { btn.textContent = '✓'; btn.classList.add('synced'); }
+  else if(state === 'error')  { btn.textContent = '✕'; btn.classList.add('error'); }
+  else { btn.textContent = '☁'; }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────
-document.getElementById('session-date').textContent =
-  new Date().toLocaleDateString('en-CA',{month:'short',day:'numeric'});
+// Set today's date as default
+const today = new Date();
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+document.getElementById('s-date').value =
+  today.getDate() + ' ' + months[today.getMonth()] + ' ' + String(today.getFullYear()).slice(2);
 
 load();
+if(session && entries) {
+  // Resume in-progress session
+  showTracker();
+}
 
-// Restore direction UI
-setDir('paving', state.paving.direction);
-setDir('milling', state.milling.direction);
+// Clear hint styling on station input when user types
+document.getElementById('e-station').addEventListener('input', function(){
+  this.classList.remove('hint');
+});
 
-// Restore rendered logs
-renderTruckLog();
-renderPaveStakeLog();
-renderMillStakeLog();
-renderPaveTotals();
-renderMillTotals();
-updateGauge();
-suggestNextStation('paving');
-suggestNextStation('milling');
-
-// Clear suggestion styling when user types
-['pave-next-st','mill-next-st'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', function(){
-    this.classList.remove('suggested');
-  });
+// Enter key on width → save
+document.getElementById('e-width').addEventListener('keydown', function(e){
+  if(e.key === 'Enter') saveEntry();
 });
 </script>
 </body>
