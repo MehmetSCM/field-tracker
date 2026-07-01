@@ -405,6 +405,23 @@ function openSetup(dateStr) {
     resumeTracker();
     return;
   }
+  // Try to load historical rows for this date (read-only review of past sessions)
+  const pastKey = 'fts_' + 'FT-' + dateStr.replace(/\s+/g,'');
+  const pastMeta = localStorage.getItem(pastKey);
+  if (pastMeta && dateStr !== todayStr()) {
+    const meta = JSON.parse(pastMeta);
+    const rowKey = 'ft4_rows_FT-' + dateStr.replace(/\s+/g,'');
+    const pastRows = localStorage.getItem(rowKey);
+    if (pastRows) {
+      sess = { date: meta.date, tab: meta.tab, activity: 'Milling',
+               segId: meta.seg, segName: meta.seg === 'S2' ? 'Segment 2' : 'Segment 1',
+               dir: meta.dir, dirLabel: meta.dir === 'NB' ? 'Hwy 1 NBL' : 'Hwy 1 SBL',
+               startSt: JSON.parse(pastRows)[0].station, increment: 1, rollovers: meta.dir==='NB'&&meta.seg==='S2'?[{from:45060,to:0}]:[] };
+      rows = JSON.parse(pastRows);
+      resumeTracker();
+      return;
+    }
+  }
   document.getElementById('setup-title').textContent = 'Session Setup';
   document.getElementById('setup-date-label').textContent = dateStr;
   buildSegGrid();
@@ -733,6 +750,29 @@ function showToast(msg) {
   t.classList.add('on');
   setTimeout(()=>t.classList.remove('on'), 3000);
 }
+
+// ── SEED HISTORICAL DATA ─────────────────────────────────────────────────
+function seedHistoricalData() {
+  if (!localStorage.getItem('fts_FT-25Jun26')) {
+    localStorage.setItem('fts_FT-25Jun26', JSON.stringify({"date": "25 Jun 26", "tab": "FT-25Jun26", "seg": "S2", "dir": "NB", "endSt": 44607, "entries": 31, "area": "13452.80", "avgW": "9.36", "totLen": "1437"}));
+  }
+  if (!localStorage.getItem('fts_FT-26Jun26')) {
+    localStorage.setItem('fts_FT-26Jun26', JSON.stringify({"date": "26 Jun 26", "tab": "FT-26Jun26", "seg": "S2", "dir": "NB", "endSt": 44896, "entries": 7, "area": "2638.20", "avgW": "9.13", "totLen": "289"}));
+  }
+  if (!localStorage.getItem('fts_FT-27Jun26')) {
+    localStorage.setItem('fts_FT-27Jun26', JSON.stringify({"date": "27 Jun 26", "tab": "FT-27Jun26", "seg": "S2", "dir": "NB", "endSt": 1320, "entries": 35, "area": "14788.85", "avgW": "10.20", "totLen": "1450"}));
+  }
+  if (!localStorage.getItem('ft4_rows_FT-25Jun26')) {
+    localStorage.setItem('ft4_rows_FT-25Jun26', JSON.stringify([{"station": 43170, "width": 5.5, "len": 0, "seg": 0, "cum": 0, "ts": ""}, {"station": 43200, "width": 5.8, "len": 30, "seg": 169.5, "cum": 169.5, "ts": ""}, {"station": 43250, "width": 8.15, "len": 50, "seg": 348.75, "cum": 518.25, "ts": ""}, {"station": 43300, "width": 9.55, "len": 50, "seg": 442.5, "cum": 960.75, "ts": ""}, {"station": 43350, "width": 9.6, "len": 50, "seg": 478.75, "cum": 1439.5, "ts": ""}, {"station": 43400, "width": 9.65, "len": 50, "seg": 481.25, "cum": 1920.75, "ts": ""}, {"station": 43450, "width": 9.75, "len": 50, "seg": 485.0, "cum": 2405.75, "ts": ""}, {"station": 43500, "width": 9.85, "len": 50, "seg": 490.0, "cum": 2895.75, "ts": ""}, {"station": 43550, "width": 9.7, "len": 50, "seg": 488.75, "cum": 3384.5, "ts": ""}, {"station": 43600, "width": 9.5, "len": 50, "seg": 480.0, "cum": 3864.5, "ts": ""}, {"station": 43650, "width": 9.6, "len": 50, "seg": 477.5, "cum": 4342.0, "ts": ""}, {"station": 43700, "width": 9.7, "len": 50, "seg": 482.5, "cum": 4824.5, "ts": ""}, {"station": 43750, "width": 9.7, "len": 50, "seg": 485.0, "cum": 5309.5, "ts": ""}, {"station": 43800, "width": 9.7, "len": 50, "seg": 485.0, "cum": 5794.5, "ts": ""}, {"station": 43850, "width": 9.7, "len": 50, "seg": 485.0, "cum": 6279.5, "ts": ""}, {"station": 43900, "width": 9.5, "len": 50, "seg": 480.0, "cum": 6759.5, "ts": ""}, {"station": 43950, "width": 9.5, "len": 50, "seg": 475.0, "cum": 7234.5, "ts": ""}, {"station": 44000, "width": 9.4, "len": 50, "seg": 472.5, "cum": 7707.0, "ts": ""}, {"station": 44050, "width": 9.3, "len": 50, "seg": 467.5, "cum": 8174.5, "ts": ""}, {"station": 44100, "width": 9.35, "len": 50, "seg": 466.25, "cum": 8640.75, "ts": ""}, {"station": 44150, "width": 9.5, "len": 50, "seg": 471.25, "cum": 9112.0, "ts": ""}, {"station": 44200, "width": 9.65, "len": 50, "seg": 478.75, "cum": 9590.75, "ts": ""}, {"station": 44250, "width": 9.65, "len": 50, "seg": 482.5, "cum": 10073.25, "ts": ""}, {"station": 44300, "width": 9.3, "len": 50, "seg": 473.75, "cum": 10547.0, "ts": ""}, {"station": 44350, "width": 9.2, "len": 50, "seg": 462.5, "cum": 11009.5, "ts": ""}, {"station": 44400, "width": 9.55, "len": 50, "seg": 468.75, "cum": 11478.25, "ts": ""}, {"station": 44450, "width": 9.65, "len": 50, "seg": 480.0, "cum": 11958.25, "ts": ""}, {"station": 44500, "width": 9.65, "len": 50, "seg": 482.5, "cum": 12440.75, "ts": ""}, {"station": 44550, "width": 9.4, "len": 50, "seg": 476.25, "cum": 12917.0, "ts": ""}, {"station": 44600, "width": 9.4, "len": 50, "seg": 470.0, "cum": 13387.0, "ts": ""}, {"station": 44607, "width": 9.4, "len": 7, "seg": 65.8, "cum": 13452.8, "ts": ""}]));
+  }
+  if (!localStorage.getItem('ft4_rows_FT-26Jun26')) {
+    localStorage.setItem('ft4_rows_FT-26Jun26', JSON.stringify([{"station": 44607, "width": 9.4, "len": 0, "seg": 0, "cum": 0, "ts": ""}, {"station": 44650, "width": 9.4, "len": 43, "seg": 404.2, "cum": 404.2, "ts": ""}, {"station": 44700, "width": 9.05, "len": 50, "seg": 461.25, "cum": 865.45, "ts": ""}, {"station": 44750, "width": 9.1, "len": 50, "seg": 453.75, "cum": 1319.2, "ts": ""}, {"station": 44800, "width": 9.05, "len": 50, "seg": 453.75, "cum": 1772.95, "ts": ""}, {"station": 44850, "width": 9.0, "len": 50, "seg": 451.25, "cum": 2224.2, "ts": ""}, {"station": 44896, "width": 9.0, "len": 46, "seg": 414.0, "cum": 2638.2, "ts": ""}]));
+  }
+  if (!localStorage.getItem('ft4_rows_FT-27Jun26')) {
+    localStorage.setItem('ft4_rows_FT-27Jun26', JSON.stringify([{"station": 44896, "width": 9.4, "len": 0, "seg": 0, "cum": 0, "ts": ""}, {"station": 44900, "width": 9.6, "len": 4, "seg": 38.0, "cum": 38.0, "ts": ""}, {"station": 44950, "width": 10.6, "len": 50, "seg": 505.0, "cum": 543.0, "ts": ""}, {"station": 45000, "width": 12, "len": 50, "seg": 565.0, "cum": 1108.0, "ts": ""}, {"station": 45022, "width": 12.8, "len": 22, "seg": 272.8, "cum": 1380.8, "ts": ""}, {"station": 45033, "width": 9.25, "len": 11, "seg": 121.28, "cum": 1502.08, "ts": ""}, {"station": 45060, "width": 9.1, "len": 27, "seg": 247.73, "cum": 1749.81, "ts": ""}, {"station": 34, "width": 15.1, "len": 0, "seg": 0, "cum": 1749.81, "ts": ""}, {"station": 50, "width": 14.75, "len": 16, "seg": 238.8, "cum": 1988.61, "ts": ""}, {"station": 100, "width": 13.55, "len": 50, "seg": 707.5, "cum": 2696.11, "ts": ""}, {"station": 150, "width": 13, "len": 50, "seg": 663.75, "cum": 3359.86, "ts": ""}, {"station": 200, "width": 13.2, "len": 50, "seg": 655.0, "cum": 4014.86, "ts": ""}, {"station": 250, "width": 12.3, "len": 50, "seg": 637.5, "cum": 4652.36, "ts": ""}, {"station": 300, "width": 11.1, "len": 50, "seg": 585.0, "cum": 5237.36, "ts": ""}, {"station": 350, "width": 9.3, "len": 50, "seg": 510.0, "cum": 5747.36, "ts": ""}, {"station": 400, "width": 9.3, "len": 50, "seg": 465.0, "cum": 6212.36, "ts": ""}, {"station": 450, "width": 9.3, "len": 50, "seg": 465.0, "cum": 6677.36, "ts": ""}, {"station": 500, "width": 9.3, "len": 50, "seg": 465.0, "cum": 7142.36, "ts": ""}, {"station": 550, "width": 9.3, "len": 50, "seg": 465.0, "cum": 7607.36, "ts": ""}, {"station": 600, "width": 9.3, "len": 50, "seg": 465.0, "cum": 8072.36, "ts": ""}, {"station": 670, "width": 9.2, "len": 70, "seg": 647.5, "cum": 8719.86, "ts": ""}, {"station": 700, "width": 9.1, "len": 30, "seg": 274.5, "cum": 8994.36, "ts": ""}, {"station": 750, "width": 9.1, "len": 50, "seg": 455.0, "cum": 9449.36, "ts": ""}, {"station": 800, "width": 9.1, "len": 50, "seg": 455.0, "cum": 9904.36, "ts": ""}, {"station": 850, "width": 9.1, "len": 50, "seg": 455.0, "cum": 10359.36, "ts": ""}, {"station": 900, "width": 9.1, "len": 50, "seg": 455.0, "cum": 10814.36, "ts": ""}, {"station": 950, "width": 9.0, "len": 50, "seg": 452.5, "cum": 11266.86, "ts": ""}, {"station": 1000, "width": 8.9, "len": 50, "seg": 447.5, "cum": 11714.36, "ts": ""}, {"station": 1050, "width": 8.95, "len": 50, "seg": 446.25, "cum": 12160.61, "ts": ""}, {"station": 1100, "width": 9.4, "len": 50, "seg": 458.75, "cum": 12619.36, "ts": ""}, {"station": 1150, "width": 10.1, "len": 50, "seg": 487.5, "cum": 13106.86, "ts": ""}, {"station": 1200, "width": 10.1, "len": 50, "seg": 505.0, "cum": 13611.86, "ts": ""}, {"station": 1250, "width": 9.8, "len": 50, "seg": 497.5, "cum": 14109.36, "ts": ""}, {"station": 1300, "width": 9.7, "len": 50, "seg": 487.5, "cum": 14596.86, "ts": ""}, {"station": 1320, "width": 9.5, "len": 20, "seg": 192.0, "cum": 14788.86, "ts": ""}]));
+  }
+}
+seedHistoricalData();
 
 // ══ INIT ═════════════════════════════════════════════════════════════════════
 restore();
