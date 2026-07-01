@@ -49,30 +49,36 @@ function listSessions() {
     sheets.forEach(sheet => {
       const name = sheet.getName();
       if (!name.startsWith('FT-')) return;
-      // Read summary from col H
-      const summary = {};
+      // Read from visible header rows (cols A-F, rows 1-4)
+      // Row 1: Date(B1), Direction(D1), Segment(F1)
+      // Row 2: Start ST(B2), End ST(D2), LKI(F2)
+      // Row 3: Start Time(B3), End Time(D3), Status(F3)
+      // Row 4: Length(B4), Avg Width(D4), Area(F4)
       try {
-        const summaryData = sheet.getRange(1, 8, 10, 2).getValues();
-        summaryData.forEach(row => {
-          if (row[0]) summary[row[0]] = row[1];
+        const h = sheet.getRange(1, 1, 4, 6).getValues();
+        const lastRow = sheet.getLastRow();
+        const entries = Math.max(0, lastRow - 6); // LOG_START=6, header=1 row
+        const statusVal = h[2][5] || ''; // F3
+        sessions.push({
+          tab: name,
+          date:        String(h[0][1] || ''),
+          direction:   String(h[0][3] || ''),
+          segment:     String(h[0][5] || ''),
+          startStation: h[1][1],
+          endStation:   h[1][3],
+          dirLabel:    String(h[1][5] || ''),
+          startTime:   String(h[2][1] || ''),
+          endTime:     String(h[2][3] || ''),
+          totalLength: h[3][1],
+          avgWidth:    h[3][3],
+          totalArea:   h[3][5],
+          entries:     entries,
+          closed:      statusVal.toString().toLowerCase().includes('closed')
         });
-      } catch(e) {}
-      sessions.push({
-        tab: name,
-        date: summary['Date'] || '',
-        direction: summary['Direction'] || '',
-        activity: summary['Activity'] || '',
-        segment: summary['Segment'] || '',
-        startStation: summary['Start Station'] || '',
-        endStation: summary['End Station'] || '',
-        totalArea: summary['Total Area (m2)'] || '',
-        avgWidth: summary['Avg Width (m)'] || '',
-        totalLength: summary['Total Length (m)'] || '',
-        entries: summary['Entries'] || 0,
-        closed: summary['Status'] === 'closed'
-      });
+      } catch(e) {
+        sessions.push({ tab: name, date: '', entries: 0, closed: false });
+      }
     });
-    // Sort newest first by tab name
     sessions.sort((a,b) => b.tab.localeCompare(a.tab));
     return { ok: true, sessions };
   } catch(err) {
@@ -95,20 +101,28 @@ function readSession(tabName) {
     const entries = data
       .filter(row => row[0] !== '' && row[0] !== null)
       .map(row => ({
-        station: row[0],
-        width: row[1],
-        length: row[2],
-        segArea: row[3],
-        cumArea: row[4],
-        timestamp: row[5] || ''
+        station: row[0], width: row[1], length: row[2],
+        segArea: row[3], cumArea: row[4], timestamp: row[5] || ''
       }));
 
-    // Also read summary
-    const summaryData = sheet.getRange(1, 8, 10, 2).getValues();
-    const summary = {};
-    summaryData.forEach(row => { if (row[0]) summary[row[0]] = row[1]; });
+    // Read summary from visible header rows (cols A-F, rows 1-4)
+    const h = sheet.getRange(1, 1, 4, 6).getValues();
+    const summary = {
+      'Date':            String(h[0][1]||''),
+      'Direction':       String(h[0][3]||''),
+      'Segment':         String(h[0][5]||''),
+      'Start Station':   h[1][1],
+      'End Station':     h[1][3],
+      'Start Time':      String(h[2][1]||''),
+      'End Time':        String(h[2][3]||''),
+      'Status':          String(h[2][5]||''),
+      'Total Length (m)': h[3][1],
+      'Avg Width (m)':   h[3][3],
+      'Total Area (m2)': h[3][5],
+    };
+    const closed = summary['Status'].toLowerCase().includes('closed');
 
-    return { ok: true, tabName, entries, summary, closed: summary['Status'] === 'closed' };
+    return { ok: true, tabName, entries, summary, closed };
   } catch(err) {
     return { ok: false, error: err.toString() };
   }
@@ -176,23 +190,6 @@ function saveSession(data) {
     // Light grey background on header rows for visual separation
     sheet.getRange(1, 1, 4, 6).setBackground('#F8F8F8');
 
-    // ── MACHINE-READABLE SUMMARY (col H-I, rows 1-13) ───────────────────
-    const summaryBlock = [
-      ['Date', s.date||''], ['Direction', s.direction||''], ['Activity', s.activity||'Milling'],
-      ['Segment', s.segment||''], ['Start Station', s.startStation||''], ['End Station', s.endStation||''],
-      ['Start Time', s.startTime||''], ['End Time', s.endTime||''],
-      ['Total Length (m)', s.totalLength||''], ['Avg Width (m)', s.avgWidth||''],
-      ['Total Area (m2)', s.totalArea||''], ['Entries', data.entries.length],
-      ['Status', data.closed ? 'closed' : 'open'],
-    ];
-    sheet.getRange(1, 8, summaryBlock.length, 2).setValues(summaryBlock);
-    sheet.getRange(1, 8, summaryBlock.length, 1)
-      .setFontWeight('bold').setFontColor('#BBBBBB').setFontSize(9);
-    sheet.getRange(1, 9, summaryBlock.length, 1)
-      .setFontColor('#666666').setFontSize(9);
-    // Light border to separate from data
-    sheet.getRange(1, 7, summaryBlock.length, 1).setBackground('#EEEEEE');
-
     // ── ENTRY LOG HEADER (row 6) ─────────────────────────────────────────
     const headers = ['Station', 'Width (m)', 'Length (m)', 'Seg Area (m²)', 'Cum Area (m²)', 'Time'];
     const headerRange = sheet.getRange(LOG_START, 1, 1, headers.length);
@@ -249,8 +246,6 @@ function saveSession(data) {
     sheet.setColumnWidth(4, 105);   // Seg Area
     sheet.setColumnWidth(5, 105);   // Cum Area
     sheet.setColumnWidth(6, 95);    // Time
-    sheet.setColumnWidth(7, 20);    // Separator (narrow grey column)
-    sheet.autoResizeColumns(8, 2);  // Summary block auto-size
     sheet.setFrozenRows(LOG_START); // Freeze through log header
 
     return { ok: true, tabName, rows: data.entries.length };
