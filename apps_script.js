@@ -202,11 +202,13 @@ function saveSession(data) {
         // Format timestamp as plain text string "01Jul 14:32"
         let ts = '';
         try {
-          if (entry.timestamp) {
+          if (entry.timestamp && entry.timestamp.length > 0) {
             const d = new Date(entry.timestamp);
-            const mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            ts = String(d.getDate()).padStart(2,'0') + mo[d.getMonth()] + ' '
-               + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+            if (!isNaN(d.getTime())) {
+              const mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+              ts = String(d.getDate()).padStart(2,'0') + mo[d.getMonth()] + ' '
+                 + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+            }
           }
         } catch(e) { ts = ''; }
         return [
