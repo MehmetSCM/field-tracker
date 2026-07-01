@@ -10,103 +10,103 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
   --bg:#111;--surface:#1C1C1C;--surface2:#262626;--border:#333;
-  --accent:#F59E0B;--ok:#22C55E;--danger:#EF4444;--blue:#3B82F6;
+  --accent:#F59E0B;--ok:#22C55E;--danger:#EF4444;
   --text:#F3F3F3;--muted:#777;--r:14px;--h:56px;
 }
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;overflow:hidden}
-/* ── SCREENS ── */
 .pg{display:none;flex-direction:column;height:100svh;max-width:480px;margin:0 auto}
 .pg.on{display:flex}
 .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
-/* ── COMMON ── */
+/* common */
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;flex-shrink:0}
 .tb-title{font-size:16px;font-weight:800}
 .tb-sub{font-size:11px;color:var(--muted);margin-top:2px}
-.back{background:none;border:none;color:var(--accent);font-size:15px;font-weight:600;cursor:pointer;padding:0;margin-bottom:4px}
+.back{background:none;border:none;color:var(--accent);font-size:15px;font-weight:600;cursor:pointer;padding:0;margin-bottom:4px;display:block}
 .lbl{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
 .inp{width:100%;height:var(--h);background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:20px;font-weight:600;padding:0 16px;appearance:none;-webkit-appearance:none}
 .inp:focus{outline:none;border-color:var(--accent)}
-.inp.sm{font-size:16px}
 .btn{width:100%;height:var(--h);border:none;border-radius:var(--r);font-size:17px;font-weight:800;cursor:pointer}
 .btn-accent{background:var(--accent);color:#111}
 .btn-ghost{background:var(--surface2);color:var(--text);border:1.5px solid var(--border)}
 .btn-danger{background:transparent;color:var(--danger);border:1.5px solid var(--danger)}
-.section-pad{padding:20px 16px}
 .mb{margin-bottom:16px}
-.row{display:flex;gap:10px}
-
-/* ── HOME SCREEN ── */
-.home-header{padding:32px 20px 20px;flex-shrink:0}
+/* home */
+.home-header{padding:32px 20px 20px}
 .home-proj{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
 .home-title{font-size:26px;font-weight:900;line-height:1.15}
 .home-sub{font-size:13px;color:var(--muted);margin-top:6px}
 .activity-list{padding:0 16px 32px}
-.activity-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:border-color .15s}
-.activity-card:active{border-color:var(--accent)}
-.ac-left{}
+.activity-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.activity-card.primary{border-color:rgba(245,158,11,.4)}
 .ac-name{font-size:18px;font-weight:800}
 .ac-desc{font-size:13px;color:var(--muted);margin-top:3px}
 .ac-arrow{font-size:22px;color:var(--border)}
-.activity-card.primary{border-color:rgba(245,158,11,.3)}
-
-/* ── DATE LIST SCREEN ── */
+/* date list */
 .date-list{padding:12px 16px}
 .date-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
 .date-card.today{border-color:var(--accent)}
-.date-card:active{opacity:.75}
-.dc-left .dc-date{font-size:17px;font-weight:800}
-.dc-left .dc-meta{font-size:12px;color:var(--muted);margin-top:2px}
-.dc-right{text-align:right}
+.date-card.closed{opacity:.65}
+.dc-date{font-size:17px;font-weight:800}
+.dc-meta{font-size:12px;color:var(--muted);margin-top:2px}
 .dc-area{font-size:17px;font-weight:700;color:var(--accent)}
 .dc-entries{font-size:11px;color:var(--muted)}
 .today-badge{font-size:11px;font-weight:700;background:var(--accent);color:#111;padding:3px 8px;border-radius:20px;margin-left:8px}
-.new-session-btn{margin:4px 0 20px}
-
-/* ── SESSION SETUP SCREEN ── */
+.closed-badge{font-size:11px;font-weight:700;background:var(--surface2);color:var(--muted);padding:3px 8px;border-radius:20px;margin-left:8px;border:1px solid var(--border)}
+.loading-msg{text-align:center;padding:32px 0;color:var(--muted);font-size:14px}
+/* setup */
 .seg-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
 .seg-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;text-align:center}
 .seg-card.on{border-color:var(--accent);background:rgba(245,158,11,.08)}
-.seg-card:active{opacity:.75}
 .sc-id{font-size:20px;font-weight:800}
 .sc-name{font-size:12px;color:var(--muted);margin-top:2px}
-.sc-hw{font-size:11px;color:var(--muted);margin-top:1px}
 .dir-grid{display:flex;gap:10px;margin-bottom:16px}
 .dir-btn{flex:1;height:54px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-size:16px;font-weight:800;cursor:pointer}
 .dir-btn.on{border-color:var(--accent);background:rgba(245,158,11,.1);color:var(--accent)}
-
-/* ── TRACKER SCREEN ── */
+/* tracker */
 .dash{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
 .dc2{padding:12px 4px;text-align:center}
 .dc2+.dc2{border-left:1px solid var(--border)}
-.dv{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.dv{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums}
 .dv.a{color:var(--accent)}
 .dl{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:3px}
-.entry{padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+/* entry form */
+.entry-area{padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
 .erow{display:flex;gap:10px;margin-bottom:10px}
 .ef{flex:1}
 .el{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
 .ei{width:100%;height:52px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:22px;font-weight:700;padding:0 12px;text-align:center;appearance:none;-webkit-appearance:none}
 .ei:focus{outline:none;border-color:var(--accent)}
 .ei.dim{color:var(--muted)}
-.savebtn{width:100%;height:52px;background:var(--accent);border:none;border-radius:12px;color:#111;font-size:17px;font-weight:800;cursor:pointer}
+.ei.editing{border-color:#3B82F6}
+.savebtn{width:100%;height:52px;border:none;border-radius:12px;font-size:17px;font-weight:800;cursor:pointer;background:var(--accent);color:#111}
+.savebtn.editing-mode{background:#3B82F6}
+.cancel-edit{width:100%;height:36px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--muted);margin-top:6px}
+/* log */
 .logarea{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 16px 16px}
-.empty{text-align:center;padding:40px 0;color:var(--muted);font-size:14px}
-.li{background:var(--surface);border-radius:12px;padding:13px 14px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center}
+.log-empty{text-align:center;padding:40px 0;color:var(--muted);font-size:14px}
+.li{background:var(--surface);border-radius:12px;padding:13px 14px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.li.editing-row{border:1.5px solid #3B82F6}
+.li-l{flex:1}
 .li-l .st{font-size:21px;font-weight:800}
 .li-l .w{font-size:13px;color:var(--muted);margin-top:2px}
-.li-r{text-align:right}
+.li-r{text-align:right;flex-shrink:0}
 .li-r .ca{font-size:19px;font-weight:700;color:var(--accent)}
 .li-r .cl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-.del{background:none;border:none;color:var(--border);font-size:15px;cursor:pointer;padding:4px 6px;margin-left:6px}
+.li-actions{display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+.act-btn{background:none;border:none;font-size:13px;cursor:pointer;padding:4px 6px;border-radius:6px;font-weight:600}
+.act-edit{color:var(--accent)}
+.act-del{color:var(--border)}
+.li.readonly .li-actions{display:none}
+/* bottom bar */
 .bot{display:flex;gap:10px;padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0}
 .endbtn{flex:1;height:50px;background:transparent;border:1.5px solid var(--border);border-radius:12px;color:var(--muted);font-size:15px;font-weight:700;cursor:pointer}
+.endbtn.readonly{display:none}
 .synbtn{width:50px;height:50px;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .synbtn.ok{border-color:var(--ok);color:var(--ok)}
 .synbtn.err{border-color:var(--danger);color:var(--danger)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinning{animation:spin .8s linear infinite;display:inline-block}
-
-/* ── MODAL ── */
+/* modal */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:50;align-items:flex-end;justify-content:center}
 .overlay.on{display:flex}
 .modal{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px 44px;width:100%;max-width:480px}
@@ -116,15 +116,16 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .mstat:last-of-type{border:none;margin-bottom:16px}
 .mv{font-weight:700;color:var(--accent)}
 .mbtns{display:flex;flex-direction:column;gap:10px}
-
-/* ── TOAST ── */
+/* readonly banner */
+.readonly-banner{background:var(--surface2);border-bottom:1px solid var(--border);padding:8px 16px;text-align:center;font-size:12px;color:var(--muted);flex-shrink:0}
+/* toast */
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:#222;color:#fff;padding:10px 22px;border-radius:30px;font-size:14px;font-weight:600;opacity:0;transition:all .2s;pointer-events:none;z-index:200;white-space:nowrap;border:1px solid #444}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 
-<!-- ══ HOME ══ -->
+<!-- HOME -->
 <div class="pg on" id="pg-home">
   <div class="scroll">
     <div class="home-header">
@@ -134,80 +135,70 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     </div>
     <div class="activity-list">
       <div class="activity-card primary" onclick="goActivity('milling')">
-        <div class="ac-left">
-          <div class="ac-name">Milling</div>
-          <div class="ac-desc">Cold mill 50mm — area tracking</div>
-        </div>
+        <div><div class="ac-name">Milling</div><div class="ac-desc">Cold mill — area tracking</div></div>
         <div class="ac-arrow">›</div>
       </div>
       <div class="activity-card" onclick="showToast('Paving coming soon')">
-        <div class="ac-left">
-          <div class="ac-name">Paving</div>
-          <div class="ac-desc">Top lift & level course — rate tracking</div>
-        </div>
+        <div><div class="ac-name">Paving</div><div class="ac-desc">Top lift & level course — rate tracking</div></div>
         <div class="ac-arrow">›</div>
       </div>
       <div class="activity-card" onclick="showToast('Coming soon')">
-        <div class="ac-left">
-          <div class="ac-name">More activities</div>
-          <div class="ac-desc">Tack coat, hot joint sealant, shouldering…</div>
-        </div>
+        <div><div class="ac-name">More activities</div><div class="ac-desc">Tack coat, hot joint sealant, shouldering…</div></div>
         <div class="ac-arrow">›</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ DATE LIST ══ -->
+<!-- DATE LIST -->
 <div class="pg" id="pg-dates">
   <div class="topbar">
     <button class="back" onclick="goHome()">← Activities</button>
     <div class="tb-title" id="dl-title">Milling Sessions</div>
-    <div class="tb-sub">Select a date to continue or start new</div>
+    <div class="tb-sub">Tap a date to open or continue</div>
   </div>
   <div class="scroll">
-    <div class="date-list">
-      <div id="today-card"></div>
-      <div id="past-sessions"></div>
+    <div class="date-list" id="date-list">
+      <div class="loading-msg" id="date-loading">Loading sessions…</div>
     </div>
   </div>
 </div>
 
-<!-- ══ SESSION SETUP ══ -->
+<!-- SESSION SETUP -->
 <div class="pg" id="pg-setup">
   <div class="topbar">
     <button class="back" onclick="goDates()">← Sessions</button>
-    <div class="tb-title" id="setup-title">New Session</div>
-    <div class="tb-sub" id="setup-date-label"></div>
+    <div class="tb-title">New Session</div>
+    <div class="tb-sub" id="setup-date-sub"></div>
   </div>
   <div class="scroll">
-    <div class="section-pad">
-
+    <div style="padding:20px 16px">
       <div class="mb">
         <span class="lbl">Segment</span>
         <div class="seg-grid" id="seg-grid"></div>
       </div>
-
       <div class="mb">
         <span class="lbl" id="dir-label">Direction</span>
         <div class="dir-grid" id="dir-grid"></div>
       </div>
-
       <div class="mb">
-        <span class="lbl">Start Station <span id="lki-label" style="color:var(--accent);font-weight:400;text-transform:none;letter-spacing:0"></span></span>
+        <span class="lbl">Start Station <span id="lki-hint" style="color:var(--accent);font-weight:400;text-transform:none;letter-spacing:0;font-size:11px"></span></span>
         <input class="inp" id="s-st" type="number" inputmode="numeric" placeholder="e.g. 44896">
       </div>
-
       <button class="btn btn-accent" onclick="startSession()">Start Session →</button>
     </div>
   </div>
 </div>
 
-<!-- ══ TRACKER ══ -->
+<!-- TRACKER -->
 <div class="pg" id="pg-track">
   <div class="topbar">
+    <button class="back" id="track-back" onclick="goDates()">← Sessions</button>
     <div class="tb-title" id="t-title">—</div>
     <div class="tb-sub" id="t-sub">—</div>
+  </div>
+  <div class="readonly-banner" id="readonly-banner" style="display:none">
+    📋 Read-only — session closed. Edit data directly in Google Sheets.
   </div>
   <div class="dash">
     <div class="dc2"><div class="dv" id="d-s">—</div><div class="dl">Start</div></div>
@@ -215,27 +206,28 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     <div class="dc2"><div class="dv" id="d-w">—</div><div class="dl">Avg W (m)</div></div>
     <div class="dc2"><div class="dv a" id="d-a">—</div><div class="dl">Area m²</div></div>
   </div>
-  <div class="entry">
+  <div class="entry-area" id="entry-area">
     <div class="erow">
       <div class="ef"><span class="el">Station</span><input class="ei" id="e-st" type="number" inputmode="numeric" placeholder="—"></div>
       <div class="ef"><span class="el">Width (m)</span><input class="ei" id="e-w" type="number" inputmode="decimal" step="0.01" placeholder="—"></div>
     </div>
-    <button class="savebtn" onclick="addEntry()">Save Reading</button>
+    <button class="savebtn" id="savebtn" onclick="saveEntry()">Save Reading</button>
+    <button class="cancel-edit" id="cancel-edit" style="display:none" onclick="cancelEdit()">Cancel edit</button>
   </div>
   <div class="logarea" id="logarea">
-    <div class="empty" id="log-empty">Enter the first reading above</div>
+    <div class="log-empty" id="log-empty">Enter the first reading above</div>
   </div>
   <div class="bot">
-    <button class="endbtn" onclick="openEndModal()">End Session</button>
+    <button class="endbtn" id="endbtn" onclick="openEndModal()">End Session</button>
     <button class="synbtn" id="synbtn" onclick="doSync()">☁</button>
   </div>
 </div>
 
-<!-- ══ END MODAL ══ -->
+<!-- END MODAL -->
 <div class="overlay" id="modal">
   <div class="modal">
     <div class="mtitle" id="m-title">End Session?</div>
-    <div class="msub" id="m-sub">Saves to Google Sheets then returns to sessions list.</div>
+    <div class="msub" id="m-sub">Saves to Google Sheets. After this, Sheets becomes the master record.</div>
     <div class="mstat"><span>Readings</span><span class="mv" id="m-n">0</span></div>
     <div class="mstat"><span>Start → End</span><span class="mv" id="m-rng">—</span></div>
     <div class="mstat"><span>Total Length</span><span class="mv" id="m-len">—</span></div>
@@ -251,388 +243,429 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 <div class="toast" id="toast"></div>
 
 <script>
-// ══ PROJECT CONFIG ══════════════════════════════════════════════════════════
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8FPePSr4ktna2fNgVUUU6-zTufCqR7Bwgc4W6JlHfadmIxguBBhd1GljanSaNQmgc9Q/exec';
 
 const PROJECT = {
-  number: '26754-0000',
-  name: 'Hwy 1/97 Venables Valley',
-  target_rate: 124.35,
-  band_low: 100,
-  band_high: 102,
   segments: [
-    {
-      id: 'S1', name: 'Segment 1', highway: 'Hwy 1',
-      directions: {
-        EB: { label: 'Hwy 1 EBL', increment: 1,  range: [25340, 35235], rollovers: [] },
-        WB: { label: 'Hwy 1 WBL', increment: -1, range: [35235, 25340], rollovers: [] }
-      }
-    },
-    {
-      id: 'S2', name: 'Segment 2', highway: 'Hwy 1/97/97C/99',
-      directions: {
-        NB: { label: 'Hwy 1 NBL', increment: 1,  range: [43170, 99999], rollovers: [{from:45060, to:0}] },
-        SB: { label: 'Hwy 1 SBL', increment: -1, range: [35235, 25340], rollovers: [] }
-      }
-    }
+    { id:'S1', name:'Segment 1', highway:'Hwy 1',
+      directions:{ EB:{label:'Hwy 1 EBL',increment:1,range:[25340,35235],rollovers:[]}, WB:{label:'Hwy 1 WBL',increment:-1,range:[35235,25340],rollovers:[]} } },
+    { id:'S2', name:'Segment 2', highway:'Hwy 1/97/97C/99',
+      directions:{ NB:{label:'Hwy 1 NBL',increment:1,range:[43170,99999],rollovers:[{from:45060,to:0}]}, SB:{label:'Hwy 1 SBL',increment:-1,range:[35235,25340],rollovers:[]} } }
   ]
 };
 
-// ══ STATE ═══════════════════════════════════════════════════════════════════
+// ── STATE ─────────────────────────────────────────────────────────────────
 let currentActivity = 'milling';
-let selectedSeg = null;    // segment object
-let selectedDir = null;    // direction key e.g. 'NB'
-let sess = null;           // active session metadata
-let rows = [];             // readings array
+let selectedSeg = null;
+let selectedDir = null;
+let sess = null;   // active session metadata
+let rows = [];     // current readings
+let editingIdx = null;  // index of row being edited, or null
+let isReadOnly = false; // true when viewing a closed past session
 
 function persist() {
   try {
-    localStorage.setItem('ft4_sess', JSON.stringify(sess));
-    localStorage.setItem('ft4_rows', JSON.stringify(rows));
+    localStorage.setItem('ft5_sess', JSON.stringify(sess));
+    localStorage.setItem('ft5_rows', JSON.stringify(rows));
   } catch(e) {}
 }
 function restore() {
   try {
-    const s = localStorage.getItem('ft4_sess');
-    const r = localStorage.getItem('ft4_rows');
+    const s = localStorage.getItem('ft5_sess');
+    const r = localStorage.getItem('ft5_rows');
     if (s) sess = JSON.parse(s);
     if (r) rows = JSON.parse(r);
   } catch(e) { sess = null; rows = []; }
 }
 
-// ══ NAVIGATION ══════════════════════════════════════════════════════════════
+// ── NAVIGATION ────────────────────────────────────────────────────────────
 function show(id) {
   document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
   document.getElementById(id).classList.add('on');
 }
-
 function goHome() { show('pg-home'); }
-
 function goActivity(activity) {
   currentActivity = activity;
   document.getElementById('dl-title').textContent =
     activity.charAt(0).toUpperCase() + activity.slice(1) + ' Sessions';
-  buildDateList();
   show('pg-dates');
+  loadDateList();
+}
+function goDates() {
+  cancelEdit();
+  show('pg-dates');
+  loadDateList();
 }
 
-function goDates() { buildDateList(); show('pg-dates'); }
-
-// ══ DATE LIST ═══════════════════════════════════════════════════════════════
+// ── DATE LIST ─────────────────────────────────────────────────────────────
 function todayStr() {
   const d = new Date();
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + String(d.getFullYear()).slice(2);
+  const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return d.getDate() + ' ' + m[d.getMonth()] + ' ' + String(d.getFullYear()).slice(2);
 }
-function todayTab() {
-  return 'FT-' + todayStr().replace(/\s+/g,'');
-}
+function tabFromDate(dateStr) { return 'FT-' + dateStr.replace(/\s+/g,''); }
 
-function buildDateList() {
+async function loadDateList() {
+  const list = document.getElementById('date-list');
+  list.innerHTML = '<div class="loading-msg">Loading sessions…</div>';
   const today = todayStr();
-  const todayEl = document.getElementById('today-card');
-  const pastEl = document.getElementById('past-sessions');
+  const todayTab = tabFromDate(today);
 
-  // Today card — always shown
-  todayEl.innerHTML = `
-    <div class="date-card today" onclick="openSetup('${today}')">
-      <div class="dc-left">
-        <div class="dc-date">${today} <span class="today-badge">TODAY</span></div>
-        <div class="dc-meta">Tap to start or continue</div>
-      </div>
-      <div class="ac-arrow" style="color:var(--accent)">›</div>
-    </div>`;
-
-  // Past sessions — load from localStorage keys
-  pastEl.innerHTML = '';
-  const pastSessions = getPastSessions();
-  if (pastSessions.length === 0) {
-    pastEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0">No past sessions yet</div>';
-    return;
-  }
-  pastSessions.forEach(s => {
-    if (s.date === today) return; // skip today
-    pastEl.innerHTML += `
-      <div class="date-card" onclick="openSetup('${s.date}')">
-        <div class="dc-left">
-          <div class="dc-date">${s.date}</div>
-          <div class="dc-meta">${s.seg || ''} · ${s.dir || ''} · ended ST ${s.endSt || '—'} · ${s.entries} readings</div>
-        </div>
-        <div class="dc-right">
-          <div class="dc-area">${s.area} m²</div>
-          <div class="dc-entries">total area</div>
-        </div>
-      </div>`;
-  });
-}
-
-function getPastSessions() {
-  // Read saved sessions from localStorage (keyed by tab name)
-  const sessions = [];
+  // Try to load from Sheets
+  let sheetSessions = [];
   try {
-    const keys = Object.keys(localStorage).filter(k => k.startsWith('fts_'));
-    keys.sort().reverse();
-    keys.forEach(k => {
-      const d = JSON.parse(localStorage.getItem(k));
-      sessions.push(d);
-    });
+    const result = await jsonpCall(SCRIPT_URL + '?action=list_sessions', 10000);
+    if (result.ok) sheetSessions = result.sessions || [];
   } catch(e) {}
-  return sessions;
+
+  // Build the list
+  let html = '';
+
+  // Today card — always on top
+  const todaySheet = sheetSessions.find(s => s.tab === todayTab);
+  const todayEntries = todaySheet ? todaySheet.entries : (sess && sess.tab === todayTab ? rows.length : 0);
+  const todayArea = todaySheet ? todaySheet.totalArea : (sess && sess.tab === todayTab && rows.length > 0 ? rows[rows.length-1].cum.toFixed(2) : '—');
+  const todayClosed = todaySheet ? todaySheet.closed : false;
+
+  html += `<div class="date-card today" onclick="openDate('${today}', false)">
+    <div>
+      <div class="dc-date">${today} <span class="today-badge">TODAY</span></div>
+      <div class="dc-meta">${todayClosed ? 'Closed · ' : ''}${todayEntries || 0} readings</div>
+    </div>
+    <div style="text-align:right">
+      <div class="dc-area">${todayArea !== '—' ? todayArea + ' m²' : 'New'}</div>
+    </div>
+  </div>`;
+
+  // Past sessions from Sheets (excluding today)
+  const past = sheetSessions.filter(s => s.tab !== todayTab);
+
+  // Also include seeded local sessions not yet in Sheets
+  const localKeys = Object.keys(localStorage).filter(k => k.startsWith('fts_') && k !== 'fts_' + todayTab);
+  const localTabs = localKeys.map(k => k.replace('fts_',''));
+  const sheetTabs = sheetSessions.map(s => s.tab);
+  const localOnly = localTabs.filter(t => !sheetTabs.includes(t));
+
+  const allPast = [
+    ...past,
+    ...localOnly.map(tab => {
+      try { return JSON.parse(localStorage.getItem('fts_' + tab)); } catch(e) { return null; }
+    }).filter(Boolean)
+  ];
+
+  // Sort by tab name descending (newest first)
+  allPast.sort((a,b) => (b.tab||'').localeCompare(a.tab||''));
+
+  allPast.forEach(s => {
+    const closed = s.closed;
+    const endSt = s.endStation || s.endSt || '—';
+    html += `<div class="date-card ${closed?'closed':''}" onclick="openDate('${s.date}', ${closed})">
+      <div>
+        <div class="dc-date">${s.date}${closed?'<span class="closed-badge">Closed</span>':''}</div>
+        <div class="dc-meta">${s.segment||s.seg||''} · ${s.direction||s.dir||''} · ended ST ${endSt}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="dc-area">${s.totalArea||s.area||'—'} m²</div>
+        <div class="dc-entries">${s.entries||0} readings</div>
+      </div>
+    </div>`;
+  });
+
+  if (allPast.length === 0) {
+    html += '<div class="loading-msg" style="padding-top:16px">No past sessions yet</div>';
+  }
+
+  list.innerHTML = html;
 }
 
-function savePastSession() {
-  if (!sess || rows.length === 0) return;
-  const last = rows[rows.length-1];
-  const totLen = rows.reduce((s,r) => s+r.len, 0);
-  const avgW = totLen > 0 ? last.cum/totLen : 0;
-  const key = 'fts_' + sess.tab;
-  const record = {
-    date: sess.date, tab: sess.tab,
-    seg: sess.segId, dir: sess.dir,
-    endSt: rows[rows.length-1].station,
-    entries: rows.length,
-    area: last.cum.toFixed(2),
-    avgW: avgW.toFixed(2),
-    totLen: totLen.toFixed(0)
-  };
-  localStorage.setItem(key, JSON.stringify(record));
-}
+// ── OPEN A DATE ───────────────────────────────────────────────────────────
+async function openDate(dateStr, closed) {
+  const tab = tabFromDate(dateStr);
 
-// ══ SESSION SETUP ════════════════════════════════════════════════════════════
-function openSetup(dateStr) {
-  // If there's an active session for this date, go straight to tracker
-  if (sess && sess.date === dateStr && rows.length > 0) {
+  // If it's the active local session, go straight to tracker
+  if (sess && sess.tab === tab && rows.length > 0 && !closed) {
+    isReadOnly = false;
     resumeTracker();
     return;
   }
-  // Try to load historical rows for this date (read-only review of past sessions)
-  const pastKey = 'fts_' + 'FT-' + dateStr.replace(/\s+/g,'');
-  const pastMeta = localStorage.getItem(pastKey);
-  if (pastMeta && dateStr !== todayStr()) {
-    const meta = JSON.parse(pastMeta);
-    const rowKey = 'ft4_rows_FT-' + dateStr.replace(/\s+/g,'');
-    const pastRows = localStorage.getItem(rowKey);
-    if (pastRows) {
-      sess = { date: meta.date, tab: meta.tab, activity: 'Milling',
-               segId: meta.seg, segName: meta.seg === 'S2' ? 'Segment 2' : 'Segment 1',
-               dir: meta.dir, dirLabel: meta.dir === 'NB' ? 'Hwy 1 NBL' : 'Hwy 1 SBL',
-               startSt: JSON.parse(pastRows)[0].station, increment: 1, rollovers: meta.dir==='NB'&&meta.seg==='S2'?[{from:45060,to:0}]:[] };
-      rows = JSON.parse(pastRows);
-      resumeTracker();
-      return;
+
+  // Try to load from Sheets first
+  show('pg-track');
+  isReadOnly = closed;
+  document.getElementById('log-empty').textContent = 'Loading…';
+
+  let loaded = false;
+  try {
+    const result = await jsonpCall(SCRIPT_URL + '?action=read_session&tabName=' + encodeURIComponent(tab), 10000);
+    if (result.ok && result.entries) {
+      // Convert sheet entries to local row format
+      rows = result.entries.map((e,i) => ({
+        station: e.station, width: e.width,
+        len: e.length, seg: e.segArea, cum: e.cumArea,
+        ts: e.timestamp || ''
+      }));
+      // Build session metadata from summary
+      const sum = result.summary || {};
+      sess = {
+        date: dateStr, tab,
+        activity: sum['Activity'] || 'Milling',
+        segId: sum['Segment'] || 'S2',
+        segName: sum['Segment'] || 'Segment 2',
+        dir: sum['Direction'] || 'NB',
+        dirLabel: sum['Direction'] === 'NB' ? 'Hwy 1 NBL' : 'Hwy 1 SBL',
+        startSt: sum['Start Station'] || (rows.length > 0 ? rows[0].station : 0),
+        increment: 1,
+        rollovers: [{from:45060,to:0}]
+      };
+      if (!closed) persist(); // save active session locally
+      loaded = true;
+    }
+  } catch(e) {}
+
+  // Fall back to localStorage
+  if (!loaded) {
+    const rowKey = 'ft5_rows_' + tab;
+    const localRows = localStorage.getItem(rowKey) || localStorage.getItem('ft4_rows_' + tab);
+    const metaKey = 'fts_' + tab;
+    const localMeta = localStorage.getItem(metaKey);
+    if (localRows) {
+      rows = JSON.parse(localRows);
+      if (localMeta) {
+        const meta = JSON.parse(localMeta);
+        sess = {
+          date: dateStr, tab, activity: 'Milling',
+          segId: meta.seg||'S2', segName: meta.seg==='S2'?'Segment 2':'Segment 1',
+          dir: meta.dir||'NB', dirLabel: meta.dir==='NB'?'Hwy 1 NBL':'Hwy 1 SBL',
+          startSt: rows[0]?.station||0, increment:1, rollovers:[{from:45060,to:0}]
+        };
+      }
+      loaded = true;
     }
   }
-  document.getElementById('setup-title').textContent = 'Session Setup';
-  document.getElementById('setup-date-label').textContent = dateStr;
-  buildSegGrid();
-  show('pg-setup');
-  // Default: restore last-used segment/direction
-  const lastSess = getLastSession();
-  if (lastSess) {
-    selectSeg(lastSess.seg || 'S1');
-    selectDir(lastSess.dir || Object.keys(PROJECT.segments[0].directions)[0]);
-    document.getElementById('s-st').value = lastSess.endSt || '';
-  } else {
-    selectSeg('S1');
-    selectDir('EB');
+
+  if (!loaded) {
+    // New session for this date — go to setup
+    show('pg-setup');
+    document.getElementById('setup-date-sub').textContent = dateStr;
+    buildSegGrid();
+    const last = getLastSessionMeta();
+    if (last) {
+      selectSeg(last.seg||last.segment||'S2');
+      selectDir(last.dir||last.direction||'NB');
+      document.getElementById('s-st').value = last.endSt||last.endStation||'';
+    } else {
+      selectSeg('S2'); selectDir('NB');
+    }
+    return;
   }
-  document.getElementById('setup-date-label').textContent = dateStr;
-  document.getElementById('_setup_date').value = dateStr;
-}
 
-function getLastSession() {
-  try {
-    const keys = Object.keys(localStorage).filter(k => k.startsWith('fts_'));
-    if (keys.length === 0) return null;
-    keys.sort();
-    const last = JSON.parse(localStorage.getItem(keys[keys.length-1]));
-    return last;
-  } catch(e) { return null; }
-}
-
-function buildSegGrid() {
-  const grid = document.getElementById('seg-grid');
-  grid.innerHTML = PROJECT.segments.map(s => `
-    <div class="seg-card" id="sc-${s.id}" onclick="selectSeg('${s.id}')">
-      <div class="sc-id">${s.id}</div>
-      <div class="sc-name">${s.name}</div>
-      <div class="sc-hw">${s.highway}</div>
-    </div>`).join('');
-}
-
-function selectSeg(segId) {
-  selectedSeg = PROJECT.segments.find(s => s.id === segId);
-  document.querySelectorAll('.seg-card').forEach(c => c.classList.remove('on'));
-  const el = document.getElementById('sc-' + segId);
-  if (el) el.classList.add('on');
-  buildDirGrid();
-}
-
-function buildDirGrid() {
-  if (!selectedSeg) return;
-  const dirs = Object.keys(selectedSeg.directions);
-  const isEW = dirs.includes('EB');
-  document.getElementById('dir-label').textContent =
-    isEW ? 'Direction (East-West)' : 'Direction (North-South)';
-  const grid = document.getElementById('dir-grid');
-  grid.innerHTML = dirs.map(d => `
-    <button class="dir-btn" id="db-${d}" onclick="selectDir('${d}')">${d} ${d==='NB'||d==='EB'?'↑':'↓'}</button>`
-  ).join('');
-  selectDir(dirs[0]);
-}
-
-function selectDir(dirKey) {
-  if (!selectedSeg) return;
-  const dirs = selectedSeg.directions;
-  if (!dirs[dirKey]) return;
-  selectedDir = dirKey;
-  document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('on'));
-  const el = document.getElementById('db-' + dirKey);
-  if (el) el.classList.add('on');
-  // Show LKI label
-  const conf = dirs[dirKey];
-  document.getElementById('lki-label').textContent =
-    '(' + conf.label + ', range ' + conf.range[0] + '–' + conf.range[1] + ')';
-}
-
-function startSession() {
-  if (!selectedSeg || !selectedDir) { showToast('Select segment and direction'); return; }
-  const st = parseFloat(document.getElementById('s-st').value);
-  if (isNaN(st)) { showToast('Enter a start station'); return; }
-  const dateStr = document.getElementById('setup-date-label').textContent;
-  const dirConf = selectedSeg.directions[selectedDir];
-  const tab = 'FT-' + dateStr.replace(/\s+/g,'');
-  sess = {
-    date: dateStr, tab, activity: 'Milling',
-    segId: selectedSeg.id, segName: selectedSeg.name,
-    dir: selectedDir, dirLabel: dirConf.label,
-    startSt: st, increment: dirConf.increment,
-    rollovers: dirConf.rollovers || []
-  };
-  rows = [];
-  persist();
   resumeTracker();
 }
 
-// Hidden date field for passing date from date list to setup
-const _df = document.createElement('input');
-_df.id = '_setup_date'; _df.type = 'hidden'; document.body.appendChild(_df);
+function getLastSessionMeta() {
+  // Get most recent session from localStorage
+  const keys = Object.keys(localStorage).filter(k=>k.startsWith('fts_'));
+  if (!keys.length) return null;
+  keys.sort();
+  try { return JSON.parse(localStorage.getItem(keys[keys.length-1])); } catch(e) { return null; }
+}
 
-// ══ TRACKER ══════════════════════════════════════════════════════════════════
+// ── SETUP ─────────────────────────────────────────────────────────────────
+function buildSegGrid() {
+  document.getElementById('seg-grid').innerHTML = PROJECT.segments.map(s=>
+    `<div class="seg-card" id="sc-${s.id}" onclick="selectSeg('${s.id}')">
+      <div class="sc-id">${s.id}</div>
+      <div class="sc-name">${s.name}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:1px">${s.highway}</div>
+    </div>`).join('');
+}
+function selectSeg(id) {
+  selectedSeg = PROJECT.segments.find(s=>s.id===id);
+  document.querySelectorAll('.seg-card').forEach(c=>c.classList.remove('on'));
+  const el = document.getElementById('sc-'+id);
+  if(el) el.classList.add('on');
+  buildDirGrid();
+}
+function buildDirGrid() {
+  if(!selectedSeg) return;
+  const dirs = Object.keys(selectedSeg.directions);
+  const isEW = dirs.includes('EB');
+  document.getElementById('dir-label').textContent = isEW ? 'Direction (East-West)' : 'Direction (North-South)';
+  document.getElementById('dir-grid').innerHTML = dirs.map(d=>
+    `<button class="dir-btn" id="db-${d}" onclick="selectDir('${d}')">${d} ${d==='NB'||d==='EB'?'↑':'↓'}</button>`).join('');
+  selectDir(dirs[0]);
+}
+function selectDir(d) {
+  if(!selectedSeg||!selectedSeg.directions[d]) return;
+  selectedDir = d;
+  document.querySelectorAll('.dir-btn').forEach(b=>b.classList.remove('on'));
+  const el = document.getElementById('db-'+d); if(el) el.classList.add('on');
+  const conf = selectedSeg.directions[d];
+  document.getElementById('lki-hint').textContent = '(' + conf.label + ')';
+}
+function startSession() {
+  if(!selectedSeg||!selectedDir){showToast('Select segment and direction');return;}
+  const st = parseFloat(document.getElementById('s-st').value);
+  if(isNaN(st)){showToast('Enter a start station');return;}
+  const dateStr = document.getElementById('setup-date-sub').textContent;
+  const dirConf = selectedSeg.directions[selectedDir];
+  sess = {
+    date:dateStr, tab:tabFromDate(dateStr), activity:'Milling',
+    segId:selectedSeg.id, segName:selectedSeg.name,
+    dir:selectedDir, dirLabel:dirConf.label,
+    startSt:st, increment:dirConf.increment, rollovers:dirConf.rollovers||[]
+  };
+  rows = []; isReadOnly = false;
+  persist(); resumeTracker();
+}
+
+// ── TRACKER ───────────────────────────────────────────────────────────────
 function resumeTracker() {
-  document.getElementById('t-title').textContent =
-    sess.segName + ' · ' + sess.dirLabel;
-  document.getElementById('t-sub').textContent =
-    sess.date + ' · ' + sess.activity;
-  document.getElementById('d-s').textContent = sess.startSt;
+  if(!sess){goDates();return;}
+  document.getElementById('t-title').textContent = (sess.segName||'') + ' · ' + (sess.dirLabel||'');
+  document.getElementById('t-sub').textContent = sess.date + ' · ' + (sess.activity||'Milling');
+  document.getElementById('readonly-banner').style.display = isReadOnly ? 'block' : 'none';
+  document.getElementById('entry-area').style.display = isReadOnly ? 'none' : 'block';
+  document.getElementById('endbtn').style.display = isReadOnly ? 'none' : 'flex';
+  document.getElementById('d-s').textContent = sess.startSt||'—';
   refreshDash();
   renderLog();
-  prefillNextStation();
+  if(!isReadOnly) prefillNext();
   show('pg-track');
 }
-
-function prefillNextStation() {
+function prefillNext() {
   const inp = document.getElementById('e-st');
-  if (rows.length === 0) {
-    inp.value = sess.startSt;
-  } else {
-    inp.value = nextStation();
-  }
+  inp.value = rows.length === 0 ? sess.startSt : nextStation();
   inp.classList.add('dim');
 }
-
 function nextStation() {
-  if (!sess || rows.length === 0) return '';
+  if(!sess||rows.length===0) return '';
   const last = rows[rows.length-1].station;
-  const next = last + (sess.increment * 50);
-  // Check if this crosses a rollover
-  for (const rv of sess.rollovers) {
-    if (sess.increment > 0 && last <= rv.from && next > rv.from) return rv.to;
-    if (sess.increment < 0 && last >= rv.from && next < rv.from) return rv.to;
+  const next = last + sess.increment * 50;
+  for(const rv of (sess.rollovers||[])) {
+    if(sess.increment>0 && last<=rv.from && next>rv.from) return rv.to;
   }
   return next;
 }
 
-function addEntry() {
+// ── ENTRY: ADD / EDIT ─────────────────────────────────────────────────────
+function saveEntry() {
   const st = parseFloat(document.getElementById('e-st').value);
   const w  = parseFloat(document.getElementById('e-w').value);
-  if (isNaN(st)) { showToast('Enter a station'); return; }
-  if (isNaN(w) || w <= 0) { showToast('Enter a valid width'); return; }
+  if(isNaN(st)){showToast('Enter a station');return;}
+  if(isNaN(w)||w<=0){showToast('Enter a valid width');return;}
 
-  const prev = rows.length > 0 ? rows[rows.length-1] : null;
-  let len = 0, seg = 0, cum = 0;
-
-  if (prev) {
-    const raw = Math.abs(st - prev.station);
-    const same = raw < 0.01;
-    const lki  = raw > 5000;
-    len = (same || lki) ? 0 : raw;
-    seg = len > 0 ? ((prev.width + w) / 2) * len : 0;
-    cum = prev.cum + seg;
-    if (lki) showToast('LKI rollover — length set to 0');
+  if(editingIdx !== null) {
+    // Edit existing entry
+    rows[editingIdx].station = st;
+    rows[editingIdx].width = w;
+    rows[editingIdx].ts = new Date().toISOString();
+    recalcFrom(editingIdx);
+    editingIdx = null;
+    document.getElementById('savebtn').textContent = 'Save Reading';
+    document.getElementById('savebtn').classList.remove('editing-mode');
+    document.getElementById('cancel-edit').style.display = 'none';
+    document.getElementById('e-st').classList.remove('editing');
+    document.getElementById('e-w').classList.remove('editing');
+  } else {
+    // New entry
+    const prev = rows.length>0 ? rows[rows.length-1] : null;
+    let len=0,seg=0,cum=0;
+    if(prev) {
+      const raw = Math.abs(st-prev.station);
+      const lki = raw>5000, same = raw<0.01;
+      len = (lki||same)?0:raw;
+      seg = len>0 ? round2((prev.width+w)/2*len) : 0;
+      cum = round2(prev.cum+seg);
+      if(lki) showToast('LKI rollover — length set to 0');
+    }
+    rows.push({station:st,width:w,len,seg,cum,ts:new Date().toISOString()});
   }
 
-  rows.push({ station: st, width: w, len, seg, cum, ts: new Date().toISOString() });
   persist();
-
-  document.getElementById('e-w').value = '';
-  document.getElementById('e-st').value = nextStation();
-  document.getElementById('e-st').classList.add('dim');
-  refreshDash();
-  renderLog();
+  document.getElementById('e-w').value='';
+  prefillNext();
+  refreshDash(); renderLog();
   document.getElementById('e-w').focus();
 }
 
-document.getElementById('e-st').addEventListener('input', function() {
-  this.classList.remove('dim');
-});
-document.getElementById('e-w').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') addEntry();
-});
+function startEdit(i) {
+  editingIdx = i;
+  const r = rows[i];
+  document.getElementById('e-st').value = r.station;
+  document.getElementById('e-w').value = r.width;
+  document.getElementById('e-st').classList.add('editing');
+  document.getElementById('e-w').classList.add('editing');
+  document.getElementById('savebtn').textContent = 'Update Reading';
+  document.getElementById('savebtn').classList.add('editing-mode');
+  document.getElementById('cancel-edit').style.display = 'block';
+  document.getElementById('e-st').focus();
+  renderLog();
+  // Scroll entry form into view
+  document.getElementById('entry-area').scrollIntoView({behavior:'smooth'});
+}
 
-function del(i) {
-  rows.splice(i, 1);
-  for (let j = 0; j < rows.length; j++) {
-    if (j === 0) { rows[j].len = 0; rows[j].seg = 0; rows[j].cum = 0; }
-    else {
-      const p = rows[j-1];
-      const raw = Math.abs(rows[j].station - p.station);
-      rows[j].len = raw > 5000 ? 0 : raw;
-      rows[j].seg = rows[j].len > 0 ? ((p.width + rows[j].width)/2) * rows[j].len : 0;
-      rows[j].cum = p.cum + rows[j].seg;
-    }
-  }
+function cancelEdit() {
+  editingIdx = null;
+  document.getElementById('e-st').value='';
+  document.getElementById('e-w').value='';
+  document.getElementById('e-st').classList.remove('editing','dim');
+  document.getElementById('e-w').classList.remove('editing');
+  document.getElementById('savebtn').textContent='Save Reading';
+  document.getElementById('savebtn').classList.remove('editing-mode');
+  document.getElementById('cancel-edit').style.display='none';
+  if(!isReadOnly) prefillNext();
+  renderLog();
+}
+
+function delEntry(i) {
+  rows.splice(i,1);
+  recalcFrom(i>0?i-1:0, true);
+  if(editingIdx===i) cancelEdit();
   persist(); refreshDash(); renderLog();
 }
 
-function refreshDash() {
-  if (!sess) return;
-  const n = rows.length;
-  document.getElementById('d-s').textContent = sess.startSt;
-  if (n === 0) {
-    ['d-c','d-w','d-a'].forEach(id => document.getElementById(id).textContent = '—');
-    return;
+function recalcFrom(startIdx, afterDelete) {
+  // Recalculate cumulative areas from startIdx onward
+  for(let j=afterDelete?startIdx:startIdx; j<rows.length; j++) {
+    if(j===0){rows[j].len=0;rows[j].seg=0;rows[j].cum=0;continue;}
+    const prev=rows[j-1];
+    const raw=Math.abs(rows[j].station-prev.station);
+    const lki=raw>5000,same=raw<0.01;
+    rows[j].len=(lki||same)?0:raw;
+    rows[j].seg=rows[j].len>0?round2((prev.width+rows[j].width)/2*rows[j].len):0;
+    rows[j].cum=round2(prev.cum+rows[j].seg);
   }
-  const last = rows[n-1];
-  document.getElementById('d-c').textContent = last.station;
-  document.getElementById('d-a').textContent = last.cum.toFixed(0);
-  const totLen = rows.reduce((s,r)=>s+r.len,0);
-  const avgW = totLen > 0 ? last.cum/totLen : 0;
-  document.getElementById('d-w').textContent = avgW > 0 ? avgW.toFixed(2) : '—';
 }
 
+function round2(n){return Math.round(n*100)/100;}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────
+function refreshDash() {
+  const n=rows.length;
+  document.getElementById('d-s').textContent=sess?sess.startSt:'—';
+  if(n===0){['d-c','d-w','d-a'].forEach(id=>document.getElementById(id).textContent='—');return;}
+  const last=rows[n-1];
+  document.getElementById('d-c').textContent=last.station;
+  document.getElementById('d-a').textContent=last.cum.toFixed(2);
+  const totLen=rows.reduce((s,r)=>s+r.len,0);
+  document.getElementById('d-w').textContent=totLen>0?(last.cum/totLen).toFixed(2):'—';
+}
+
+// ── LOG ───────────────────────────────────────────────────────────────────
 function renderLog() {
-  const area = document.getElementById('logarea');
-  const empty = document.getElementById('log-empty');
-  area.querySelectorAll('.li').forEach(e => e.remove());
-  if (rows.length === 0) { empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
-  const frag = document.createDocumentFragment();
-  for (let i = rows.length-1; i >= 0; i--) {
-    const r = rows[i];
-    const d = document.createElement('div');
-    d.className = 'li';
-    d.innerHTML = `
+  const area=document.getElementById('logarea');
+  const empty=document.getElementById('log-empty');
+  area.querySelectorAll('.li').forEach(e=>e.remove());
+  if(rows.length===0){empty.style.display='block';empty.textContent=isReadOnly?'No entries in this session':'Enter the first reading above';return;}
+  empty.style.display='none';
+  const frag=document.createDocumentFragment();
+  for(let i=rows.length-1;i>=0;i--) {
+    const r=rows[i];
+    const isEditing=editingIdx===i;
+    const d=document.createElement('div');
+    d.className='li'+(isReadOnly?' readonly':'')+(isEditing?' editing-row':'');
+    d.innerHTML=`
       <div class="li-l">
         <div class="st">ST ${r.station}</div>
         <div class="w">${r.width.toFixed(2)} m${r.seg>0?' · +'+r.seg.toFixed(2)+' m²':''}</div>
@@ -641,148 +674,164 @@ function renderLog() {
         <div class="ca">${r.cum.toFixed(2)}</div>
         <div class="cl">m² total</div>
       </div>
-      <button class="del" onclick="del(${i})">✕</button>`;
+      ${!isReadOnly?`<div class="li-actions">
+        <button class="act-btn act-edit" onclick="startEdit(${i})">Edit</button>
+        <button class="act-btn act-del" onclick="delEntry(${i})">Del</button>
+      </div>`:''}`;
     frag.appendChild(d);
   }
-  area.insertBefore(frag, area.firstChild);
+  area.insertBefore(frag,area.firstChild);
 }
 
-// ══ END SESSION ══════════════════════════════════════════════════════════════
+// ── END SESSION ───────────────────────────────────────────────────────────
 function openEndModal() {
-  if (rows.length === 0) { showToast('No entries yet'); return; }
-  const last = rows[rows.length-1];
-  const totLen = rows.reduce((s,r)=>s+r.len,0);
-  const avgW = totLen > 0 ? last.cum/totLen : 0;
-  document.getElementById('m-title').textContent = 'End Session?';
-  document.getElementById('m-sub').textContent = 'Saves to Google Sheets then returns to sessions list.';
-  document.getElementById('m-ok').textContent = 'Save & End Session';
-  document.getElementById('m-ok').onclick = endSession;
-  document.getElementById('m-n').textContent = rows.length;
-  document.getElementById('m-rng').textContent = sess.startSt + ' → ' + last.station;
-  document.getElementById('m-len').textContent = totLen.toFixed(0) + ' m';
-  document.getElementById('m-avw').textContent = avgW.toFixed(2) + ' m';
-  document.getElementById('m-ar').textContent = last.cum.toFixed(2) + ' m²';
+  if(rows.length===0){showToast('No entries yet');return;}
+  const last=rows[rows.length-1];
+  const totLen=rows.reduce((s,r)=>s+r.len,0);
+  const avgW=totLen>0?last.cum/totLen:0;
+  document.getElementById('m-title').textContent='End Session?';
+  document.getElementById('m-sub').textContent='Saves to Google Sheets. After this, Sheets becomes the master record.';
+  document.getElementById('m-ok').textContent='Save & End Session';
+  document.getElementById('m-ok').onclick=endSession;
+  document.getElementById('m-n').textContent=rows.length;
+  document.getElementById('m-rng').textContent=sess.startSt+' → '+last.station;
+  document.getElementById('m-len').textContent=totLen.toFixed(0)+' m';
+  document.getElementById('m-avw').textContent=avgW.toFixed(2)+' m';
+  document.getElementById('m-ar').textContent=last.cum.toFixed(2)+' m²';
   document.getElementById('modal').classList.add('on');
 }
-function closeModal() { document.getElementById('modal').classList.remove('on'); }
+function closeModal(){document.getElementById('modal').classList.remove('on');}
 
 async function endSession() {
   closeModal();
-  const ok = await doSync();
-  if (!ok) {
-    document.getElementById('m-title').textContent = 'Sync Failed';
-    document.getElementById('m-sub').textContent = 'No connection. Your data is safe on this device. Check signal and retry.';
-    document.getElementById('m-ok').textContent = 'Retry';
-    document.getElementById('m-ok').onclick = endSession;
+  const ok = await doSync(true); // true = mark as closed
+  if(!ok) {
+    document.getElementById('m-title').textContent='Sync Failed';
+    document.getElementById('m-sub').textContent='No connection. Data is safe on device. Check signal and retry.';
+    document.getElementById('m-ok').textContent='Retry';
+    document.getElementById('m-ok').onclick=endSession;
     document.getElementById('modal').classList.add('on');
     return;
   }
-  savePastSession();
-  sess = null; rows = [];
+  // Save local meta record
+  const last=rows[rows.length-1];
+  const totLen=rows.reduce((s,r)=>s+r.len,0);
+  const avgW=totLen>0?last.cum/totLen:0;
+  localStorage.setItem('fts_'+sess.tab, JSON.stringify({
+    date:sess.date,tab:sess.tab,seg:sess.segId,dir:sess.dir,
+    endSt:last.station,entries:rows.length,
+    area:last.cum.toFixed(2),avgW:avgW.toFixed(2),totLen:totLen.toFixed(0),
+    closed:true
+  }));
+  sess=null; rows=[];
   persist();
   show('pg-dates');
-  buildDateList();
-  showToast('Session saved ✓');
+  loadDateList();
+  showToast('Session closed ✓ — Sheets is now master');
 }
 
-// ══ SYNC (JSONP) ═════════════════════════════════════════════════════════════
-function jsonpCall(url, ms) {
-  return new Promise(resolve => {
-    const cb = 'ft_cb_' + Date.now();
-    const timer = setTimeout(() => { cleanup(); resolve({ok:false,error:'timeout'}); }, ms||12000);
-    window[cb] = r => { cleanup(); resolve(r || {ok:false,error:'empty'}); };
-    function cleanup() {
-      clearTimeout(timer); delete window[cb];
-      const el = document.getElementById('_jsc'); if(el) el.remove();
-    }
-    const s = document.createElement('script');
-    s.id = '_jsc';
-    s.onerror = () => { cleanup(); resolve({ok:false,error:'load failed'}); };
-    s.src = url + (url.includes('?')?'&':'?') + 'callback=' + cb;
+// ── SYNC (JSONP, two-way) ─────────────────────────────────────────────────
+function jsonpCall(url,ms) {
+  return new Promise(resolve=>{
+    const cb='ft_cb_'+Date.now();
+    const timer=setTimeout(()=>{cleanup();resolve({ok:false,error:'timeout'});},ms||12000);
+    window[cb]=r=>{cleanup();resolve(r||{ok:false,error:'empty'});};
+    function cleanup(){clearTimeout(timer);delete window[cb];const el=document.getElementById('_jsc');if(el)el.remove();}
+    const s=document.createElement('script');
+    s.id='_jsc';
+    s.onerror=()=>{cleanup();resolve({ok:false,error:'load failed'});};
+    s.src=url+(url.includes('?')?'&':'?')+'callback='+cb;
     document.head.appendChild(s);
   });
 }
 
-async function doSync() {
-  if (!sess || rows.length === 0) { showToast('Nothing to sync'); return false; }
-  const btn = document.getElementById('synbtn');
-  btn.innerHTML = '<span class="spinning">↻</span>';
-  btn.className = 'synbtn';
+async function doSync(closing=false) {
+  if(!sess||rows.length===0){showToast('Nothing to sync');return false;}
+  const btn=document.getElementById('synbtn');
+  btn.innerHTML='<span class="spinning">↻</span>';
+  btn.className='synbtn';
 
-  const ping = await jsonpCall(SCRIPT_URL + '?ping=1', 8000);
-  if (!ping.ok) {
-    btn.textContent='✕'; btn.className='synbtn err';
-    showToast('No connection: ' + ping.error);
-    setTimeout(()=>{ btn.textContent='☁'; btn.className='synbtn'; }, 5000);
+  // Ping
+  const ping=await jsonpCall(SCRIPT_URL+'?ping=1',8000);
+  if(!ping.ok){
+    btn.textContent='✕';btn.className='synbtn err';
+    showToast('No connection: '+ping.error);
+    setTimeout(()=>{btn.textContent='☁';btn.className='synbtn';},5000);
     return false;
   }
 
-  const last = rows[rows.length-1];
-  const totLen = rows.reduce((s,r)=>s+r.len,0);
-  const avgW = totLen > 0 ? last.cum/totLen : 0;
-  const payload = {
-    action:'save_session', tabName: sess.tab,
-    entries: rows.map(r=>({station:r.station,width:r.width,length:r.len,segArea:r.seg,cumArea:r.cum,timestamp:r.ts})),
-    summary:{date:sess.date,direction:sess.dir,activity:'Milling',
+  // PUSH local data to Sheets
+  const last=rows[rows.length-1];
+  const totLen=rows.reduce((s,r)=>s+r.len,0);
+  const avgW=totLen>0?last.cum/totLen:0;
+  const payload={
+    action:'save_session', tabName:sess.tab, closed:closing,
+    entries:rows.map(r=>({station:r.station,width:r.width,length:r.len,segArea:r.seg,cumArea:r.cum,timestamp:r.ts})),
+    summary:{date:sess.date,direction:sess.dir,activity:sess.activity||'Milling',
       segment:sess.segName,dirLabel:sess.dirLabel,
       startStation:sess.startSt,endStation:last.station,
       totalLength:totLen.toFixed(1),avgWidth:avgW.toFixed(2),totalArea:last.cum.toFixed(2)}
   };
 
-  const result = await jsonpCall(SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(payload)));
-  if (result.ok) {
-    btn.textContent='✓'; btn.className='synbtn ok';
-    showToast('Synced ✓ — ' + result.rows + ' rows');
-    setTimeout(()=>{ btn.textContent='☁'; btn.className='synbtn'; }, 3000);
-    return true;
-  } else {
-    btn.textContent='✕'; btn.className='synbtn err';
-    showToast('Error: ' + (result.error||'unknown'));
-    setTimeout(()=>{ btn.textContent='☁'; btn.className='synbtn'; }, 5000);
+  const pushResult=await jsonpCall(SCRIPT_URL+'?data='+encodeURIComponent(JSON.stringify(payload)));
+  if(!pushResult.ok){
+    btn.textContent='✕';btn.className='synbtn err';
+    showToast('Push failed: '+(pushResult.error||'unknown'));
+    setTimeout(()=>{btn.textContent='☁';btn.className='synbtn';},5000);
     return false;
   }
+
+  // PULL — only if session is still open (not closing)
+  if(!closing) {
+    const pullResult=await jsonpCall(SCRIPT_URL+'?action=read_session&tabName='+encodeURIComponent(sess.tab));
+    if(pullResult.ok && pullResult.entries && pullResult.entries.length>0) {
+      // Sheet wins — replace local rows with Sheet version
+      rows=pullResult.entries.map(e=>({
+        station:e.station,width:e.width,
+        len:e.length,seg:e.segArea,cum:e.cumArea,ts:e.timestamp||''
+      }));
+      persist();
+      refreshDash(); renderLog();
+      showToast('Synced ✓ — '+rows.length+' rows');
+    } else {
+      showToast('Pushed ✓ — pull unavailable');
+    }
+  } else {
+    showToast('Saved & closed ✓');
+  }
+
+  btn.textContent='✓';btn.className='synbtn ok';
+  setTimeout(()=>{btn.textContent='☁';btn.className='synbtn';},3000);
+  return true;
 }
 
-// ══ TOAST ════════════════════════════════════════════════════════════════════
+// ── TOAST ─────────────────────────────────────────────────────────────────
 function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('on');
-  setTimeout(()=>t.classList.remove('on'), 3000);
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),3000);
 }
 
-// ── SEED HISTORICAL DATA ─────────────────────────────────────────────────
-function seedHistoricalData() {
-  // Version flag ensures seed runs once per context (browser and PWA have separate localStorage)
-  const SEED_VERSION = '3';
-  if (localStorage.getItem('ft4_seed_v') === SEED_VERSION) return;
-  // Always seed these three known historical sessions
-  if (true) {
-    localStorage.setItem('fts_FT-25Jun26', JSON.stringify({"date": "25 Jun 26", "tab": "FT-25Jun26", "seg": "S2", "dir": "NB", "endSt": 44607, "entries": 31, "area": "13452.80", "avgW": "9.36", "totLen": "1437"}));
-  }
-  if (true) {
-    localStorage.setItem('fts_FT-26Jun26', JSON.stringify({"date": "26 Jun 26", "tab": "FT-26Jun26", "seg": "S2", "dir": "NB", "endSt": 44896, "entries": 7, "area": "2638.20", "avgW": "9.13", "totLen": "289"}));
-  }
-  if (true) {
-    localStorage.setItem('fts_FT-27Jun26', JSON.stringify({"date": "27 Jun 26", "tab": "FT-27Jun26", "seg": "S2", "dir": "NB", "endSt": 1320, "entries": 35, "area": "14788.85", "avgW": "10.20", "totLen": "1450"}));
-  }
-  if (true) {
-    localStorage.setItem('ft4_rows_FT-25Jun26', JSON.stringify([{"station": 43170, "width": 5.5, "len": 0, "seg": 0, "cum": 0, "ts": ""}, {"station": 43200, "width": 5.8, "len": 30, "seg": 169.5, "cum": 169.5, "ts": ""}, {"station": 43250, "width": 8.15, "len": 50, "seg": 348.75, "cum": 518.25, "ts": ""}, {"station": 43300, "width": 9.55, "len": 50, "seg": 442.5, "cum": 960.75, "ts": ""}, {"station": 43350, "width": 9.6, "len": 50, "seg": 478.75, "cum": 1439.5, "ts": ""}, {"station": 43400, "width": 9.65, "len": 50, "seg": 481.25, "cum": 1920.75, "ts": ""}, {"station": 43450, "width": 9.75, "len": 50, "seg": 485.0, "cum": 2405.75, "ts": ""}, {"station": 43500, "width": 9.85, "len": 50, "seg": 490.0, "cum": 2895.75, "ts": ""}, {"station": 43550, "width": 9.7, "len": 50, "seg": 488.75, "cum": 3384.5, "ts": ""}, {"station": 43600, "width": 9.5, "len": 50, "seg": 480.0, "cum": 3864.5, "ts": ""}, {"station": 43650, "width": 9.6, "len": 50, "seg": 477.5, "cum": 4342.0, "ts": ""}, {"station": 43700, "width": 9.7, "len": 50, "seg": 482.5, "cum": 4824.5, "ts": ""}, {"station": 43750, "width": 9.7, "len": 50, "seg": 485.0, "cum": 5309.5, "ts": ""}, {"station": 43800, "width": 9.7, "len": 50, "seg": 485.0, "cum": 5794.5, "ts": ""}, {"station": 43850, "width": 9.7, "len": 50, "seg": 485.0, "cum": 6279.5, "ts": ""}, {"station": 43900, "width": 9.5, "len": 50, "seg": 480.0, "cum": 6759.5, "ts": ""}, {"station": 43950, "width": 9.5, "len": 50, "seg": 475.0, "cum": 7234.5, "ts": ""}, {"station": 44000, "width": 9.4, "len": 50, "seg": 472.5, "cum": 7707.0, "ts": ""}, {"station": 44050, "width": 9.3, "len": 50, "seg": 467.5, "cum": 8174.5, "ts": ""}, {"station": 44100, "width": 9.35, "len": 50, "seg": 466.25, "cum": 8640.75, "ts": ""}, {"station": 44150, "width": 9.5, "len": 50, "seg": 471.25, "cum": 9112.0, "ts": ""}, {"station": 44200, "width": 9.65, "len": 50, "seg": 478.75, "cum": 9590.75, "ts": ""}, {"station": 44250, "width": 9.65, "len": 50, "seg": 482.5, "cum": 10073.25, "ts": ""}, {"station": 44300, "width": 9.3, "len": 50, "seg": 473.75, "cum": 10547.0, "ts": ""}, {"station": 44350, "width": 9.2, "len": 50, "seg": 462.5, "cum": 11009.5, "ts": ""}, {"station": 44400, "width": 9.55, "len": 50, "seg": 468.75, "cum": 11478.25, "ts": ""}, {"station": 44450, "width": 9.65, "len": 50, "seg": 480.0, "cum": 11958.25, "ts": ""}, {"station": 44500, "width": 9.65, "len": 50, "seg": 482.5, "cum": 12440.75, "ts": ""}, {"station": 44550, "width": 9.4, "len": 50, "seg": 476.25, "cum": 12917.0, "ts": ""}, {"station": 44600, "width": 9.4, "len": 50, "seg": 470.0, "cum": 13387.0, "ts": ""}, {"station": 44607, "width": 9.4, "len": 7, "seg": 65.8, "cum": 13452.8, "ts": ""}]));
-  }
-  if (true) {
-    localStorage.setItem('ft4_rows_FT-26Jun26', JSON.stringify([{"station": 44607, "width": 9.4, "len": 0, "seg": 0, "cum": 0, "ts": ""}, {"station": 44650, "width": 9.4, "len": 43, "seg": 404.2, "cum": 404.2, "ts": ""}, {"station": 44700, "width": 9.05, "len": 50, "seg": 461.25, "cum": 865.45, "ts": ""}, {"station": 44750, "width": 9.1, "len": 50, "seg": 453.75, "cum": 1319.2, "ts": ""}, {"station": 44800, "width": 9.05, "len": 50, "seg": 453.75, "cum": 1772.95, "ts": ""}, {"station": 44850, "width": 9.0, "len": 50, "seg": 451.25, "cum": 2224.2, "ts": ""}, {"station": 44896, "width": 9.0, "len": 46, "seg": 414.0, "cum": 2638.2, "ts": ""}]));
-  }
-  if (true) {
-    localStorage.setItem('ft4_rows_FT-27Jun26', JSON.stringify([{"station": 44896, "width": 9.4, "len": 0, "seg": 0, "cum": 0, "ts": ""}, {"station": 44900, "width": 9.6, "len": 4, "seg": 38.0, "cum": 38.0, "ts": ""}, {"station": 44950, "width": 10.6, "len": 50, "seg": 505.0, "cum": 543.0, "ts": ""}, {"station": 45000, "width": 12, "len": 50, "seg": 565.0, "cum": 1108.0, "ts": ""}, {"station": 45022, "width": 12.8, "len": 22, "seg": 272.8, "cum": 1380.8, "ts": ""}, {"station": 45033, "width": 9.25, "len": 11, "seg": 121.28, "cum": 1502.08, "ts": ""}, {"station": 45060, "width": 9.1, "len": 27, "seg": 247.73, "cum": 1749.81, "ts": ""}, {"station": 34, "width": 15.1, "len": 0, "seg": 0, "cum": 1749.81, "ts": ""}, {"station": 50, "width": 14.75, "len": 16, "seg": 238.8, "cum": 1988.61, "ts": ""}, {"station": 100, "width": 13.55, "len": 50, "seg": 707.5, "cum": 2696.11, "ts": ""}, {"station": 150, "width": 13, "len": 50, "seg": 663.75, "cum": 3359.86, "ts": ""}, {"station": 200, "width": 13.2, "len": 50, "seg": 655.0, "cum": 4014.86, "ts": ""}, {"station": 250, "width": 12.3, "len": 50, "seg": 637.5, "cum": 4652.36, "ts": ""}, {"station": 300, "width": 11.1, "len": 50, "seg": 585.0, "cum": 5237.36, "ts": ""}, {"station": 350, "width": 9.3, "len": 50, "seg": 510.0, "cum": 5747.36, "ts": ""}, {"station": 400, "width": 9.3, "len": 50, "seg": 465.0, "cum": 6212.36, "ts": ""}, {"station": 450, "width": 9.3, "len": 50, "seg": 465.0, "cum": 6677.36, "ts": ""}, {"station": 500, "width": 9.3, "len": 50, "seg": 465.0, "cum": 7142.36, "ts": ""}, {"station": 550, "width": 9.3, "len": 50, "seg": 465.0, "cum": 7607.36, "ts": ""}, {"station": 600, "width": 9.3, "len": 50, "seg": 465.0, "cum": 8072.36, "ts": ""}, {"station": 670, "width": 9.2, "len": 70, "seg": 647.5, "cum": 8719.86, "ts": ""}, {"station": 700, "width": 9.1, "len": 30, "seg": 274.5, "cum": 8994.36, "ts": ""}, {"station": 750, "width": 9.1, "len": 50, "seg": 455.0, "cum": 9449.36, "ts": ""}, {"station": 800, "width": 9.1, "len": 50, "seg": 455.0, "cum": 9904.36, "ts": ""}, {"station": 850, "width": 9.1, "len": 50, "seg": 455.0, "cum": 10359.36, "ts": ""}, {"station": 900, "width": 9.1, "len": 50, "seg": 455.0, "cum": 10814.36, "ts": ""}, {"station": 950, "width": 9.0, "len": 50, "seg": 452.5, "cum": 11266.86, "ts": ""}, {"station": 1000, "width": 8.9, "len": 50, "seg": 447.5, "cum": 11714.36, "ts": ""}, {"station": 1050, "width": 8.95, "len": 50, "seg": 446.25, "cum": 12160.61, "ts": ""}, {"station": 1100, "width": 9.4, "len": 50, "seg": 458.75, "cum": 12619.36, "ts": ""}, {"station": 1150, "width": 10.1, "len": 50, "seg": 487.5, "cum": 13106.86, "ts": ""}, {"station": 1200, "width": 10.1, "len": 50, "seg": 505.0, "cum": 13611.86, "ts": ""}, {"station": 1250, "width": 9.8, "len": 50, "seg": 497.5, "cum": 14109.36, "ts": ""}, {"station": 1300, "width": 9.7, "len": 50, "seg": 487.5, "cum": 14596.86, "ts": ""}, {"station": 1320, "width": 9.5, "len": 20, "seg": 192.0, "cum": 14788.86, "ts": ""}]));
-  }
-  localStorage.setItem('ft4_seed_v', '3');
-}
-seedHistoricalData();
+// ── KEYBOARD ─────────────────────────────────────────────────────────────
+document.getElementById('e-st').addEventListener('input',function(){this.classList.remove('dim');});
+document.getElementById('e-w').addEventListener('keydown',function(e){if(e.key==='Enter')saveEntry();});
 
-// ══ INIT ═════════════════════════════════════════════════════════════════════
+// ── INIT ──────────────────────────────────────────────────────────────────
+// Seed historical data (runs once per context via version flag)
+(function seedHistory() {
+  if (localStorage.getItem('ft5_seed_v') === '1') return;
+  const sessions=[
+    {date:'25 Jun 26',tab:'FT-25Jun26',seg:'S2',dir:'NB',endSt:44607,entries:31,area:'13452.80',avgW:'9.36',totLen:'1437',closed:true},
+    {date:'26 Jun 26',tab:'FT-26Jun26',seg:'S2',dir:'NB',endSt:44896,entries:7,area:'2638.20',avgW:'9.13',totLen:'289',closed:true},
+    {date:'27 Jun 26',tab:'FT-27Jun26',seg:'S2',dir:'NB',endSt:1320,entries:35,area:'14788.85',avgW:'10.20',totLen:'1450',closed:true},
+  ];
+  sessions.forEach(s=>localStorage.setItem('fts_'+s.tab,JSON.stringify(s)));
+  localStorage.setItem('ft5_seed_v','1');
+})();
+
 restore();
-if (sess && sess.startSt && rows.length > 0) {
-  // Resume active session
+if(sess && sess.startSt && rows.length>0) {
+  isReadOnly=false;
   resumeTracker();
 }
 </script>
