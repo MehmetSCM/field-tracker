@@ -174,8 +174,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
             <input class="ei" id="est-st" type="number" inputmode="numeric" placeholder="e.g. 500">
           </div>
           <div class="ef">
-            <span class="el">Width at ST (m)</span>
-            <input class="ei" id="est-w" type="number" inputmode="decimal" step="0.01" placeholder="9.3">
+            <span class="el">Width at ST (m) <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></span>
+            <input class="ei" id="est-w" type="number" inputmode="decimal" step="0.01" placeholder="auto">
           </div>
         </div>
         <button class="calc-btn" onclick="calcRate()">Calculate Rate →</button>
@@ -540,67 +540,82 @@ function calcRate() {
   const estSt = parseFloat(document.getElementById('est-st').value);
   const estW  = parseFloat(document.getElementById('est-w').value);
   if(isNaN(estSt)){showToast('Enter a station');return;}
-  if(isNaN(estW)||estW<=0){showToast('Enter a width');return;}
   if(truckRows.length===0){showToast('No trucks logged yet');return;}
   if(widthRows.length===0){showToast('No width readings yet');return;}
 
   const totalTonnage = truckRows[truckRows.length-1].cumTonnage;
-
-  // Build area up to estSt using existing width readings + the estimator endpoint
-  // Find width readings before or at estSt
   const dir = paveSess ? (paveSess.increment||1) : 1;
-  const relevantWidths = widthRows.filter(r =>
+
+  // Build width readings up to estSt only
+  // Sort by station in physical direction
+  const relevant = widthRows.filter(r =>
     dir > 0 ? r.station <= estSt : r.station >= estSt
-  ).sort((a,b) => dir>0 ? a.station-b.station : b.station-a.station);
+  ).sort((a,b) => dir > 0 ? a.station - b.station : b.station - a.station);
 
+  // Check if estSt exactly matches a reading or needs interpolation
+  let endWidth = estW; // user-entered width at estSt
+  // If user left width blank but there's a reading at estSt, use that
+  if(isNaN(endWidth) && relevant.length > 0 && relevant[relevant.length-1].station === estSt) {
+    endWidth = relevant[relevant.length-1].width;
+  }
+  // If still no width, interpolate from bracketing readings
+  if(isNaN(endWidth) || estW === 0) {
+    const below = widthRows.filter(r => r.station <= estSt).sort((a,b)=>b.station-a.station)[0];
+    const above = widthRows.filter(r => r.station >= estSt).sort((a,b)=>a.station-b.station)[0];
+    if(below && above && below.station !== above.station) {
+      const frac = (estSt - below.station) / (above.station - below.station);
+      endWidth = below.width + frac * (above.width - below.width);
+      showToast('Width interpolated: ' + endWidth.toFixed(2) + 'm');
+    } else if(below) {
+      endWidth = below.width;
+    } else {
+      showToast('Enter a width at the estimate station');
+      return;
+    }
+  }
+
+  // Calculate area from session start through relevant readings, ending at estSt
   let area = 0;
-  // Calc area from width readings
-  for(let i=1;i<relevantWidths.length;i++) {
-    const prev=relevantWidths[i-1];
-    const curr=relevantWidths[i];
-    const raw=Math.abs(curr.station-prev.station);
-    if(raw<5000) area+=round2((prev.width+curr.width)/2*raw);
-  }
-  // Add partial segment from last width reading to estSt
-  if(relevantWidths.length>0) {
-    const lastW=relevantWidths[relevantWidths.length-1];
-    const remainLen=Math.abs(estSt-lastW.station);
-    if(remainLen>0 && remainLen<5000) {
-      area=round2(area+(lastW.width+estW)/2*remainLen);
-    }
-  } else {
-    // No width readings at all — use estimator station as full length from session start
-    if(paveSess) {
-      const len=Math.abs(estSt-paveSess.startSt);
-      area=round2(estW*len);
-    }
+  const startSt = paveSess ? paveSess.startSt : (relevant.length > 0 ? relevant[0].station : estSt);
+
+  // Add the estimate endpoint as a virtual reading
+  const readingsForCalc = [...relevant];
+  // Remove any reading exactly at estSt (we'll add our own endpoint)
+  const filtered = readingsForCalc.filter(r => r.station !== estSt);
+  filtered.push({station: estSt, width: endWidth});
+
+  for(let i = 1; i < filtered.length; i++) {
+    const prev = filtered[i-1];
+    const curr = filtered[i];
+    const raw = Math.abs(curr.station - prev.station);
+    if(raw > 5000 || raw < 0.01) continue; // skip LKI rollover and zero-length
+    area += round2((prev.width + curr.width) / 2 * raw);
   }
 
-  if(area<=0){showToast('Cannot calculate — check inputs');return;}
+  if(area <= 0){showToast('Cannot calculate area — check readings');return;}
 
-  const rate=round2(totalTonnage*1000/area);
-  const pct=round2(rate/TARGET_RATE*100);
-  const ts=new Date();
+  const rate = round2(totalTonnage * 1000 / area);
+  const pct = round2(rate / TARGET_RATE * 100);
+  const ts = new Date();
 
-  rateEstimates.push({station:estSt, width:estW, area, rate:pct, ts:ts.toISOString()});
+  rateEstimates.push({station:estSt, width:endWidth, area, rate:pct, ts:ts.toISOString()});
   persist();
 
   // Update the collapsed header summary
   const summary = document.getElementById('est-summary');
-  if (summary) {
+  if(summary) {
     let color = pct < 100 ? '#E8750A' : pct > 102 ? '#EF4444' : '#22C55E';
-    summary.innerHTML = '<span style="color:' + color + ';font-weight:800">' + pct.toFixed(1) + '%</span> · ' + formatTime(ts);
+    summary.innerHTML = '<span style="color:'+color+';font-weight:800">'+pct.toFixed(1)+'%</span> · '+formatTime(ts);
   }
-  // Update dashboard rate
   document.getElementById('ds-rate').textContent = pct.toFixed(1)+'%';
 
-  // Auto-collapse after calculation
+  // Auto-collapse
   sectionState.est = false;
   document.getElementById('est-body').classList.add('collapsed');
   const lbl = document.getElementById('est-toggle-label');
-  if (lbl && summary) lbl.innerHTML = summary.outerHTML + ' ▸ tap to expand';
+  if(lbl && summary) lbl.innerHTML = summary.outerHTML + ' ▸ tap to expand';
 
-  showToast('Rate: ' + pct.toFixed(1) + '% — saved ✓');
+  showToast('Rate: '+pct.toFixed(1)+'% over '+area.toFixed(0)+' m²');
 }
 
 function renderRateGauge(pct, tonnage, area, ts) {
