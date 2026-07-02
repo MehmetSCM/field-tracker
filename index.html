@@ -366,16 +366,26 @@ async function loadDateList() {
     .filter(s => s.tab !== todayTab)
     .map(s => ({ ...s, date: cleanDate(s.date), fromSheet: true }));
 
-  // Auto-clean: remove local sessions that no longer exist in Sheets
+  // Auto-clean: remove local sessions only if they exist in Sheets AND are closed there
+  // Never remove a local session that hasn't been synced yet (not in Sheets at all)
   if (sheetSessions.length > 0) {
-    const sheetTabs = sheetSessions.map(s => s.tab);
+    const sheetTabMap = {};
+    sheetSessions.forEach(s => sheetTabMap[s.tab] = s);
     const localKeys = Object.keys(localStorage).filter(k => k.startsWith('fts_'));
     localKeys.forEach(k => {
       const tab = k.replace('fts_', '');
-      if (!sheetTabs.includes(tab)) {
-        localStorage.removeItem(k);
-        localStorage.removeItem('ft5_rows_' + tab);
-        localStorage.removeItem('ft4_rows_' + tab); // legacy key
+      const inSheets = sheetTabMap[tab];
+      // Only remove if it exists in Sheets AND is closed — never remove unsynced local data
+      if (inSheets && inSheets.closed) {
+        try {
+          const local = JSON.parse(localStorage.getItem(k));
+          if (local && local.closed) {
+            // Both sides closed — safe to clean local copy, Sheets is master
+            localStorage.removeItem(k);
+            localStorage.removeItem('ft5_rows_' + tab);
+            localStorage.removeItem('ft4_rows_' + tab);
+          }
+        } catch(e) {}
       }
     });
   }
@@ -387,7 +397,11 @@ async function loadDateList() {
   const allPast = [
     ...past,
     ...localOnly.map(tab => {
-      try { return JSON.parse(localStorage.getItem('fts_' + tab)); } catch(e) { return null; }
+      try {
+        const d = JSON.parse(localStorage.getItem('fts_' + tab));
+        if (d) d.unsynced = true;
+        return d;
+      } catch(e) { return null; }
     }).filter(Boolean)
   ];
 
@@ -396,6 +410,7 @@ async function loadDateList() {
 
   allPast.forEach(s => {
     const closed = s.closed;
+    const unsynced = s.unsynced;
     const endSt = s.endStation || s.endSt || '—';
     const seg = s.segment || s.seg || '';
     const dir = s.direction || s.dir || '';
@@ -404,7 +419,7 @@ async function loadDateList() {
     const displayDate = cleanDate(s.date);
     html += `<div class="date-card ${closed?'closed':''}" onclick="openDate('${s.tab}', ${closed})">
       <div>
-        <div class="dc-date">${displayDate}${closed?'<span class="closed-badge">Closed</span>':''}</div>
+        <div class="dc-date">${displayDate}${closed?'<span class="closed-badge">Closed</span>':''}${unsynced?'<span class="closed-badge" style="color:#F59E0B;border-color:#F59E0B">⚠ Not synced</span>':''}</div>
         <div class="dc-meta">${seg} · ${dir} · ended ST ${endSt}</div>
       </div>
       <div style="text-align:right">
