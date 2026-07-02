@@ -173,6 +173,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   </div>
   <div class="scroll">
     <div style="padding:20px 16px">
+
+      <!-- Carry-forward context card -->
+      <div id="carry-card" style="display:none;background:rgba(245,158,11,.08);border:1.5px solid rgba(245,158,11,.3);border-radius:var(--r);padding:14px 16px;margin-bottom:20px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:6px">Continuing from</div>
+        <div style="font-size:15px;font-weight:700" id="carry-from-label">—</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">This station and width will be the starting anchor for today. Override below if needed.</div>
+      </div>
+
       <div class="mb">
         <span class="lbl">Segment</span>
         <div class="seg-grid" id="seg-grid"></div>
@@ -181,10 +189,37 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
         <span class="lbl" id="dir-label">Direction</span>
         <div class="dir-grid" id="dir-grid"></div>
       </div>
-      <div class="mb">
-        <span class="lbl">Start Station <span id="lki-hint" style="color:var(--accent);font-weight:400;text-transform:none;letter-spacing:0;font-size:11px"></span></span>
-        <input class="inp" id="s-st" type="number" inputmode="numeric" placeholder="e.g. 44896">
+
+      <!-- Override fields — shown collapsed by default when carry-forward exists -->
+      <div id="override-section">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span class="lbl" style="margin-bottom:0">Override start point</span>
+          <button id="override-toggle" onclick="toggleOverride()" style="background:none;border:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer">Show ▾</button>
+        </div>
+        <div id="override-fields" style="display:none">
+          <div class="mb">
+            <span class="lbl">Start Station</span>
+            <input class="inp" id="s-st" type="number" inputmode="numeric" placeholder="e.g. 44896">
+          </div>
+          <div class="mb">
+            <span class="lbl">Start Width (m)</span>
+            <input class="inp" id="s-sw" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 9.2">
+          </div>
+        </div>
       </div>
+
+      <!-- No carry-forward: show full fields -->
+      <div id="fresh-fields" style="display:none">
+        <div class="mb">
+          <span class="lbl">Start Station <span id="lki-hint" style="color:var(--accent);font-weight:400;text-transform:none;letter-spacing:0;font-size:11px"></span></span>
+          <input class="inp" id="s-st-fresh" type="number" inputmode="numeric" placeholder="e.g. 44896">
+        </div>
+        <div class="mb">
+          <span class="lbl">Start Width (m)</span>
+          <input class="inp" id="s-sw-fresh" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 9.2">
+        </div>
+      </div>
+
       <div class="mb">
         <span class="lbl">Milling Start Time</span>
         <input class="inp" id="s-time" type="time" style="font-size:18px">
@@ -521,22 +556,79 @@ async function openDate(tabOrDate, closed) {
     if (last) {
       selectSeg(last.seg||last.segment||'S2');
       selectDir(last.dir||last.direction||'NB');
-      document.getElementById('s-st').value = last.endSt||last.endStation||'';
     } else {
       selectSeg('S2'); selectDir('NB');
     }
+    setupCarryForward(last);
     return;
   }
 
   resumeTracker();
 }
 
-function getLastSessionMeta() {
-  // Get most recent session from localStorage
+let carryForward = null; // {station, width, date, seg, dir}
+
+function toggleOverride() {
+  const fields = document.getElementById('override-fields');
+  const btn = document.getElementById('override-toggle');
+  if (fields.style.display === 'none') {
+    fields.style.display = 'block';
+    btn.textContent = 'Hide ▴';
+    // Pre-fill override fields with carry-forward values
+    if (carryForward) {
+      document.getElementById('s-st').value = carryForward.station;
+      document.getElementById('s-sw').value = carryForward.width;
+    }
+  } else {
+    fields.style.display = 'none';
+    btn.textContent = 'Show ▾';
+  }
+}
+
+function setupCarryForward(last) {
+  carryForward = last ? {
+    station: last.endSt || last.endStation || null,
+    width: last.lastWidth || null,
+    date: last.date || '',
+    seg: last.seg || last.segment || 'S2',
+    dir: last.dir || last.direction || 'NB'
+  } : null;
+
+  const card = document.getElementById('carry-card');
+  const overrideSection = document.getElementById('override-section');
+  const freshFields = document.getElementById('fresh-fields');
+
+  if (carryForward && carryForward.station && carryForward.width) {
+    // Show carry-forward card
+    card.style.display = 'block';
+    document.getElementById('carry-from-label').textContent =
+      carryForward.date + '  ·  ST ' + carryForward.station + '  ·  ' + carryForward.width + ' m wide';
+    overrideSection.style.display = 'block';
+    freshFields.style.display = 'none';
+  } else {
+    // No prior session — show full fresh fields
+    card.style.display = 'none';
+    overrideSection.style.display = 'none';
+    freshFields.style.display = 'block';
+    carryForward = null;
+  }
+}
   const keys = Object.keys(localStorage).filter(k=>k.startsWith('fts_'));
   if (!keys.length) return null;
   keys.sort();
-  try { return JSON.parse(localStorage.getItem(keys[keys.length-1])); } catch(e) { return null; }
+  try {
+    const meta = JSON.parse(localStorage.getItem(keys[keys.length-1]));
+    // Also get last width from the session's rows
+    const rowKey = 'ft5_rows_' + meta.tab;
+    const rowData = localStorage.getItem(rowKey) || localStorage.getItem('ft4_rows_' + meta.tab);
+    if (rowData) {
+      const rows = JSON.parse(rowData);
+      if (rows && rows.length > 0) {
+        meta.lastWidth = rows[rows.length-1].width;
+      }
+    }
+    return meta;
+  } catch(e) { return null; }
 }
 
 // ── SETUP ─────────────────────────────────────────────────────────────────
@@ -574,19 +666,52 @@ function selectDir(d) {
 }
 function startSession() {
   if(!selectedSeg||!selectedDir){showToast('Select segment and direction');return;}
-  const st = parseFloat(document.getElementById('s-st').value);
-  if(isNaN(st)){showToast('Enter a start station');return;}
   const dateStr = document.getElementById('setup-date-sub').textContent;
   const dirConf = selectedSeg.directions[selectedDir];
+
+  // Determine start station and width
+  let startSt, startWidth;
+
+  // Check if override fields are visible and filled
+  const overrideVisible = document.getElementById('override-fields').style.display !== 'none';
+  const overrideSt = parseFloat(document.getElementById('s-st').value);
+  const overrideSw = parseFloat(document.getElementById('s-sw').value);
+
+  if (overrideVisible && !isNaN(overrideSt) && !isNaN(overrideSw)) {
+    // User explicitly overrode the start point
+    startSt = overrideSt;
+    startWidth = overrideSw;
+  } else if (carryForward && carryForward.station && carryForward.width) {
+    // Use carry-forward from previous session
+    startSt = carryForward.station;
+    startWidth = carryForward.width;
+  } else {
+    // Fresh start — read from fresh fields
+    startSt = parseFloat(document.getElementById('s-st-fresh').value);
+    startWidth = parseFloat(document.getElementById('s-sw-fresh').value);
+    if(isNaN(startSt)){showToast('Enter a start station');return;}
+    if(isNaN(startWidth)){showToast('Enter a start width');return;}
+  }
+
   sess = {
     date:dateStr, tab:tabFromDate(dateStr), activity:'Milling',
     segId:selectedSeg.id, segName:selectedSeg.name,
     dir:selectedDir, dirLabel:dirConf.label,
-    startSt:st, increment:dirConf.increment, rollovers:dirConf.rollovers||[],
+    startSt:startSt, increment:dirConf.increment, rollovers:dirConf.rollovers||[],
     startTime: document.getElementById('s-time').value || ''
   };
-  rows = []; isReadOnly = false;
-  persist(); resumeTracker();
+
+  // Inject anchor row — this is the carry-forward point with zero area
+  rows = [{
+    station: startSt,
+    width: startWidth,
+    len: 0, seg: 0, cum: 0,
+    ts: new Date().toISOString()
+  }];
+
+  isReadOnly = false;
+  persist();
+  resumeTracker();
 }
 
 // ── TRACKER ───────────────────────────────────────────────────────────────
