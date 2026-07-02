@@ -103,12 +103,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .dl{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:2px}
 
 /* Camera preview */
-.cam-preview{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:100;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.cam-preview{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:100;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 16px 40px}
 .cam-preview.on{display:flex}
-.cam-preview img{max-width:90%;max-height:50vh;border-radius:12px;object-fit:contain}
-.cam-preview-title{color:#fff;font-size:16px;font-weight:700}
-.cam-preview-sub{color:var(--muted);font-size:13px;text-align:center;padding:0 20px}
-.ocr-result{background:var(--surface);border-radius:12px;padding:16px;width:90%;max-width:400px}
+.cam-preview img{width:100%;max-height:35vh;border-radius:12px;object-fit:contain;margin-bottom:12px}
+.cam-preview-title{color:#fff;font-size:16px;font-weight:700;margin-bottom:4px}
+.cam-preview-sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+.ocr-result{background:var(--surface);border-radius:12px;padding:16px;width:100%}
 .ocr-field{margin-bottom:10px}
 .ocr-field:last-child{margin-bottom:0}
 
@@ -297,7 +297,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8FPePSr4ktna2fNgVUUU6-zTufCqR7Bwgc4W6JlHfadmIxguBBhd1GljanSaNQmgc9Q/exec';
-const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
 const TARGET_RATE = 124.35;
 const BAND_LOW = 100, BAND_HIGH = 102;
 
@@ -664,65 +663,49 @@ document.getElementById('cam-input').addEventListener('change', async function(e
   const file = e.target.files[0];
   if(!file) return;
 
-  // Show preview
   const reader = new FileReader();
   reader.onload = async function(ev) {
     const dataUrl = ev.target.result;
     document.getElementById('cam-img').src = dataUrl;
     document.getElementById('cam-title').textContent = 'Reading ticket…';
-    document.getElementById('cam-sub').textContent = 'Sending to Claude…';
+    document.getElementById('cam-sub').textContent = 'Sending to Claude via server…';
     document.getElementById('ocr-result').style.display = 'none';
     document.getElementById('cam-preview').classList.add('on');
 
-    // Compress image before sending
+    // Compress image
     const compressed = await compressImage(dataUrl, 0.45);
     const base64 = compressed.split(',')[1];
 
+    // Send to Apps Script proxy (has API key server-side)
     try {
-      const response = await fetch(CLAUDE_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 300,
-          messages: [{
-            role: 'user',
-            content: [
-              {
-                type: 'image',
-                source: { type: 'base64', media_type: 'image/jpeg', data: base64 }
-              },
-              {
-                type: 'text',
-                text: 'This is an asphalt plant scale ticket. Extract exactly: Vehicle number (single number like 40), Ticket number (like 20253541), Net weight in tonnes (like 19.16). Reply with ONLY a JSON object: {"vehicle":"40","ticket":"20253541","tonnes":"19.16"}. No other text.'
-              }
-            ]
-          }]
-        })
-      });
-
-      const data = await response.json();
-      const text = data.content?.[0]?.text || '';
-      const clean = text.replace(/```json|```/g,'').trim();
-      const parsed = JSON.parse(clean);
-
-      document.getElementById('ocr-veh').value = parsed.vehicle || '';
-      document.getElementById('ocr-tkt').value = parsed.ticket || '';
-      document.getElementById('ocr-ton').value = parsed.tonnes || '';
-      document.getElementById('cam-title').textContent = 'Confirm ticket details';
-      document.getElementById('cam-sub').textContent = 'Check values and tap Confirm';
-      document.getElementById('ocr-result').style.display = 'block';
+      const result = await jsonpCall(
+        SCRIPT_URL + '?action=ocr_ticket&img=' + encodeURIComponent(base64),
+        30000
+      );
+      if(result.ok) {
+        document.getElementById('ocr-veh').value = result.vehicle || '';
+        document.getElementById('ocr-tkt').value = result.ticket || '';
+        document.getElementById('ocr-ton').value = result.tonnes || '';
+        document.getElementById('cam-title').textContent = 'Confirm ticket details';
+        document.getElementById('cam-sub').textContent = 'Check values and tap Confirm';
+      } else {
+        document.getElementById('cam-title').textContent = 'Could not read ticket';
+        document.getElementById('cam-sub').textContent = (result.error || 'Unknown error') + ' — enter manually';
+        document.getElementById('ocr-veh').value='';
+        document.getElementById('ocr-tkt').value='';
+        document.getElementById('ocr-ton').value='';
+      }
     } catch(err) {
       document.getElementById('cam-title').textContent = 'Could not read ticket';
       document.getElementById('cam-sub').textContent = 'Enter details manually below';
       document.getElementById('ocr-veh').value='';
       document.getElementById('ocr-tkt').value='';
       document.getElementById('ocr-ton').value='';
-      document.getElementById('ocr-result').style.display='block';
     }
+    document.getElementById('ocr-result').style.display = 'block';
   };
   reader.readAsDataURL(file);
-  this.value=''; // reset so same file can be re-selected
+  this.value='';
 });
 
 async function compressImage(dataUrl, quality) {
