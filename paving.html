@@ -672,15 +672,27 @@ document.getElementById('cam-input').addEventListener('change', async function(e
     document.getElementById('ocr-result').style.display = 'none';
     document.getElementById('cam-preview').classList.add('on');
 
-    // Compress image
-    const compressed = await compressImage(dataUrl, 0.45);
+    // Compress very aggressively — ticket text is large and readable even at low res
+    const compressed = await compressImage(dataUrl, 0.3, 600);  // max 600px, 0.3 quality
     const base64 = compressed.split(',')[1];
+    console.log('Compressed image size:', Math.round(base64.length/1024), 'KB base64');
+
+    // Check if it fits in a URL (limit ~6000 chars for the image part)
+    if (base64.length > 6000) {
+      // Still too large — compress further
+      const compressed2 = await compressImage(dataUrl, 0.2, 400);
+      const base64small = compressed2.split(',')[1];
+      console.log('Further compressed:', Math.round(base64small.length/1024), 'KB');
+      var imgData = base64small;
+    } else {
+      var imgData = base64;
+    }
 
     // Send to Apps Script proxy (has API key server-side)
     try {
       const result = await jsonpCall(
-        SCRIPT_URL + '?action=ocr_ticket&img=' + encodeURIComponent(base64),
-        30000
+        SCRIPT_URL + '?action=ocr_ticket&img=' + encodeURIComponent(imgData),
+        45000
       );
       if(result.ok) {
         document.getElementById('ocr-veh').value = result.vehicle || '';
@@ -708,13 +720,12 @@ document.getElementById('cam-input').addEventListener('change', async function(e
   this.value='';
 });
 
-async function compressImage(dataUrl, quality) {
+async function compressImage(dataUrl, quality, maxDim) {
+  maxDim = maxDim || 1200;
   return new Promise(resolve => {
     const img = new Image();
     img.onload = function() {
       const canvas = document.createElement('canvas');
-      // Max dimension 1200px
-      const maxDim = 1200;
       let w=img.width, h=img.height;
       if(w>maxDim||h>maxDim) {
         if(w>h){h=Math.round(h*maxDim/w);w=maxDim;}
