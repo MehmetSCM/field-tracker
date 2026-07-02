@@ -324,7 +324,7 @@ function buildFallbackDistribution(trucks, segments, totalArea, totalTonnage) {
     var actualArea = Math.round(actualAreaSum * 100) / 100;
     var avgWidth = truckLen > 0 ? Math.round(actualArea / truckLen * 100) / 100 : 0;
     var rateKgM2 = actualArea > 0 ? Math.round(tonnage * 1000 / actualArea * 100) / 100 : 0;
-    var ratePct = Math.round(rateKgM2 / TARGET_RATE_KG_M2 * 10000) / 100;
+    var ratePct = Math.round(rateKgM2 / TARGET_RATE_KG_M2 * 10000) / 100;  // e.g. 102.92
 
     rows.push({
       slNo: i + 1,
@@ -411,7 +411,6 @@ function writeToSheet(tabName, data, claudeResult, topLiftTrucks, levelCourseTru
     sheet.getRange(DATA_START, 9, n, 2).setNumberFormat('0.00');   // stations
     sheet.getRange(DATA_START, 12, n, 2).setNumberFormat('0.00');  // width, area
     sheet.getRange(DATA_START, 15, n, 1).setNumberFormat('0.00');  // rate kg/m2
-    sheet.getRange(DATA_START, 16, n, 1).setNumberFormat('0.00"%"');  // rate %
 
     // Alternating row colors
     for (let i = 0; i < n; i++) {
@@ -472,37 +471,24 @@ function writeToSheet(tabName, data, claudeResult, topLiftTrucks, levelCourseTru
 
   sheet.setFrozenRows(3);
 
-  // --- PRINT SETTINGS for PDF ----------------------------------------
-  sheet.setColumnWidth(1, 38);   // Sl No
-  sheet.setColumnWidth(2, 55);   // Vehicle
-  sheet.setColumnWidth(3, 80);   // Ticket
-  sheet.setColumnWidth(4, 58);   // Tonnage current
-  sheet.setColumnWidth(5, 68);   // Tonnage cumm
-  sheet.setColumnWidth(6, 40);   // Temp
-  sheet.setColumnWidth(7, 60);   // Length
-  sheet.setColumnWidth(8, 65);   // Cumm Length
-  sheet.setColumnWidth(9, 62);   // From
-  sheet.setColumnWidth(10, 62);  // To
-  sheet.setColumnWidth(11, 25);  // M (blank)
-  sheet.setColumnWidth(12, 58);  // Ave Width
-  sheet.setColumnWidth(13, 62);  // Area
-  sheet.setColumnWidth(14, 38);  // Pull
-  sheet.setColumnWidth(15, 65);  // Rate kg/m2
-  sheet.setColumnWidth(16, 58);  // Rate %
-  sheet.setColumnWidth(17, 70);  // Comment
-
-  // Page setup for PDF print
-  var ps = sheet.getPageSetup();
-  ps.setPaperSize(SpreadsheetApp.PaperSize.LETTER);
-  ps.setOrientation(SpreadsheetApp.PageOrientation.LANDSCAPE);
-  ps.setFitToPage(true);
-  ps.setHorizontalCentered(true);
-  ps.setRepeatRowHeaders(true);
-  ps.setPrintHeadings(false);
-  ps.setTopMargin(0.5);
-  ps.setBottomMargin(0.5);
-  ps.setLeftMargin(0.4);
-  ps.setRightMargin(0.4);
+  // Column widths matching original format
+  sheet.setColumnWidth(1, 40);   // Sl No
+  sheet.setColumnWidth(2, 60);   // Vehicle
+  sheet.setColumnWidth(3, 85);   // Ticket
+  sheet.setColumnWidth(4, 65);   // Tonnage current
+  sheet.setColumnWidth(5, 75);   // Tonnage cumm
+  sheet.setColumnWidth(6, 45);   // Temp
+  sheet.setColumnWidth(7, 65);   // Total Length
+  sheet.setColumnWidth(8, 70);   // Cumm Length
+  sheet.setColumnWidth(9, 65);   // From
+  sheet.setColumnWidth(10, 65);  // To
+  sheet.setColumnWidth(11, 25);  // M blank
+  sheet.setColumnWidth(12, 65);  // Ave Width
+  sheet.setColumnWidth(13, 65);  // Area
+  sheet.setColumnWidth(14, 40);  // Pull
+  sheet.setColumnWidth(15, 70);  // Rate kg/m2
+  sheet.setColumnWidth(16, 65);  // Rate %
+  sheet.setColumnWidth(17, 75);  // Comment
 }
 
 // - HELPERS --------------------------------
