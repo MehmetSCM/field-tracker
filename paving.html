@@ -203,21 +203,20 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     </div>
     <div class="section-body" id="truck-body">
       <div class="truck-entry">
-        <div class="truck-btns">
-          <div style="flex:1;display:flex;gap:8px">
-            <div class="ef">
-              <span class="el">Vehicle</span>
-              <input class="ei" id="t-veh" type="text" inputmode="numeric" placeholder="40" style="width:100%;font-size:18px">
-            </div>
-            <div class="ef">
-              <span class="el">Ticket #</span>
-              <input class="ei" id="t-tkt" type="text" inputmode="numeric" placeholder="20253541" style="width:100%;font-size:16px">
-            </div>
-            <div class="ef">
-              <span class="el">Tonnes</span>
-              <input class="ei" id="t-ton" type="number" inputmode="decimal" step="0.01" placeholder="19.16" style="width:100%;font-size:18px">
-            </div>
+        <div class="erow mb">
+          <div class="ef">
+            <span class="el">Vehicle</span>
+            <input class="ei" id="t-veh" type="text" inputmode="numeric" placeholder="40">
           </div>
+          <div class="ef">
+            <span class="el">Ticket #</span>
+            <input class="ei" id="t-tkt" type="text" inputmode="numeric" placeholder="20253541" style="font-size:15px">
+          </div>
+        </div>
+        <div class="mb">
+          <span class="el">Net Tonnes</span>
+          <input class="ei" id="t-ton" type="number" inputmode="decimal" step="0.01" placeholder="19.16" style="width:100%">
+        </div>
         <button class="btn btn-accent" style="height:48px;font-size:15px" onclick="addTruck()">Add Truck</button>
       </div>
       <div class="truck-log" id="truck-log">
