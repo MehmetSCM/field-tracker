@@ -36,8 +36,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 /* Section headers */
 .section-header{
   display:flex;justify-content:space-between;align-items:center;
-  padding:8px 16px;background:var(--surface2);border-bottom:1px solid var(--border);
-  flex-shrink:0;cursor:pointer;user-select:none;
+  padding:14px 16px;background:var(--surface2);border-bottom:1px solid var(--border);
+  flex-shrink:0;cursor:pointer;user-select:none;-webkit-tap-highlight-color:rgba(245,158,11,.15);
 }
 .section-header-title{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .section-header-right{font-size:12px;color:var(--accent);font-weight:600}
@@ -153,7 +153,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
       <span class="section-header-title">📐 Rate Estimator</span>
       <span class="section-header-right" id="est-toggle-label">
         <span id="est-summary" style="color:var(--muted);font-size:12px;margin-right:8px">—</span>
-        ▸ tap to expand
+        Show
       </span>
     </div>
     <div class="section-body collapsed" id="est-body">
@@ -175,7 +175,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     <!-- ── SECTION 2: WIDTH READINGS ── -->
     <div class="section-header" onclick="toggleSection('width')">
       <span class="section-header-title">📏 Width Readings</span>
-      <span class="section-header-right" id="width-toggle-label">▾ open</span>
+      <span class="section-header-right" id="width-toggle-label">Hide</span>
     </div>
     <div class="section-body" id="width-body">
       <div class="width-entry">
@@ -199,7 +199,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     <!-- ── SECTION 3: TRUCK LOG ── -->
     <div class="section-header" onclick="toggleSection('truck')">
       <span class="section-header-title">🚛 Truck Log</span>
-      <span class="section-header-right" id="truck-toggle-label">▾ open</span>
+      <span class="section-header-right" id="truck-toggle-label">Hide</span>
     </div>
     <div class="section-body" id="truck-body">
       <div class="truck-entry">
@@ -293,13 +293,18 @@ function restore() {
 const sectionState = { est: false, width: true, truck: true };
 function toggleSection(id) {
   sectionState[id] = !sectionState[id];
-  document.getElementById(id+'-body').classList.toggle('collapsed', !sectionState[id]);
+  const body = document.getElementById(id+'-body');
   const lbl = document.getElementById(id+'-toggle-label');
+  if (!body || !lbl) return;
+  body.classList.toggle('collapsed', !sectionState[id]);
   if (id === 'est') {
     const summary = document.getElementById('est-summary');
-    lbl.innerHTML = (summary ? summary.outerHTML : '') + (sectionState[id] ? ' ▾ collapse' : ' ▸ tap to expand');
+    const summaryHtml = summary ? summary.outerHTML : '';
+    lbl.innerHTML = summaryHtml + (sectionState[id] ? ' <span style="color:var(--muted)">Hide</span>' : ' <span style="color:var(--accent)">Show</span>');
   } else {
-    lbl.textContent = sectionState[id] ? '▾ open' : '▸ tap to expand';
+    lbl.innerHTML = sectionState[id]
+      ? '<span style="color:var(--muted)">Hide</span>'
+      : '<span style="color:var(--accent)">Show</span>';
   }
 }
 
@@ -573,7 +578,7 @@ function calcRate() {
   sectionState.est = false;
   document.getElementById('est-body').classList.add('collapsed');
   const lbl = document.getElementById('est-toggle-label');
-  if(lbl && summary) lbl.innerHTML = summary.outerHTML + ' ▸ tap to expand';
+  if(lbl && summary) lbl.innerHTML = summary.outerHTML + ' Show';
 
   showToast('Rate: '+pct.toFixed(1)+'% over '+area.toFixed(0)+' m²');
 }
