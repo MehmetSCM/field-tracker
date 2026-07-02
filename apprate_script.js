@@ -188,42 +188,32 @@ function callClaude(data, trucks, segments, totalArea, totalTonnage) {
     var blendedPct = (totalTonnage * 1000 / totalArea) / TARGET_RATE_KG_M2 * 100;
     var pull = data.direction === 'NB' ? 'NBL' : 'SBL';
 
-    var prompt = 'You are reconstructing a highway paving application rate report for MoTI BC.
-' +
-      'PROJECT: ' + data.segment + ' ' + (data.dirLabel||'') + ', ' + data.date + '
-' +
-      'Route: ST ' + data.startStation + ' to ST ' + data.endStation + '
-' +
-      'Target rate: ' + TARGET_RATE_KG_M2 + ' kg/m2
-' +
-      'Total tonnage: ' + totalTonnage.toFixed(2) + ' t
-' +
-      'Total area: ' + totalArea.toFixed(2) + ' m2
-' +
-      'Blended rate: ' + blendedPct.toFixed(2) + '%
-' +
-      'Notes: ' + (data.superintendentNotes || 'None') + '
+    var promptLines = [
+      'You are reconstructing a highway paving application rate report for MoTI BC.',
+      'PROJECT: ' + data.segment + ' ' + (data.dirLabel||'') + ', ' + data.date,
+      'Route: ST ' + data.startStation + ' to ST ' + data.endStation,
+      'Target rate: ' + TARGET_RATE_KG_M2 + ' kg/m2',
+      'Total tonnage: ' + totalTonnage.toFixed(2) + ' t',
+      'Total area: ' + totalArea.toFixed(2) + ' m2',
+      'Blended rate: ' + blendedPct.toFixed(2) + '%',
+      'Notes: ' + (data.superintendentNotes || 'None'),
+      '',
+      'SEGMENTS:'
+    ];
+    segments.forEach(function(s) {
+      promptLines.push('ST ' + s.fromStation + ' to ' + s.toStation + ': w=' + s.avgWidth + 'm, len=' + s.length + 'm, area=' + s.area + 'm2' + (s.isRollover ? ' [LKI ROLLOVER]' : ''));
+    });
+    promptLines.push('');
+    promptLines.push('TRUCKS:');
+    trucks.forEach(function(t, i) {
+      promptLines.push((i+1) + '. V' + t.vehicle + ' T' + t.ticket + ' ' + Number(t.tonnage).toFixed(2) + 't');
+    });
+    promptLines.push('');
+    promptLines.push('Distribute each truck to a From/To station range in sequence. Rates should vary naturally in waves within +/-0.20% of blended rate. Return ONLY a JSON array:');
+    promptLines.push('[{"slNo":1,"vehicle":"51","ticket":"20253503","tonnage":14.46,"cumulativeTonnage":14.46,"fromStation":44896,"toStation":44908,"length":12.0,"cummLength":12.0,"avgWidth":9.5,"area":114.0,"pull":"' + pull + '","rateKgM2":126.7,"ratePct":101.9}]');
+    var prompt = promptLines.join('\n');
 
-' +
-      'SEGMENTS:
-' + segments.map(function(s) {
-        return 'ST ' + s.fromStation + ' to ' + s.toStation + ': w=' + s.avgWidth + 'm, len=' + s.length + 'm, area=' + s.area + 'm2' + (s.isRollover?' [LKI ROLLOVER]':'');
-      }).join('
-') + '
-
-' +
-      'TRUCKS:
-' + trucks.map(function(t,i) {
-        return (i+1) + '. V' + t.vehicle + ' T' + t.ticket + ' ' + Number(t.tonnage).toFixed(2) + 't';
-      }).join('
-') + '
-
-' +
-      'Distribute each truck to a From/To station range in sequence. Rates should vary naturally in waves within +/-0.20% of blended rate. Return ONLY a JSON array:
-' +
-      '[{"slNo":1,"vehicle":"51","ticket":"20253503","tonnage":14.46,"cumulativeTonnage":14.46,"fromStation":44896,"toStation":44908,"length":12.0,"cummLength":12.0,"avgWidth":9.5,"area":114.0,"pull":"' + pull + '","rateKgM2":126.7,"ratePct":101.9}]';
-
-    var response = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+        var response = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
