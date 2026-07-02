@@ -1085,7 +1085,15 @@ document.getElementById('e-w').addEventListener('keydown',function(e){if(e.key==
 })();
 
 restore();
-if(sess && sess.startSt && rows.length>0) {
+
+// Check if returning from paving screen
+const _urlParams = new URLSearchParams(window.location.search);
+if (_urlParams.get('activity') === 'paving') {
+  currentActivity = 'paving';
+  document.getElementById('dl-title').textContent = 'Paving Sessions';
+  show('pg-dates');
+  loadDateList();
+} else if(sess && sess.startSt && rows.length>0) {
   isReadOnly=false;
   resumeTracker();
 }
