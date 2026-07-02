@@ -234,76 +234,86 @@ Return ONLY a JSON array, no other text:
 ]`;
 }
 
-// - FALLBACK DISTRIBUTION (no Claude API key) ---------------
+// - FALLBACK DISTRIBUTION (overlap-based, handles LKI rollover correctly) --
 
 function buildFallbackDistribution(trucks, segments, totalArea, totalTonnage) {
-  // Pure mathematical distribution - same algorithm as our verified Python scripts
-  const rate = totalTonnage / totalArea; // t/m2
-  const rows = [];
-  let cumTonnage = 0;
-  let cumArea = 0;
-  let cumLength = 0;
-  let prevStation = segments.length > 0 ? segments[0].fromStation : 0;
+  var rate = totalTonnage / totalArea;
+  var pull = 'NBL';
+  var rows = [];
+  var cumTonnage = 0;
+  var cumAreaUsed = 0;
+  var cumLength = 0;
+  var prevStation = segments.length > 0 ? segments[0].fromStation : 0;
 
-  const pull = 'NBL'; // default, overridden by data
+  // Pre-compute cumulative area bounds for each segment
+  var runningArea = 0;
+  var segs = segments.map(function(s) {
+    var aStart = runningArea;
+    runningArea = Math.round((runningArea + s.area) * 100) / 100;
+    var obj = {};
+    for (var k in s) obj[k] = s[k];
+    obj.areaStart = aStart;
+    obj.areaEnd = runningArea;
+    return obj;
+  });
 
-  for (let i = 0; i < trucks.length; i++) {
-    const truck = trucks[i];
-    const tonnage = Number(truck.tonnage);
-    cumTonnage += tonnage;
-    const truckArea = Math.round(tonnage / rate * 100) / 100;
+  for (var i = 0; i < trucks.length; i++) {
+    var truck = trucks[i];
+    var tonnage = Number(truck.tonnage);
+    cumTonnage = Math.round((cumTonnage + tonnage) * 100) / 100;
+    var truckArea = tonnage / rate;
+    var targetCumArea = cumAreaUsed + truckArea;
 
-    // Find To station by walking segments
-    let remainingArea = truckArea;
-    let toStation = prevStation;
-    let truckLength = 0;
-    let truckAvgWidth = 0;
-    let widthCount = 0;
+    var wSum = 0, wCount = 0, truckLen = 0;
+    var toStation = prevStation;
 
-    for (let s = 0; s < segments.length; s++) {
-      const seg = segments[s];
-      if (seg.cumulativeArea >= cumArea + truckArea - 0.01) {
-        // This segment contains the end point
-        const segFrac = remainingArea / (seg.area || 1);
-        const stationDelta = seg.length * Math.min(segFrac, 1);
-        toStation = Math.round((prevStation + stationDelta) * 100) / 100;
-        truckLength += Math.min(stationDelta, seg.length);
-        truckAvgWidth += seg.avgWidth;
-        widthCount++;
-        break;
-      } else if (seg.fromStation >= prevStation || seg.cumulativeArea > cumArea) {
-        truckLength += seg.length;
-        truckAvgWidth += seg.avgWidth;
-        widthCount++;
-        remainingArea -= seg.area;
-        toStation = seg.toStation;
+    for (var j = 0; j < segs.length; j++) {
+      var s = segs[j];
+      if (s.areaEnd <= cumAreaUsed) continue;
+      if (s.areaStart >= targetCumArea) break;
+      var overlapStart = Math.max(s.areaStart, cumAreaUsed);
+      var overlapEnd = Math.min(s.areaEnd, targetCumArea);
+      var overlapArea = overlapEnd - overlapStart;
+      if (overlapArea <= 0) continue;
+      if (s.area > 0) {
+        var frac = overlapArea / s.area;
+        truckLen += s.length * frac;
+        if (s.isRollover || s.isSame) {
+          toStation = s.toStation;
+        } else {
+          var stFrac = Math.min((targetCumArea - s.areaStart) / s.area, 1);
+          toStation = Math.round((s.fromStation + stFrac * (s.toStation - s.fromStation)) * 100) / 100;
+        }
       }
+      wSum += s.avgWidth;
+      wCount++;
     }
 
-    cumArea = Math.round((cumArea + truckArea) * 100) / 100;
-    cumLength = Math.round((cumLength + truckLength) * 100) / 100;
-    const avgWidth = widthCount > 0 ? Math.round(truckAvgWidth / widthCount * 100) / 100 : 0;
-    const actualArea = Math.round(truckLength * avgWidth * 100) / 100;
-    const rateKgM2 = actualArea > 0 ? Math.round(tonnage * 1000 / actualArea * 100) / 100 : 0;
-    const ratePct = Math.round(rateKgM2 / TARGET_RATE_KG_M2 * 10000) / 100;
+    truckLen = Math.round(truckLen * 100) / 100;
+    cumLength = Math.round((cumLength + truckLen) * 100) / 100;
+    var avgWidth = wCount > 0 ? Math.round(wSum / wCount * 100) / 100 : 9.3;
+    var actualArea = Math.round(truckLen * avgWidth * 100) / 100;
+    var rateKgM2 = actualArea > 0 ? Math.round(tonnage * 1000 / actualArea * 100) / 100 : 0;
+    var ratePct = Math.round(rateKgM2 / TARGET_RATE_KG_M2 * 10000) / 100;
 
     rows.push({
       slNo: i + 1,
       vehicle: truck.vehicle || '',
       ticket: truck.ticket || '',
-      tonnage,
-      cumulativeTonnage: Math.round(cumTonnage * 100) / 100,
+      tonnage: tonnage,
+      cumulativeTonnage: cumTonnage,
       fromStation: prevStation,
-      toStation,
-      length: Math.round(truckLength * 100) / 100,
+      toStation: toStation,
+      length: truckLen,
       cummLength: cumLength,
-      avgWidth,
+      avgWidth: avgWidth,
       area: actualArea,
-      pull,
-      rateKgM2,
-      ratePct
+      pull: pull,
+      rateKgM2: rateKgM2,
+      ratePct: ratePct
     });
 
+    cumAreaUsed = Math.round(targetCumArea * 100) / 100;
     prevStation = toStation;
   }
 
@@ -470,7 +480,8 @@ function respond(obj, callback) {
 // - SETUP: run once to store API key -------------------
 // Call this function manually once from the Apps Script editor:
 // setApiKey('your-anthropic-api-key-here')
-function setApiKey(key) {
-  PropertiesService.getScriptProperties().setProperty('CLAUDE_API_KEY', key);
-  Logger.log('API key stored.');
+function setApiKey() {
+  // Run this function ONCE from the Apps Script editor, then delete the key from here.
+  // API key already stored in Script Properties - do not add key here
+  Logger.log('API key stored successfully.');
 }
