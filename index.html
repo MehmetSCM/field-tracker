@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes"><!-- v5.1 -->
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>Field Tracker — 26754-0000</title>
 <style>
@@ -332,6 +331,22 @@ function goActivity(activity) {
   currentActivity = activity;
   document.getElementById('dl-title').textContent =
     activity.charAt(0).toUpperCase() + activity.slice(1) + ' Sessions';
+
+  if (activity === 'paving') {
+    // Go straight to paving setup for today
+    const last = getLastSessionMeta();
+    openPavingSession(
+      todayStr(),
+      last?.seg||'S2',
+      last?.dir||'NB',
+      last?.dir==='NB'?'Hwy 1 NBL':'Hwy 1 SBL',
+      last?.endSt||0,
+      1,
+      ''
+    );
+    return;
+  }
+
   show('pg-dates');
   loadDateList();
 }
@@ -647,13 +662,12 @@ function setupCarryForward(last) {
     carryForward = null;
   }
 }
-
-function getLastSessionMeta() {
   const keys = Object.keys(localStorage).filter(k=>k.startsWith('fts_'));
   if (!keys.length) return null;
   keys.sort();
   try {
     const meta = JSON.parse(localStorage.getItem(keys[keys.length-1]));
+    // Also get last width from the session's rows
     const rowKey = 'ft5_rows_' + meta.tab;
     const rowData = localStorage.getItem(rowKey) || localStorage.getItem('ft4_rows_' + meta.tab);
     if (rowData) {
@@ -664,9 +678,8 @@ function getLastSessionMeta() {
     }
     return meta;
   } catch(e) { return null; }
-}
 
-// -- SETUP ─────────────────────────────────────────────────────────────────
+// ── SETUP ─────────────────────────────────────────────────────────────────
 function buildSegGrid() {
   document.getElementById('seg-grid').innerHTML = PROJECT.segments.map(s=>
     `<div class="seg-card" id="sc-${s.id}" onclick="selectSeg('${s.id}')">
