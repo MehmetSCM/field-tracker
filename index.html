@@ -366,7 +366,19 @@ async function loadDateList() {
     .filter(s => s.tab !== todayTab)
     .map(s => ({ ...s, date: cleanDate(s.date), fromSheet: true }));
 
-  // Also include seeded local sessions not yet in Sheets
+  // Auto-clean: remove local sessions that no longer exist in Sheets
+  if (sheetSessions.length > 0) {
+    const sheetTabs = sheetSessions.map(s => s.tab);
+    const localKeys = Object.keys(localStorage).filter(k => k.startsWith('fts_'));
+    localKeys.forEach(k => {
+      const tab = k.replace('fts_', '');
+      if (!sheetTabs.includes(tab)) {
+        localStorage.removeItem(k);
+        localStorage.removeItem('ft5_rows_' + tab);
+        localStorage.removeItem('ft4_rows_' + tab); // legacy key
+      }
+    });
+  }
   const localKeys = Object.keys(localStorage).filter(k => k.startsWith('fts_') && k !== 'fts_' + todayTab);
   const localTabs = localKeys.map(k => k.replace('fts_',''));
   const sheetTabs = sheetSessions.map(s => s.tab);
