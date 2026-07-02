@@ -384,7 +384,7 @@ function writeToSheet(tabName, data, claudeResult, topLiftTrucks, levelCourseTru
     .setFontWeight('bold').setFontSize(9).setHorizontalAlignment('center');
 
   // - DATE/LOCATION ROW (row 3) ----------------------
-  const locStr = `${data.date}     Location: ${data.segment} | ${data.startStation} to ${data.endStation} ${pull}`;
+  const locStr = data.date + '     Location: ' + data.segment + ' | ' + data.startStation + ' to ' + data.endStation + ' ' + pull;
   sheet.getRange(3, 1, 1, 16).merge().setValue(locStr)
     .setBackground('#F59E0B').setFontColor('#111').setFontWeight('bold').setFontSize(10);
   // Target rate in col Q
@@ -444,7 +444,7 @@ function writeToSheet(tabName, data, claudeResult, topLiftTrucks, levelCourseTru
   const summaryData = [
     ['Area of top lift', 'Sq m', totalArea.toFixed(2)],
     ['Tonnage used for top lift', '', totalTonnage.toFixed(2)],
-    ['App rate of top lift', '', `${blendedRate.toFixed(2)}  ${blendedPct.toFixed(2)}%`],
+    ['App rate of top lift', '', blendedRate.toFixed(2) + '  ' + blendedPct.toFixed(2) + '%'],
   ];
   if (levelCourseTonnage > 0) {
     summaryData.push(['Tonnage used for Level Course', '', levelCourseTonnage.toFixed(2)]);
