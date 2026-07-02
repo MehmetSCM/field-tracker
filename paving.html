@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Paving — Field Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#111;--surface:#1C1C1C;--surface2:#262626;--border:#333;
+  --accent:#F59E0B;--ok:#22C55E;--danger:#EF4444;--blue:#3B82F6;
+  --text:#F3F3F3;--muted:#777;--r:14px;--h:56px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;overflow:hidden}
+.pg{display:none;flex-direction:column;height:100svh;max-width:480px;margin:0 auto}
+.pg.on{display:flex}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;flex-shrink:0}
+.tb-title{font-size:16px;font-weight:800}
+.tb-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.back{background:none;border:none;color:var(--accent);font-size:15px;font-weight:600;cursor:pointer;padding:0;margin-bottom:4px;display:block}
+.lbl{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.inp{width:100%;height:var(--h);background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:20px;font-weight:600;padding:0 16px;appearance:none;-webkit-appearance:none}
+.inp:focus{outline:none;border-color:var(--accent)}
+.btn{width:100%;height:var(--h);border:none;border-radius:var(--r);font-size:17px;font-weight:800;cursor:pointer}
+.btn-accent{background:var(--accent);color:#111}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1.5px solid var(--border)}
+.btn-blue{background:var(--blue);color:#fff}
+.mb{margin-bottom:14px}
+.row{display:flex;gap:10px}
+
+/* ── TRACKER LAYOUT ── */
+.tracker-wrap{display:flex;flex-direction:column;height:100svh;max-width:480px;margin:0 auto}
+.tracker-wrap.on{display:flex}
+
+/* Section headers */
+.section-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 16px;background:var(--surface2);border-bottom:1px solid var(--border);
+  flex-shrink:0;cursor:pointer;user-select:none;
+}
+.section-header-title{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.section-header-right{font-size:12px;color:var(--accent);font-weight:600}
+.section-body{flex-shrink:0}
+.section-body.collapsed{display:none}
+
+/* ── RATE ESTIMATOR ── */
+.estimator{background:var(--surface);padding:14px 16px;border-bottom:1px solid var(--border)}
+.est-gauge{display:flex;align-items:center;gap:16px;margin-bottom:14px}
+.gauge-circle{
+  width:80px;height:80px;border-radius:50%;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:4px solid var(--border);background:var(--surface2);
+}
+.gauge-pct{font-size:20px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1}
+.gauge-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.gauge-status{font-size:13px;font-weight:700}
+.est-meta{flex:1}
+.est-meta-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid var(--border)}
+.est-meta-row:last-child{border:none}
+.est-meta-label{color:var(--muted)}
+.est-meta-val{font-weight:700}
+.est-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.ef{flex:1}
+.el{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.ei{width:100%;height:50px;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:20px;font-weight:700;padding:0 12px;text-align:center;appearance:none;-webkit-appearance:none}
+.ei:focus{outline:none;border-color:var(--accent)}
+.calc-btn{width:100%;height:48px;background:var(--accent);border:none;border-radius:12px;color:#111;font-size:15px;font-weight:800;cursor:pointer}
+
+/* ── WIDTH LOG ── */
+.width-entry{padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg)}
+.width-log{max-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.wli{background:var(--surface);border-radius:10px;padding:11px 14px;margin:8px 16px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.wli-l .st{font-size:18px;font-weight:800}
+.wli-l .w{font-size:13px;color:var(--muted);margin-top:1px}
+.wli-l .milled{font-size:11px;color:#3B82F6;margin-top:3px;font-style:italic}
+.wli-r{text-align:right;flex-shrink:0}
+.wli-r .ca{font-size:16px;font-weight:700;color:var(--accent)}
+.wli-r .cl{font-size:9px;color:var(--muted);text-transform:uppercase}
+.wli-actions{display:flex;flex-direction:column;gap:3px}
+.act-btn{background:none;border:none;font-size:12px;cursor:pointer;padding:3px 5px;border-radius:5px;font-weight:600}
+.act-edit{color:var(--accent)}
+.act-del{color:var(--border)}
+
+/* ── TRUCK LOG ── */
+.truck-entry{padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg)}
+.truck-btns{display:flex;gap:10px;margin-bottom:10px}
+.cam-btn{flex:0 0 50px;height:50px;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.truck-log{max-height:180px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.tli{background:var(--surface);border-radius:10px;padding:10px 14px;margin:6px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tli-l .tk{font-size:14px;color:var(--muted)}
+.tli-l .tv{font-size:16px;font-weight:700;margin-top:1px}
+.tli-r{text-align:right}
+.tli-r .tt{font-size:18px;font-weight:800}
+.tli-r .tc{font-size:11px;color:var(--muted)}
+
+/* Dashboard strip */
+.dash-strip{display:flex;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.ds{flex:1;padding:10px 4px;text-align:center;border-right:1px solid var(--border)}
+.ds:last-child{border-right:none}
+.dv{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+.dv.a{color:var(--accent)}
+.dl{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+
+/* Camera preview */
+.cam-preview{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:100;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.cam-preview.on{display:flex}
+.cam-preview img{max-width:90%;max-height:50vh;border-radius:12px;object-fit:contain}
+.cam-preview-title{color:#fff;font-size:16px;font-weight:700}
+.cam-preview-sub{color:var(--muted);font-size:13px;text-align:center;padding:0 20px}
+.ocr-result{background:var(--surface);border-radius:12px;padding:16px;width:90%;max-width:400px}
+.ocr-field{margin-bottom:10px}
+.ocr-field:last-child{margin-bottom:0}
+
+/* Bottom bar */
+.bot{display:flex;gap:10px;padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0;background:var(--bg)}
+.endbtn{flex:1;height:50px;background:transparent;border:1.5px solid var(--border);border-radius:12px;color:var(--muted);font-size:15px;font-weight:700;cursor:pointer}
+.synbtn{width:50px;height:50px;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.synbtn.ok{border-color:var(--ok);color:var(--ok)}
+.synbtn.err{border-color:var(--danger);color:var(--danger)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinning{animation:spin .8s linear infinite;display:inline-block}
+
+/* Modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:50;align-items:flex-end;justify-content:center}
+.overlay.on{display:flex}
+.modal{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px 44px;width:100%;max-width:480px}
+.mtitle{font-size:18px;font-weight:800;margin-bottom:6px}
+.msub{font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.5}
+.mbtns{display:flex;flex-direction:column;gap:10px}
+
+/* Toast */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:#222;color:#fff;padding:10px 22px;border-radius:30px;font-size:14px;font-weight:600;opacity:0;transition:all .2s;pointer-events:none;z-index:200;white-space:nowrap;border:1px solid #444}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* hidden file input */
+#cam-input{display:none}
+</style>
+</head>
+<body>
+
+<!-- PAVING TRACKER -->
+<div class="tracker-wrap on" id="pg-pave">
+
+  <div class="topbar">
+    <button class="back" onclick="history.back()">← Sessions</button>
+    <div class="tb-title" id="pave-title">Segment 2 · Hwy 1 NBL</div>
+    <div class="tb-sub" id="pave-sub">2 Jul 26 · Top Lift · Paving</div>
+  </div>
+
+  <!-- Dashboard strip -->
+  <div class="dash-strip">
+    <div class="ds"><div class="dv" id="ds-trucks">0</div><div class="dl">Trucks</div></div>
+    <div class="ds"><div class="dv a" id="ds-tonnage">0.00</div><div class="dl">Tonnes</div></div>
+    <div class="ds"><div class="dv" id="ds-area">—</div><div class="dl">Area m²</div></div>
+    <div class="ds"><div class="dv a" id="ds-rate">—</div><div class="dl">Est. Rate</div></div>
+  </div>
+
+  <div class="scroll" id="pave-scroll">
+
+    <!-- ── SECTION 1: RATE ESTIMATOR ── -->
+    <div class="section-header" onclick="toggleSection('est')">
+      <span class="section-header-title">📐 Rate Estimator</span>
+      <span class="section-header-right" id="est-toggle-label">▾ open</span>
+    </div>
+    <div class="section-body" id="est-body">
+      <div class="estimator">
+        <div class="est-gauge">
+          <div class="gauge-circle" id="gauge-circle">
+            <div class="gauge-pct" id="gauge-pct">—</div>
+            <div class="gauge-lbl">% rate</div>
+          </div>
+          <div class="est-meta">
+            <div class="est-meta-row"><span class="est-meta-label">Total tonnage</span><span class="est-meta-val" id="em-tonnage">0.00 t</span></div>
+            <div class="est-meta-row"><span class="est-meta-label">Est. area</span><span class="est-meta-val" id="em-area">— m²</span></div>
+            <div class="est-meta-row"><span class="est-meta-label">Last estimate</span><span class="est-meta-val" id="em-time">—</span></div>
+          </div>
+        </div>
+        <div class="est-inputs">
+          <div class="ef">
+            <span class="el">To Station</span>
+            <input class="ei" id="est-st" type="number" inputmode="numeric" placeholder="e.g. 500">
+          </div>
+          <div class="ef">
+            <span class="el">Width at ST (m)</span>
+            <input class="ei" id="est-w" type="number" inputmode="decimal" step="0.01" placeholder="9.3">
+          </div>
+        </div>
+        <button class="calc-btn" onclick="calcRate()">Calculate Rate →</button>
+      </div>
+    </div>
+
+    <!-- ── SECTION 2: WIDTH READINGS ── -->
+    <div class="section-header" onclick="toggleSection('width')">
+      <span class="section-header-title">📏 Width Readings</span>
+      <span class="section-header-right" id="width-toggle-label">▾ open</span>
+    </div>
+    <div class="section-body" id="width-body">
+      <div class="width-entry">
+        <div class="row mb">
+          <div class="ef">
+            <span class="el">Station</span>
+            <input class="ei" id="w-st" type="number" inputmode="numeric" placeholder="—" style="width:100%">
+          </div>
+          <div class="ef">
+            <span class="el">Width (m)</span>
+            <input class="ei" id="w-w" type="number" inputmode="decimal" step="0.01" placeholder="—" style="width:100%">
+          </div>
+        </div>
+        <button class="btn btn-accent" style="height:48px;font-size:15px" onclick="addWidth()">Save Width Reading</button>
+      </div>
+      <div class="width-log" id="width-log">
+        <div style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px">No width readings yet</div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 3: TRUCK LOG ── -->
+    <div class="section-header" onclick="toggleSection('truck')">
+      <span class="section-header-title">🚛 Truck Log</span>
+      <span class="section-header-right" id="truck-toggle-label">▾ open</span>
+    </div>
+    <div class="section-body" id="truck-body">
+      <div class="truck-entry">
+        <div class="truck-btns">
+          <button class="cam-btn" onclick="openCamera()" title="Scan ticket">📷</button>
+          <div style="flex:1;display:flex;gap:8px">
+            <div class="ef">
+              <span class="el">Vehicle</span>
+              <input class="ei" id="t-veh" type="text" inputmode="numeric" placeholder="40" style="width:100%;font-size:18px">
+            </div>
+            <div class="ef">
+              <span class="el">Ticket #</span>
+              <input class="ei" id="t-tkt" type="text" inputmode="numeric" placeholder="20253541" style="width:100%;font-size:16px">
+            </div>
+            <div class="ef">
+              <span class="el">Tonnes</span>
+              <input class="ei" id="t-ton" type="number" inputmode="decimal" step="0.01" placeholder="19.16" style="width:100%;font-size:18px">
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-accent" style="height:48px;font-size:15px" onclick="addTruck()">Add Truck</button>
+      </div>
+      <div class="truck-log" id="truck-log">
+        <div style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px">No trucks logged yet</div>
+      </div>
+    </div>
+
+  </div><!-- end scroll -->
+
+  <div class="bot">
+    <button class="endbtn" onclick="openEndModal()">End Session</button>
+    <button class="synbtn" id="pave-synbtn" onclick="paveSync()">☁</button>
+  </div>
+</div>
+
+<!-- CAMERA PREVIEW / OCR RESULT -->
+<div class="cam-preview" id="cam-preview">
+  <div class="cam-preview-title" id="cam-title">Reading ticket…</div>
+  <img id="cam-img" src="" alt="">
+  <div class="cam-preview-sub" id="cam-sub">Please wait</div>
+  <div class="ocr-result" id="ocr-result" style="display:none">
+    <div class="ocr-field">
+      <span class="el">Vehicle</span>
+      <input class="inp" id="ocr-veh" type="text" inputmode="numeric" style="font-size:18px">
+    </div>
+    <div class="ocr-field">
+      <span class="el">Ticket #</span>
+      <input class="inp" id="ocr-tkt" type="text" inputmode="numeric" style="font-size:16px">
+    </div>
+    <div class="ocr-field">
+      <span class="el">Net Tonnes</span>
+      <input class="inp" id="ocr-ton" type="number" inputmode="decimal" step="0.01" style="font-size:18px">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px">
+      <button class="btn btn-accent" style="height:48px;font-size:15px" onclick="confirmOCR()">Confirm & Add</button>
+      <button class="btn btn-ghost" style="height:48px;font-size:15px;flex:0 0 80px" onclick="closeCam()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- END SESSION MODAL -->
+<div class="overlay" id="pave-modal">
+  <div class="modal">
+    <div class="mtitle">End Paving Session?</div>
+    <div class="msub">Saves to Google Sheets. After this, Sheets becomes the master record.</div>
+    <div style="background:var(--surface2);border-radius:10px;padding:14px;margin-bottom:16px;font-size:14px">
+      <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--muted)">Trucks</span><span style="font-weight:700" id="pm-trucks">0</span></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--muted)">Total Tonnage</span><span style="font-weight:700;color:var(--accent)" id="pm-tonnage">0.00 t</span></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--muted)">Width Readings</span><span style="font-weight:700" id="pm-readings">0</span></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--muted)">Paved Area</span><span style="font-weight:700;color:var(--accent)" id="pm-area">— m²</span></div>
+    </div>
+    <div class="mb">
+      <span class="lbl">Paving End Time</span>
+      <input class="inp" id="pave-endtime" type="time" style="font-size:18px">
+    </div>
+    <div class="mbtns">
+      <button class="btn btn-accent" onclick="endPaveSession()">Save & End Session</button>
+      <button class="btn btn-ghost" onclick="closePaveModal()">Keep Working</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="cam-input" accept="image/*" capture="environment">
+<div class="toast" id="toast"></div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8FPePSr4ktna2fNgVUUU6-zTufCqR7Bwgc4W6JlHfadmIxguBBhd1GljanSaNQmgc9Q/exec';
+const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
+const TARGET_RATE = 124.35;
+const BAND_LOW = 100, BAND_HIGH = 102;
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+let paveSess = null;
+let widthRows = [];   // [{station, width, milledWidth, len, seg, cum, ts}]
+let truckRows = [];   // [{vehicle, ticket, tonnage, cumTonnage, ts}]
+let rateEstimates = []; // [{station, width, area, rate, ts}]
+let editWidthIdx = null;
+
+function persist() {
+  try {
+    localStorage.setItem('pv_sess', JSON.stringify(paveSess));
+    localStorage.setItem('pv_w', JSON.stringify(widthRows));
+    localStorage.setItem('pv_t', JSON.stringify(truckRows));
+    localStorage.setItem('pv_r', JSON.stringify(rateEstimates));
+  } catch(e) {}
+}
+function restore() {
+  try {
+    const s = localStorage.getItem('pv_sess');
+    const w = localStorage.getItem('pv_w');
+    const t = localStorage.getItem('pv_t');
+    const r = localStorage.getItem('pv_r');
+    if(s) paveSess = JSON.parse(s);
+    if(w) widthRows = JSON.parse(w);
+    if(t) truckRows = JSON.parse(t);
+    if(r) rateEstimates = JSON.parse(r);
+  } catch(e) {}
+}
+
+// ── SECTION TOGGLE ────────────────────────────────────────────────────────
+const sectionState = { est: true, width: true, truck: true };
+function toggleSection(id) {
+  sectionState[id] = !sectionState[id];
+  document.getElementById(id+'-body').classList.toggle('collapsed', !sectionState[id]);
+  document.getElementById(id+'-toggle-label').textContent =
+    sectionState[id] ? '▾ open' : '▸ tap to expand';
+}
+
+// ── MILLED WIDTH LOOKUP ────────────────────────────────────────────────────
+function getMilledWidth(station) {
+  // Search all cached milling sessions for the nearest reading to this station
+  const allMilledRows = [];
+  const keys = Object.keys(localStorage).filter(k => k.startsWith('ft5_rows_') || k.startsWith('ft4_rows_'));
+  keys.forEach(k => {
+    try {
+      const rows = JSON.parse(localStorage.getItem(k));
+      if (Array.isArray(rows)) rows.forEach(r => allMilledRows.push(r));
+    } catch(e) {}
+  });
+
+  if (allMilledRows.length === 0) return null;
+
+  // Find exact match first
+  const exact = allMilledRows.find(r => r.station === station);
+  if (exact) return { width: exact.width, type: 'exact' };
+
+  // Find nearest two bracketing readings
+  const sorted = allMilledRows
+    .filter(r => r.width > 0)
+    .sort((a,b) => Math.abs(a.station - station) - Math.abs(b.station - station));
+
+  if (sorted.length === 0) return null;
+
+  const nearest = sorted[0];
+  const dist = Math.abs(nearest.station - station);
+
+  // If nearest is within 100m, use it or interpolate
+  if (dist <= 100) {
+    const below = allMilledRows.filter(r => r.station <= station && r.width > 0)
+      .sort((a,b) => b.station - a.station)[0];
+    const above = allMilledRows.filter(r => r.station >= station && r.width > 0)
+      .sort((a,b) => a.station - b.station)[0];
+
+    if (below && above && below.station !== above.station) {
+      // Interpolate
+      const frac = (station - below.station) / (above.station - below.station);
+      const interp = below.width + frac * (above.width - below.width);
+      return { width: Math.round(interp * 100) / 100, type: 'interpolated' };
+    }
+    return { width: nearest.width, type: 'nearest', nearSt: nearest.station };
+  }
+  return null;
+}
+
+// ── WIDTH LOG ─────────────────────────────────────────────────────────────
+function addWidth() {
+  const st = parseFloat(document.getElementById('w-st').value);
+  const w  = parseFloat(document.getElementById('w-w').value);
+  if(isNaN(st)){showToast('Enter a station');return;}
+  if(isNaN(w)||w<=0){showToast('Enter a valid width');return;}
+
+  // Look up milled width for this station
+  const milled = getMilledWidth(st);
+
+  if(editWidthIdx !== null) {
+    widthRows[editWidthIdx].station = st;
+    widthRows[editWidthIdx].width = w;
+    widthRows[editWidthIdx].milledWidth = milled;
+    widthRows[editWidthIdx].ts = new Date().toISOString();
+    recalcWidths(editWidthIdx);
+    editWidthIdx = null;
+  } else {
+    const prev = widthRows.length > 0 ? widthRows[widthRows.length-1] : null;
+    let len=0, seg=0, cum=0;
+    if(prev) {
+      const raw = Math.abs(st - prev.station);
+      const lki = raw > 5000, same = raw < 0.01;
+      len = (lki||same) ? 0 : raw;
+      seg = len > 0 ? round2((prev.width + w) / 2 * len) : 0;
+      cum = round2(prev.cum + seg);
+      if(lki) showToast('LKI rollover — length set to 0');
+    }
+    widthRows.push({station:st, width:w, milledWidth:milled, len, seg, cum, ts:new Date().toISOString()});
+  }
+
+  persist();
+  document.getElementById('w-w').value = '';
+  // Suggest next station
+  if(paveSess && widthRows.length > 0) {
+    const last = widthRows[widthRows.length-1].station;
+    document.getElementById('w-st').value = last + (paveSess.increment||1) * 50;
+  }
+  refreshDash(); renderWidthLog(); renderRateGauge();
+  document.getElementById('w-w').focus();
+}
+
+function recalcWidths(fromIdx) {
+  for(let i = fromIdx; i < widthRows.length; i++) {
+    if(i===0){widthRows[i].len=0;widthRows[i].seg=0;widthRows[i].cum=0;continue;}
+    const prev=widthRows[i-1];
+    const raw=Math.abs(widthRows[i].station-prev.station);
+    const lki=raw>5000,same=raw<0.01;
+    widthRows[i].len=(lki||same)?0:raw;
+    widthRows[i].seg=widthRows[i].len>0?round2((prev.width+widthRows[i].width)/2*widthRows[i].len):0;
+    widthRows[i].cum=round2(prev.cum+widthRows[i].seg);
+  }
+}
+
+function editWidth(i) {
+  editWidthIdx = i;
+  document.getElementById('w-st').value = widthRows[i].station;
+  document.getElementById('w-w').value = widthRows[i].width;
+  document.getElementById('w-w').focus();
+  renderWidthLog();
+}
+
+function delWidth(i) {
+  widthRows.splice(i, 1);
+  recalcWidths(Math.max(0, i-1));
+  if(editWidthIdx===i) { editWidthIdx=null; }
+  persist(); refreshDash(); renderWidthLog(); renderRateGauge();
+}
+
+function renderWidthLog() {
+  const el = document.getElementById('width-log');
+  if(widthRows.length===0){
+    el.innerHTML='<div style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px">No width readings yet</div>';
+    return;
+  }
+  const frag = document.createDocumentFragment();
+  for(let i=widthRows.length-1;i>=0;i--) {
+    const r=widthRows[i];
+    const isEditing=editWidthIdx===i;
+    const milledHint = r.milledWidth
+      ? `<div class="milled">Milled: ${r.milledWidth.width.toFixed(2)}m (${r.milledWidth.type}${r.milledWidth.nearSt?', ST '+r.milledWidth.nearSt:''})</div>`
+      : '';
+    const d=document.createElement('div');
+    d.className='wli'+(isEditing?' editing-row':'');
+    d.innerHTML=`
+      <div class="wli-l">
+        <div class="st">ST ${r.station}</div>
+        <div class="w">${r.width.toFixed(2)} m${r.seg>0?' · +'+r.seg.toFixed(2)+' m²':''}</div>
+        ${milledHint}
+      </div>
+      <div class="wli-r">
+        <div class="ca">${r.cum.toFixed(2)}</div>
+        <div class="cl">m² total</div>
+      </div>
+      <div class="wli-actions">
+        <button class="act-btn act-edit" onclick="editWidth(${i})">Edit</button>
+        <button class="act-btn act-del" onclick="delWidth(${i})">Del</button>
+      </div>`;
+    frag.appendChild(d);
+  }
+  el.innerHTML='';
+  el.appendChild(frag);
+}
+
+// ── TRUCK LOG ─────────────────────────────────────────────────────────────
+function addTruck() {
+  const veh = document.getElementById('t-veh').value.trim();
+  const tkt = document.getElementById('t-tkt').value.trim();
+  const ton = parseFloat(document.getElementById('t-ton').value);
+  if(isNaN(ton)||ton<=0){showToast('Enter valid tonnage');return;}
+  const prev = truckRows.length>0 ? truckRows[truckRows.length-1] : null;
+  const cumTonnage = round2((prev?prev.cumTonnage:0)+ton);
+  truckRows.push({vehicle:veh, ticket:tkt, tonnage:ton, cumTonnage, ts:new Date().toISOString()});
+  persist();
+  document.getElementById('t-veh').value='';
+  document.getElementById('t-tkt').value='';
+  document.getElementById('t-ton').value='';
+  refreshDash(); renderTruckLog(); renderRateGauge();
+  document.getElementById('t-veh').focus();
+}
+
+function renderTruckLog() {
+  const el=document.getElementById('truck-log');
+  if(truckRows.length===0){
+    el.innerHTML='<div style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px">No trucks logged yet</div>';
+    return;
+  }
+  const frag=document.createDocumentFragment();
+  for(let i=truckRows.length-1;i>=0;i--) {
+    const r=truckRows[i];
+    const d=document.createElement('div');
+    d.className='tli';
+    d.innerHTML=`
+      <div class="tli-l">
+        <div class="tk">Truck ${r.vehicle||'—'} · #${r.ticket||'—'}</div>
+        <div class="tv">${r.tonnage.toFixed(2)} t</div>
+      </div>
+      <div class="tli-r">
+        <div class="tt">${r.cumTonnage.toFixed(2)}</div>
+        <div class="tc">t cumulative</div>
+      </div>`;
+    frag.appendChild(d);
+  }
+  el.innerHTML=''; el.appendChild(frag);
+}
+
+// ── RATE ESTIMATOR ────────────────────────────────────────────────────────
+function calcRate() {
+  const estSt = parseFloat(document.getElementById('est-st').value);
+  const estW  = parseFloat(document.getElementById('est-w').value);
+  if(isNaN(estSt)){showToast('Enter a station');return;}
+  if(isNaN(estW)||estW<=0){showToast('Enter a width');return;}
+  if(truckRows.length===0){showToast('No trucks logged yet');return;}
+  if(widthRows.length===0){showToast('No width readings yet');return;}
+
+  const totalTonnage = truckRows[truckRows.length-1].cumTonnage;
+
+  // Build area up to estSt using existing width readings + the estimator endpoint
+  // Find width readings before or at estSt
+  const dir = paveSess ? (paveSess.increment||1) : 1;
+  const relevantWidths = widthRows.filter(r =>
+    dir > 0 ? r.station <= estSt : r.station >= estSt
+  ).sort((a,b) => dir>0 ? a.station-b.station : b.station-a.station);
+
+  let area = 0;
+  // Calc area from width readings
+  for(let i=1;i<relevantWidths.length;i++) {
+    const prev=relevantWidths[i-1];
+    const curr=relevantWidths[i];
+    const raw=Math.abs(curr.station-prev.station);
+    if(raw<5000) area+=round2((prev.width+curr.width)/2*raw);
+  }
+  // Add partial segment from last width reading to estSt
+  if(relevantWidths.length>0) {
+    const lastW=relevantWidths[relevantWidths.length-1];
+    const remainLen=Math.abs(estSt-lastW.station);
+    if(remainLen>0 && remainLen<5000) {
+      area=round2(area+(lastW.width+estW)/2*remainLen);
+    }
+  } else {
+    // No width readings at all — use estimator station as full length from session start
+    if(paveSess) {
+      const len=Math.abs(estSt-paveSess.startSt);
+      area=round2(estW*len);
+    }
+  }
+
+  if(area<=0){showToast('Cannot calculate — check inputs');return;}
+
+  const rate=round2(totalTonnage*1000/area);
+  const pct=round2(rate/TARGET_RATE*100);
+  const ts=new Date();
+
+  rateEstimates.push({station:estSt, width:estW, area, rate:pct, ts:ts.toISOString()});
+  persist();
+
+  // Update gauge
+  renderRateGauge(pct, totalTonnage, area, ts);
+  document.getElementById('em-time').textContent = formatTime(ts);
+  showToast('Rate calculated: '+pct.toFixed(1)+'%');
+}
+
+function renderRateGauge(pct, tonnage, area, ts) {
+  // Use latest estimate if not passed directly
+  if(pct===undefined) {
+    if(rateEstimates.length===0) return;
+    const last=rateEstimates[rateEstimates.length-1];
+    pct=last.rate; tonnage=truckRows.length>0?truckRows[truckRows.length-1].cumTonnage:0;
+    area=last.area; ts=new Date(last.ts);
+  }
+
+  const circle=document.getElementById('gauge-circle');
+  const pctEl=document.getElementById('gauge-pct');
+  let color,status;
+  if(pct<BAND_LOW){color='#E8750A';status='THICKEN';}
+  else if(pct>BAND_HIGH){color='#EF4444';status='THIN';}
+  else{color='#22C55E';status='OK';}
+
+  circle.style.borderColor=color;
+  pctEl.textContent=pct.toFixed(1)+'%';
+  pctEl.style.color=color;
+  document.getElementById('em-tonnage').textContent=(tonnage||0).toFixed(2)+' t';
+  document.getElementById('em-area').textContent=(area||0).toFixed(1)+' m²';
+  if(ts) document.getElementById('em-time').textContent=formatTime(ts);
+  document.getElementById('ds-rate').textContent=pct.toFixed(1)+'%';
+  document.getElementById('ds-rate').style.color=color;
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────
+function refreshDash() {
+  const n=truckRows.length;
+  const ton=n>0?truckRows[n-1].cumTonnage:0;
+  const wn=widthRows.length;
+  const area=wn>0?widthRows[wn-1].cum:0;
+  document.getElementById('ds-trucks').textContent=n;
+  document.getElementById('ds-tonnage').textContent=ton.toFixed(2);
+  document.getElementById('ds-area').textContent=area>0?area.toFixed(0):'—';
+}
+
+// ── CAMERA / OCR ──────────────────────────────────────────────────────────
+function openCamera() {
+  document.getElementById('cam-input').click();
+}
+
+document.getElementById('cam-input').addEventListener('change', async function(e) {
+  const file = e.target.files[0];
+  if(!file) return;
+
+  // Show preview
+  const reader = new FileReader();
+  reader.onload = async function(ev) {
+    const dataUrl = ev.target.result;
+    document.getElementById('cam-img').src = dataUrl;
+    document.getElementById('cam-title').textContent = 'Reading ticket…';
+    document.getElementById('cam-sub').textContent = 'Sending to Claude…';
+    document.getElementById('ocr-result').style.display = 'none';
+    document.getElementById('cam-preview').classList.add('on');
+
+    // Compress image before sending
+    const compressed = await compressImage(dataUrl, 0.45);
+    const base64 = compressed.split(',')[1];
+
+    try {
+      const response = await fetch(CLAUDE_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 300,
+          messages: [{
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: { type: 'base64', media_type: 'image/jpeg', data: base64 }
+              },
+              {
+                type: 'text',
+                text: 'This is an asphalt plant scale ticket. Extract exactly: Vehicle number (single number like 40), Ticket number (like 20253541), Net weight in tonnes (like 19.16). Reply with ONLY a JSON object: {"vehicle":"40","ticket":"20253541","tonnes":"19.16"}. No other text.'
+              }
+            ]
+          }]
+        })
+      });
+
+      const data = await response.json();
+      const text = data.content?.[0]?.text || '';
+      const clean = text.replace(/```json|```/g,'').trim();
+      const parsed = JSON.parse(clean);
+
+      document.getElementById('ocr-veh').value = parsed.vehicle || '';
+      document.getElementById('ocr-tkt').value = parsed.ticket || '';
+      document.getElementById('ocr-ton').value = parsed.tonnes || '';
+      document.getElementById('cam-title').textContent = 'Confirm ticket details';
+      document.getElementById('cam-sub').textContent = 'Check values and tap Confirm';
+      document.getElementById('ocr-result').style.display = 'block';
+    } catch(err) {
+      document.getElementById('cam-title').textContent = 'Could not read ticket';
+      document.getElementById('cam-sub').textContent = 'Enter details manually below';
+      document.getElementById('ocr-veh').value='';
+      document.getElementById('ocr-tkt').value='';
+      document.getElementById('ocr-ton').value='';
+      document.getElementById('ocr-result').style.display='block';
+    }
+  };
+  reader.readAsDataURL(file);
+  this.value=''; // reset so same file can be re-selected
+});
+
+async function compressImage(dataUrl, quality) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      // Max dimension 1200px
+      const maxDim = 1200;
+      let w=img.width, h=img.height;
+      if(w>maxDim||h>maxDim) {
+        if(w>h){h=Math.round(h*maxDim/w);w=maxDim;}
+        else{w=Math.round(w*maxDim/h);h=maxDim;}
+      }
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src=dataUrl;
+  });
+}
+
+function confirmOCR() {
+  document.getElementById('t-veh').value = document.getElementById('ocr-veh').value;
+  document.getElementById('t-tkt').value = document.getElementById('ocr-tkt').value;
+  document.getElementById('t-ton').value = document.getElementById('ocr-ton').value;
+  closeCam();
+  addTruck();
+}
+function closeCam() {
+  document.getElementById('cam-preview').classList.remove('on');
+}
+
+// ── END SESSION ───────────────────────────────────────────────────────────
+function openEndModal() {
+  if(truckRows.length===0&&widthRows.length===0){showToast('No data yet');return;}
+  const n=truckRows.length;
+  const ton=n>0?truckRows[n-1].cumTonnage:0;
+  const wn=widthRows.length;
+  const area=wn>0?widthRows[wn-1].cum:0;
+  document.getElementById('pm-trucks').textContent=n;
+  document.getElementById('pm-tonnage').textContent=ton.toFixed(2)+' t';
+  document.getElementById('pm-readings').textContent=wn;
+  document.getElementById('pm-area').textContent=area>0?area.toFixed(2)+' m²':'—';
+  const now=new Date();
+  document.getElementById('pave-endtime').value=
+    String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('pave-modal').classList.add('on');
+}
+function closePaveModal(){document.getElementById('pave-modal').classList.remove('on');}
+async function endPaveSession() {
+  closePaveModal();
+  const ok = await paveSync(true);
+  if(!ok){
+    showToast('Sync failed — session kept open');
+    return;
+  }
+  paveSess=null; widthRows=[]; truckRows=[]; rateEstimates=[];
+  persist();
+  showToast('Paving session saved ✓');
+  // Go back to home
+  window.location.href='index.html';
+}
+
+// ── SYNC ──────────────────────────────────────────────────────────────────
+function jsonpCall(url,ms){
+  return new Promise(resolve=>{
+    const cb='pv_cb_'+Date.now();
+    const timer=setTimeout(()=>{cleanup();resolve({ok:false,error:'timeout'});},ms||12000);
+    window[cb]=r=>{cleanup();resolve(r||{ok:false,error:'empty'});};
+    function cleanup(){clearTimeout(timer);delete window[cb];const el=document.getElementById('_pvjsc');if(el)el.remove();}
+    const s=document.createElement('script');s.id='_pvjsc';
+    s.onerror=()=>{cleanup();resolve({ok:false,error:'load failed'});};
+    s.src=url+(url.includes('?')?'&':'?')+'callback='+cb;
+    document.head.appendChild(s);
+  });
+}
+
+async function paveSync(closing=false) {
+  const btn=document.getElementById('pave-synbtn');
+  btn.innerHTML='<span class="spinning">↻</span>'; btn.className='synbtn';
+
+  const ping=await jsonpCall(SCRIPT_URL+'?ping=1',8000);
+  if(!ping.ok){btn.textContent='✕';btn.className='synbtn err';showToast('No connection');setTimeout(()=>{btn.textContent='☁';btn.className='synbtn';},4000);return false;}
+
+  const wLast=widthRows.length>0?widthRows[widthRows.length-1]:null;
+  const tLast=truckRows.length>0?truckRows[truckRows.length-1]:null;
+  const endTime=document.getElementById('pave-endtime')?.value||'';
+
+  const payload={
+    action:'save_paving_session',
+    tabName:(paveSess?.tab||'FT-Pave-'+new Date().toDateString()),
+    closed:closing,
+    widthEntries:widthRows.map(r=>({station:r.station,width:r.width,milledWidth:r.milledWidth?.width||null,length:r.len,segArea:r.seg,cumArea:r.cum,timestamp:r.ts})),
+    truckEntries:truckRows.map(r=>({vehicle:r.vehicle,ticket:r.ticket,tonnage:r.tonnage,cumTonnage:r.cumTonnage,timestamp:r.ts})),
+    rateEstimates:rateEstimates,
+    summary:{
+      date:paveSess?.date||'',
+      direction:paveSess?.dir||'',
+      activity:'Top Lift Paving',
+      segment:paveSess?.segName||'',
+      startStation:paveSess?.startSt||'',
+      endStation:wLast?.station||'',
+      totalTonnage:tLast?.cumTonnage||0,
+      totalArea:wLast?.cum||0,
+      trucks:truckRows.length,
+      startTime:paveSess?.startTime||'',
+      endTime:closing?endTime:''
+    }
+  };
+
+  const result=await jsonpCall(SCRIPT_URL+'?data='+encodeURIComponent(JSON.stringify(payload)));
+  if(result.ok){
+    btn.textContent='✓';btn.className='synbtn ok';
+    showToast('Synced ✓');
+    setTimeout(()=>{btn.textContent='☁';btn.className='synbtn';},3000);
+    return true;
+  } else {
+    btn.textContent='✕';btn.className='synbtn err';
+    showToast('Sync error: '+(result.error||'unknown'));
+    setTimeout(()=>{btn.textContent='☁';btn.className='synbtn';},5000);
+    return false;
+  }
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────
+function round2(n){return Math.round(n*100)/100;}
+function formatTime(d){
+  const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return String(d.getDate()).padStart(2,'0')+m[d.getMonth()]+' '+
+    String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),3000);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+restore();
+// Seed session from URL params or localStorage
+const params = new URLSearchParams(window.location.search);
+if(params.get('date')) {
+  paveSess = {
+    date: params.get('date'),
+    tab: 'FT-Pave-' + (params.get('date')||'').replace(/\s+/g,''),
+    activity: 'Top Lift Paving',
+    segId: params.get('seg')||'S2',
+    segName: params.get('segName')||'Segment 2',
+    dir: params.get('dir')||'NB',
+    dirLabel: params.get('dirLabel')||'Hwy 1 NBL',
+    startSt: parseFloat(params.get('startSt'))||0,
+    increment: parseInt(params.get('inc'))||1,
+    startTime: params.get('startTime')||'',
+    rollovers: [{from:45060,to:0}]
+  };
+  persist();
+}
+if(paveSess) {
+  document.getElementById('pave-title').textContent = (paveSess.segName||'') + ' · ' + (paveSess.dirLabel||'');
+  document.getElementById('pave-sub').textContent = (paveSess.date||'') + ' · Top Lift · Paving';
+}
+refreshDash();
+renderWidthLog();
+renderTruckLog();
+if(rateEstimates.length>0) renderRateGauge();
+</script>
+</body>
+</html>
