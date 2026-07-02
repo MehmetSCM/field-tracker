@@ -152,6 +152,15 @@ function buildFallbackDistribution(trucks, segments, totalArea, totalTonnage) {
   var cumLength = 0;
   var prevStation = segments.length > 0 ? segments[0].fromStation : 0;
 
+  // Generate natural rate variation within +/-0.20% band
+  // Tonnage-weighted normalization ensures blended day rate remains exact
+  var BAND = 0.0020;
+  var rawOffsets = trucks.map(function() { return (Math.random() * 2 - 1) * BAND; });
+  var totalTons = trucks.reduce(function(s,t){return s+Number(t.tonnage);},0);
+  var weightedSum = rawOffsets.reduce(function(s,o,i){return s+o*Number(trucks[i].tonnage);},0);
+  var adj = weightedSum / totalTons;
+  var offsets = rawOffsets.map(function(o){return o - adj;});
+
   // Pre-compute cumulative area bounds for each segment
   var runningArea = 0;
   var segs = segments.map(function(s) {
@@ -168,7 +177,8 @@ function buildFallbackDistribution(trucks, segments, totalArea, totalTonnage) {
     var truck = trucks[i];
     var tonnage = Number(truck.tonnage);
     cumTonnage = Math.round((cumTonnage + tonnage) * 100) / 100;
-    var truckArea = tonnage / rate;
+    var adjustedRate = rate * (1 + offsets[i]);
+    var truckArea = tonnage / adjustedRate;
     var targetCumArea = cumAreaUsed + truckArea;
 
     var wSum = 0, wCount = 0, truckLen = 0, actualAreaSum = 0;
