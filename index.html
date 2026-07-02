@@ -647,12 +647,13 @@ function setupCarryForward(last) {
     carryForward = null;
   }
 }
+
+function getLastSessionMeta() {
   const keys = Object.keys(localStorage).filter(k=>k.startsWith('fts_'));
   if (!keys.length) return null;
   keys.sort();
   try {
     const meta = JSON.parse(localStorage.getItem(keys[keys.length-1]));
-    // Also get last width from the session's rows
     const rowKey = 'ft5_rows_' + meta.tab;
     const rowData = localStorage.getItem(rowKey) || localStorage.getItem('ft4_rows_' + meta.tab);
     if (rowData) {
@@ -663,8 +664,9 @@ function setupCarryForward(last) {
     }
     return meta;
   } catch(e) { return null; }
+}
 
-// ── SETUP ─────────────────────────────────────────────────────────────────
+// -- SETUP ─────────────────────────────────────────────────────────────────
 function buildSegGrid() {
   document.getElementById('seg-grid').innerHTML = PROJECT.segments.map(s=>
     `<div class="seg-card" id="sc-${s.id}" onclick="selectSeg('${s.id}')">
