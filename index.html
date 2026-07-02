@@ -287,6 +287,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8FPePSr4ktna2fNgVUUU6-zTufCqR7Bwgc4W6JlHfadmIxguBBhd1GljanSaNQmgc9Q/exec';
+const PAVING_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNt3aXqMoTxlPgzWptIOW2ehgT4pHZ8FInMFkYNZQC9hMP_AHr_HiROluL4m2p2seV/exec';
 
 const PROJECT = {
   segments: [
@@ -352,7 +353,6 @@ function goActivity(activity) {
 }
 
 function openPavingSession(dateStr, seg, dir, dirLabel, startSt, inc, startTime) {
-  // Navigate to paving.html with session params
   const params = new URLSearchParams({
     date: dateStr,
     seg: seg||'S2',
@@ -361,7 +361,8 @@ function openPavingSession(dateStr, seg, dir, dirLabel, startSt, inc, startTime)
     dirLabel: dirLabel||'Hwy 1 NBL',
     startSt: startSt||0,
     inc: inc||1,
-    startTime: startTime||''
+    startTime: startTime||'',
+    scriptUrl: PAVING_SCRIPT_URL
   });
   window.location.href = 'paving.html?' + params.toString();
 }
@@ -383,12 +384,13 @@ async function loadDateList() {
   const list = document.getElementById('date-list');
   list.innerHTML = '<div class="loading-msg">Loading sessions…</div>';
   const today = todayStr();
+  const activeScriptUrl = currentActivity === 'paving' ? PAVING_SCRIPT_URL : SCRIPT_URL;
   const todayTab = tabFromDate(today);
 
   // Try to load from Sheets
   let sheetSessions = [];
   try {
-    const result = await jsonpCall(SCRIPT_URL + '?action=list_sessions', 10000);
+    const result = await jsonpCall(activeScriptUrl + '?action=list_sessions', 10000);
     if (result.ok) sheetSessions = result.sessions || [];
   } catch(e) {}
 
