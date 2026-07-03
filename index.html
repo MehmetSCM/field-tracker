@@ -293,6 +293,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8FPePSr4ktna2fNgVUUU6-zTufCqR7Bwgc4W6JlHfadmIxguBBhd1GljanSaNQmgc9Q/exec';
 const PAVING_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNt3aXqMoTxlPgzWptIOW2ehgT4pHZ8FInMFkYNZQC9hMP_AHr_HiROluL4m2p2seV/exec';
+const LC_SCRIPT_URL = 'https://script.google.com/a/macros/keywestasphalt.com/s/AKfycbw0wjrphbIOrp-vxiDEcOCstCT7YAeMCOdeQT_XJQm07f8B9LVg_f9S7Z-h-9_8gvu09Q/exec';
 
 const PROJECT = {
   segments: [
@@ -335,10 +336,28 @@ function show(id) {
 function goHome() { show('pg-home'); }
 function goActivity(activity) {
   currentActivity = activity;
+  if (activity === 'levelcourse') {
+    // Go straight to LC setup for today — reads from LC Sheet
+    openLCSession(todayStr(), 'S2', 'NB', 'Hwy 1 NBL', 0);
+    return;
+  }
   document.getElementById('dl-title').textContent =
     activity.charAt(0).toUpperCase() + activity.slice(1) + ' Sessions';
   show('pg-dates');
   loadDateList();
+}
+
+function openLCSession(dateStr, seg, dir, dirLabel, startSt) {
+  var p = new URLSearchParams({
+    date: dateStr,
+    seg: seg||'S2',
+    segName: seg==='S1'?'Segment 1':'Segment 2',
+    dir: dir||'NB',
+    dirLabel: dirLabel||'Hwy 1 NBL',
+    startSt: startSt||0,
+    scriptUrl: LC_SCRIPT_URL
+  });
+  window.location.href = 'lc.html?' + p.toString();
 }
 
 function openPavingSession(dateStr, seg, dir, dirLabel, startSt, inc, startTime) {
@@ -1078,7 +1097,9 @@ restore();
 
 // Check if returning from paving screen
 const _urlParams = new URLSearchParams(window.location.search);
-if (_urlParams.get('activity') === 'paving') {
+if (_urlParams.get('activity') === 'levelcourse') {
+  openLCSession(todayStr(), 'S2', 'NB', 'Hwy 1 NBL', 0);
+} else if (_urlParams.get('activity') === 'paving') {
   currentActivity = 'paving';
   document.getElementById('dl-title').textContent = 'Paving Sessions';
   show('pg-dates');
