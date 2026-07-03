@@ -228,15 +228,17 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
       <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--muted)">Total Tonnage</span><span style="font-weight:700;color:var(--accent)" id="pm-tonnage">0.00 t</span></div>
       <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--muted)">Width Readings</span><span style="font-weight:700" id="pm-readings">0</span></div>
       <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--muted)">Paved Area</span><span style="font-weight:700;color:var(--accent)" id="pm-area">— m²</span></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;border-top:1px solid var(--border);margin-top:6px;padding-top:8px"><span style="font-weight:700">Application Rate</span><span style="font-weight:800;font-size:16px" id="pm-rate">—</span></div>
     </div>
+    <div id="pm-warning" style="display:none;background:rgba(239,68,68,.1);border:1.5px solid var(--danger);border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px;line-height:1.5;color:var(--text)"></div>
     <div class="mb">
       <span class="lbl">Paving End Time</span>
       <input class="inp" id="pave-endtime" type="time" style="font-size:18px">
     </div>
 
     <div class="mbtns">
-      <button class="btn btn-accent" onclick="endPaveSession()">Save & End Session</button>
-      <button class="btn btn-ghost" onclick="closePaveModal()">Keep Working</button>
+      <button class="btn btn-accent" id="pm-endbtn" onclick="endPaveSession()" style="background:var(--accent);color:#111">Save & End Session</button>
+      <button class="btn btn-ghost" onclick="closePaveModal()">Review Entries</button>
     </div>
   </div>
 </div>
@@ -619,10 +621,44 @@ function openEndModal() {
   const ton=n>0?truckRows[n-1].cumTonnage:0;
   const wn=widthRows.length;
   const area=wn>0?widthRows[wn-1].cum:0;
+
+  // Calculate application rate
+  const rateKg = area > 0 ? ton * 1000 / area : 0;
+  const ratePct = rateKg > 0 ? Math.round(rateKg / TARGET_RATE * 10000) / 100 : 0;
+  const rateOk = ratePct >= 98 && ratePct <= 102;
+
   document.getElementById('pm-trucks').textContent=n;
   document.getElementById('pm-tonnage').textContent=ton.toFixed(2)+' t';
   document.getElementById('pm-readings').textContent=wn;
   document.getElementById('pm-area').textContent=area>0?area.toFixed(2)+' m²':'—';
+
+  // Show rate with colour
+  const rateEl = document.getElementById('pm-rate');
+  if(rateEl) {
+    rateEl.textContent = ratePct > 0 ? ratePct.toFixed(2)+'%' : '—';
+    rateEl.style.color = ratePct === 0 ? 'var(--muted)' :
+                         rateOk ? 'var(--ok)' :
+                         ratePct < 96 || ratePct > 104 ? 'var(--danger)' : 'var(--accent)';
+  }
+
+  // Show/hide warning
+  const warning = document.getElementById('pm-warning');
+  const endBtn = document.getElementById('pm-endbtn');
+  if(warning && endBtn) {
+    if(!rateOk && ratePct > 0) {
+      const band = ratePct < 98 ? 'below' : 'above';
+      const severity = ratePct < 96 || ratePct > 104 ? 'OUTSIDE CONTRACT BAND' : 'outside target band';
+      warning.style.display = 'block';
+      warning.innerHTML = '<span style="font-size:18px">⚠️</span> Application rate is <strong style="color:'+(rateOk?'var(--ok)':ratePct<96||ratePct>104?'var(--danger)':'var(--accent)')+'">'+ratePct.toFixed(2)+'%</strong> — '+severity+' (98–102%). Review your truck entries and width readings before closing.';
+      endBtn.textContent = 'End Anyway';
+      endBtn.style.background = ratePct < 96 || ratePct > 104 ? 'var(--danger)' : 'var(--accent)';
+    } else {
+      warning.style.display = 'none';
+      endBtn.textContent = 'Save & End Session';
+      endBtn.style.background = 'var(--accent)';
+    }
+  }
+
   const now=new Date();
   document.getElementById('pave-endtime').value=
     String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
