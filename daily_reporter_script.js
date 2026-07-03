@@ -9,11 +9,14 @@ const DR_SHEET_ID = '1iEPy1VukqwVInLCwv10UNNVxPiqBhKO3pjdRqPRTydc';
 function createTemplate() {
   const ss = SpreadsheetApp.openById(DR_SHEET_ID);
 
-  // Delete existing Template tab if present
-  var existing = ss.getSheetByName('Template');
-  if (existing) ss.deleteSheet(existing);
-
-  var ws = ss.insertSheet('Template');
+  // Get or create Template tab
+  var ws = ss.getSheetByName('Template');
+  if (ws) {
+    ws.clearContents();
+    ws.clearFormats();
+  } else {
+    ws = ss.insertSheet('Template');
+  }
 
   // -- COLUMN WIDTHS ----------------------------------------------------------
   ws.setColumnWidth(1, 240);  // A: Activity / Description
