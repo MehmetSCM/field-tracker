@@ -152,6 +152,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
         <div><div class="ac-name">More activities</div><div class="ac-desc">Tack coat, hot joint sealant, shouldering…</div></div>
         <div class="ac-arrow">›</div>
       </div>
+      <div style="margin-top:8px">
+        <button onclick="openEOD()" style="width:100%;padding:18px;background:#1A1A2E;border:1.5px solid #F59E0B;border-radius:14px;color:#F59E0B;font-size:16px;font-weight:800;cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+          <span>End of Day</span>
+          <span style="font-size:13px;color:#6B7280;font-weight:400">Tack coat + Daily Reporter</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -1100,6 +1106,132 @@ document.getElementById('e-w').addEventListener('keydown',function(e){if(e.key==
   localStorage.setItem('ft5_seed_v','1');
 })();
 
+// ── END OF DAY ─────────────────────────────────────────────────────────────
+const DR_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxKX0MM6csBQoUrP0D77pOnoBc8sYgbq1laBl1JDFSN5Tmi5tx6nHM0Kwasuz67RnM/exec';
+
+function openEOD() {
+  var records = [];
+  try { records = JSON.parse(localStorage.getItem('eod_records') || '[]'); } catch(e) {}
+
+  // Use today's date
+  var today = todayStr();
+  var todayRecs = records.filter(function(r){ return r.date === today; });
+
+  // Build summary
+  var paving  = todayRecs.find(function(r){ return r.activity === 'paving'; });
+  var lc      = todayRecs.find(function(r){ return r.activity === 'levelcourse'; });
+  var milling = null;
+  // Also check milling from localStorage session metadata
+  try {
+    var millingKeys = Object.keys(localStorage).filter(function(k){ return k.startsWith('fts_FT-' + today.replace(/\s+/g,'')); });
+    if (millingKeys.length > 0) {
+      var m = JSON.parse(localStorage.getItem(millingKeys[0]));
+      if (m && m.closed) milling = { area: m.totalArea, date: today };
+    }
+  } catch(e) {}
+
+  // Tack coat calculation
+  var pavingArea  = paving  ? (paving.area  || 0) : 0;
+  var lcArea      = lc      ? (lc.area      || 0) : 0;
+  var totalArea   = Math.round((pavingArea + lcArea) * 100) / 100;
+  var tackCoatL   = Math.round(totalArea * 0.26 * 100) / 100;
+
+  document.getElementById('eod-date').textContent = today;
+
+  // Build activity rows
+  var html = '';
+  if (milling) {
+    html += eodRow('Cold Mill 50mm', '04.03.02', milling.area ? milling.area.toFixed(2) + ' m²' : '—');
+  }
+  if (paving) {
+    html += eodRow('Top Lift 50mm — Hwy 1', '05.03.02',
+      paving.tonnage.toFixed(2) + ' t',
+      'ST ' + paving.startSt + ' → ' + paving.endSt + ' ' + paving.dirLabel,
+      paving.area.toFixed(2) + ' m²');
+  }
+  if (lc) {
+    html += eodRow('Level Course', '05.03.01',
+      lc.tonnage.toFixed(2) + ' t',
+      'ST ' + lc.startSt + ' → ' + lc.endSt + ' ' + lc.dirLabel,
+      lc.area.toFixed(2) + ' m²');
+  }
+  if (!paving && !lc && !milling) {
+    html = '<div style="color:#6B7280;text-align:center;padding:20px">No closed sessions found for today</div>';
+  }
+  document.getElementById('eod-body').innerHTML = html;
+
+  // Tack coat breakdown
+  var breakdown = '';
+  if (pavingArea > 0) breakdown += 'Highway paving: ' + pavingArea.toFixed(2) + ' m²<br>';
+  if (lcArea > 0)     breakdown += 'Level course: '   + lcArea.toFixed(2)    + ' m²<br>';
+  if (totalArea > 0)  breakdown += 'Total: '          + totalArea.toFixed(2) + ' m²';
+  document.getElementById('eod-tc-breakdown').innerHTML = breakdown || 'No paving data for today';
+  document.getElementById('eod-tc-total').textContent = tackCoatL > 0 ? tackCoatL.toFixed(2) + ' L' : '—';
+
+  document.getElementById('eod-modal').style.display = 'flex';
+}
+
+function eodRow(activity, itemCode, qty, stations, area) {
+  return '<div style="background:#111;border-radius:10px;padding:12px 14px;margin-bottom:8px">' +
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">' +
+      '<span style="font-weight:700;font-size:14px">' + activity + '</span>' +
+      '<span style="font-size:18px;font-weight:800;color:#F59E0B">' + qty + '</span>' +
+    '</div>' +
+    '<div style="font-size:11px;color:#6B7280">' + itemCode +
+      (stations ? ' &nbsp;|&nbsp; ' + stations : '') +
+      (area ? ' &nbsp;|&nbsp; ' + area : '') +
+    '</div></div>';
+}
+
+async function submitEOD() {
+  var records = [];
+  try { records = JSON.parse(localStorage.getItem('eod_records') || '[]'); } catch(e) {}
+  var today = todayStr();
+  var todayRecs = records.filter(function(r){ return r.date === today; });
+  var paving = todayRecs.find(function(r){ return r.activity === 'paving'; });
+  var lc     = todayRecs.find(function(r){ return r.activity === 'levelcourse'; });
+
+  var pavingArea = paving ? (paving.area || 0) : 0;
+  var lcArea     = lc     ? (lc.area     || 0) : 0;
+  var totalArea  = Math.round((pavingArea + lcArea) * 100) / 100;
+  var tackCoatL  = Math.round(totalArea * 0.26 * 100) / 100;
+
+  var writes = [];
+
+  if (paving) {
+    writes.push({ itemCode:'05.03.02', quantity:paving.tonnage, fromSt:paving.startSt, toSt:paving.endSt, dir:paving.dir, notes:'Top lift ' + paving.area.toFixed(2) + ' m2, ' + paving.trucks + ' trucks' });
+  }
+  if (lc) {
+    writes.push({ itemCode:'05.03.01', quantity:lc.tonnage, fromSt:lc.startSt, toSt:lc.endSt, dir:lc.dir, notes:'Level course ' + lc.area.toFixed(2) + ' m2, ' + lc.trucks + ' trucks' });
+  }
+  if (tackCoatL > 0) {
+    var tcNotes = 'Auto: ' + (pavingArea>0?'Hwy '+pavingArea.toFixed(0)+'m2 ':'') + (lcArea>0?'LC '+lcArea.toFixed(0)+'m2 ':'') + '= '+totalArea.toFixed(0)+'m2 x 0.26';
+    writes.push({ itemCode:'05.02.01', quantity:tackCoatL, fromSt:paving?paving.startSt:(lc?lc.startSt:''), toSt:paving?paving.endSt:(lc?lc.endSt:''), dir:paving?paving.dir:(lc?lc.dir:''), notes:tcNotes });
+  }
+
+  if (writes.length === 0) { showToast('Nothing to write'); return; }
+
+  // Write each activity to Daily Reporter
+  var allOk = true;
+  for (var i = 0; i < writes.length; i++) {
+    var w = writes[i];
+    var payload = { action:'write_activity', date:today, itemCode:w.itemCode, quantity:w.quantity, fromSt:w.fromSt, toSt:w.toSt, dir:w.dir, notes:w.notes };
+    try {
+      var result = await jsonpCall(DR_SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(payload)), 15000);
+      if (!result.ok) { allOk = false; showToast('Error: ' + result.error); }
+    } catch(e) { allOk = false; showToast('Connection error'); }
+  }
+
+  if (allOk) {
+    document.getElementById('eod-modal').style.display = 'none';
+    showToast('Daily Reporter updated ✓');
+    // Clear today's eod records
+    var remaining = records.filter(function(r){ return r.date !== today; });
+    localStorage.setItem('eod_records', JSON.stringify(remaining));
+  }
+}
+
+
 restore();
 
 // Check if returning from paving screen
@@ -1119,5 +1251,29 @@ if (_urlParams.get('activity') === 'levelcourse') {
   resumeTracker();
 }
 </script>
+<!-- EOD MODAL -->
+<div class="overlay" id="eod-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:flex-end">
+  <div style="background:#1C1C1C;border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-height:85vh;overflow-y:auto">
+    <h3 style="font-size:18px;font-weight:800;margin-bottom:4px">End of Day Summary</h3>
+    <div style="font-size:13px;color:#6B7280;margin-bottom:20px" id="eod-date"></div>
+
+    <div id="eod-body"></div>
+
+    <div style="background:#111;border-radius:12px;padding:16px;margin-bottom:20px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6B7280;margin-bottom:10px">Tack Coat (05.02.01)</div>
+      <div id="eod-tc-breakdown" style="font-size:13px;color:#6B7280;margin-bottom:8px"></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <span style="font-size:22px;font-weight:800;color:#F59E0B" id="eod-tc-total">— L</span>
+        <span style="font-size:12px;color:#6B7280">@ 0.26 L/m²</span>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button onclick="submitEOD()" style="height:52px;background:#F59E0B;border:none;border-radius:14px;color:#111;font-size:16px;font-weight:800;cursor:pointer">Write to Daily Reporter</button>
+      <button onclick="document.getElementById('eod-modal').style.display='none'" style="height:48px;background:#242424;border:none;border-radius:14px;color:#6B7280;font-size:15px;font-weight:700;cursor:pointer">Cancel</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
