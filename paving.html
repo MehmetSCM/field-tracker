@@ -234,27 +234,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
       <input class="inp" id="pave-endtime" type="time" style="font-size:18px">
     </div>
 
-    <!-- Tack coat -->
-    <div style="background:var(--surface2);border-radius:10px;padding:14px;margin-bottom:16px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <span style="font-size:14px;font-weight:700">Tack Coat Applied?</span>
-        <div style="display:flex;gap:8px">
-          <button id="tc-yes" onclick="tackCoatToggle(true)"
-            style="padding:6px 16px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);font-weight:700;cursor:pointer;font-size:13px">Yes</button>
-          <button id="tc-no" onclick="tackCoatToggle(false)"
-            style="padding:6px 16px;border-radius:8px;border:1.5px solid var(--accent);background:rgba(245,158,11,.1);color:var(--accent);font-weight:700;cursor:pointer;font-size:13px">No</button>
-        </div>
-      </div>
-      <div id="tc-fields" style="display:none">
-        <span class="lbl">Total Litres Applied</span>
-        <input class="inp" id="tc-litres" type="number" inputmode="decimal" step="0.1" placeholder="e.g. 2390" style="margin-bottom:8px">
-        <div style="display:flex;justify-content:space-between;font-size:13px;padding-top:4px">
-          <span style="color:var(--muted)">Target rate: 0.26 L/m²</span>
-          <span style="font-weight:700;color:var(--accent)" id="tc-rate">—</span>
-        </div>
-      </div>
-    </div>
-
     <div class="mbtns">
       <button class="btn btn-accent" onclick="endPaveSession()">Save & End Session</button>
       <button class="btn btn-ghost" onclick="closePaveModal()">Keep Working</button>
@@ -634,31 +613,6 @@ function refreshDash() {
 
 
 // ── END SESSION ───────────────────────────────────────────────────────────
-let tackCoatApplied = false;
-
-function tackCoatToggle(yes) {
-  tackCoatApplied = yes;
-  document.getElementById('tc-fields').style.display = yes ? 'block' : 'none';
-  document.getElementById('tc-yes').style.borderColor = yes ? 'var(--accent)' : 'var(--border)';
-  document.getElementById('tc-yes').style.background = yes ? 'rgba(245,158,11,.1)' : 'var(--surface)';
-  document.getElementById('tc-yes').style.color = yes ? 'var(--accent)' : 'var(--muted)';
-  document.getElementById('tc-no').style.borderColor = yes ? 'var(--border)' : 'var(--accent)';
-  document.getElementById('tc-no').style.background = yes ? 'var(--surface)' : 'rgba(245,158,11,.1)';
-  document.getElementById('tc-no').style.color = yes ? 'var(--muted)' : 'var(--accent)';
-  if (yes) {
-    // Calculate tack coat rate as user types litres
-    document.getElementById('tc-litres').oninput = function() {
-      const litres = parseFloat(this.value);
-      const area = widthRows.length > 0 ? widthRows[widthRows.length-1].cum : 0;
-      if (!isNaN(litres) && area > 0) {
-        const rate = Math.round(litres / area * 1000) / 1000;
-        document.getElementById('tc-rate').textContent = rate.toFixed(3) + ' L/m² (target 0.26)';
-        document.getElementById('tc-rate').style.color = Math.abs(rate - 0.26) < 0.02 ? 'var(--ok)' : 'var(--accent)';
-      }
-    };
-  }
-}
-
 function openEndModal() {
   if(truckRows.length===0&&widthRows.length===0){showToast('No data yet');return;}
   const n=truckRows.length;
@@ -677,17 +631,6 @@ function openEndModal() {
 function closePaveModal(){document.getElementById('pave-modal').classList.remove('on');}
 async function endPaveSession() {
   closePaveModal();
-  // Collect tack coat data
-  const tcLitres = tackCoatApplied ? parseFloat(document.getElementById('tc-litres').value)||0 : 0;
-  const tcArea = widthRows.length > 0 ? widthRows[widthRows.length-1].cum : 0;
-  const tcRate = tcArea > 0 && tcLitres > 0 ? Math.round(tcLitres/tcArea*1000)/1000 : 0;
-  // Store in paveSess for sync
-  if (paveSess) {
-    paveSess.tackCoatApplied = tackCoatApplied;
-    paveSess.tackCoatLitres = tcLitres;
-    paveSess.tackCoatArea = tcArea;
-    paveSess.tackCoatRate = tcRate;
-  }
   const ok = await paveSync(true);
   if(!ok){
     showToast('Sync failed — session kept open');
@@ -743,11 +686,7 @@ async function paveSync(closing=false) {
       totalArea:wLast?.cum||0,
       trucks:truckRows.length,
       startTime:paveSess?.startTime||'',
-      endTime:closing?endTime:'',
-      tackCoatApplied:paveSess?.tackCoatApplied||false,
-      tackCoatLitres:paveSess?.tackCoatLitres||0,
-      tackCoatArea:paveSess?.tackCoatArea||0,
-      tackCoatRate:paveSess?.tackCoatRate||0
+      endTime:closing?endTime:''
     }
   };
 
