@@ -157,8 +157,7 @@ function savePavingSession(data) {
       ['Date',       s.date||'',           'Direction', s.direction||'',  'Segment',   s.segment||''],
       ['Start ST',   String(s.startStation||''), 'End ST', String(s.endStation||''), 'LKI', s.dirLabel||''],
       ['Start Time', s.startTime||'',      'End Time',  s.endTime||'',    'Status',    data.closed ? 'Closed' : 'Open'],
-      ['Tonnage (t)',String(s.totalTonnage||''), 'Area (m2)', String(s.totalArea||''), 'Trucks', String(s.trucks||'')],
-      ['Tack Coat', s.tackCoatApplied?'Yes':'No', 'Litres', String(s.tackCoatLitres||''), 'Rate L/m2', String(s.tackCoatRate||'')]
+      ['Tonnage (t)',String(s.totalTonnage||''), 'Area (m2)', String(s.totalArea||''), 'Trucks', String(s.trucks||'')]
     ];
 
     headerRows.forEach(function(row, i) {
