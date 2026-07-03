@@ -74,7 +74,7 @@ function createTemplate() {
   for (var i = 0; i < rows.length; i++) {
     var r = 3 + i;
     var bg = i % 2 === 0 ? '#FFFFFF' : '#F8F8F8';
-    ws.getRange(r, 1, 1, 9).setBackground(bg);
+    ws.getRange(r, 1, 1, 8).setBackground(bg);
   }
 
   // Number format for quantity column
