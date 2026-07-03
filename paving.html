@@ -238,6 +238,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 <div class="toast" id="toast"></div>
 
 <script>
+const params = new URLSearchParams(window.location.search);
 const SCRIPT_URL = params.get('scriptUrl') || 'https://script.google.com/macros/s/AKfycbyNt3aXqMoTxlPgzWptIOW2ehgT4pHZ8FInMFkYNZQC9hMP_AHr_HiROluL4m2p2seV/exec';
 const TARGET_RATE = 124.35;
 const BAND_LOW = 100, BAND_HIGH = 102;
@@ -713,7 +714,6 @@ function showToast(msg){
 // ── INIT ──────────────────────────────────────────────────────────────────
 restore();
 // Seed session from URL params or localStorage
-const params = new URLSearchParams(window.location.search);
 if(params.get('date')) {
   paveSess = {
     date: params.get('date'),
