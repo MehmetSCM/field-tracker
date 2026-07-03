@@ -471,9 +471,10 @@ async function loadDateList() {
       }
     });
   }
-  const actPrefix = currentActivity === 'paving' ? 'fts_pave_' : 'fts_FT-';
-  const localKeys = Object.keys(localStorage).filter(k => k.startsWith(actPrefix) && k !== 'fts_' + todayTab && k !== 'fts_pave_' + todayTab);
-  const localTabs = localKeys.map(k => k.replace('fts_pave_','').replace('fts_',''));
+  const actPrefix = currentActivity === 'paving' ? 'fts_pave_' :
+    currentActivity === 'levelcourse' ? 'fts_lc_' : 'fts_FT-';
+  const localKeys = Object.keys(localStorage).filter(k => k.startsWith(actPrefix));
+  const localTabs = localKeys.map(k => k.replace('fts_pave_','').replace('fts_lc_','').replace('fts_',''));
   const sheetTabs = sheetSessions.map(s => s.tab);
   const localOnly = localTabs.filter(t => !sheetTabs.includes(t));
 
