@@ -19,30 +19,29 @@ function createTemplate() {
   }
 
   // -- COLUMN WIDTHS ----------------------------------------------------------
-  ws.setColumnWidth(1, 240);  // A: Activity / Description
-  ws.setColumnWidth(2, 105);  // B: Item Code
-  ws.setColumnWidth(3, 80);   // C: Segment
-  ws.setColumnWidth(4, 80);   // D: Direction
+  ws.setColumnWidth(1, 105);  // A: Item Code
+  ws.setColumnWidth(2, 240);  // B: Activity / Description
+  ws.setColumnWidth(3, 100);  // C: Quantity
+  ws.setColumnWidth(4, 65);   // D: UOM
   ws.setColumnWidth(5, 100);  // E: From Station
   ws.setColumnWidth(6, 100);  // F: To Station
-  ws.setColumnWidth(7, 100);  // G: Quantity
-  ws.setColumnWidth(8, 65);   // H: UOM
-  ws.setColumnWidth(9, 280);  // I: Notes
+  ws.setColumnWidth(7, 80);   // G: Direction
+  ws.setColumnWidth(8, 280);  // H: Notes
 
   // -- ROW 1: DATE HEADER -----------------------------------------------------
   ws.setRowHeight(1, 32);
   ws.getRange('A1').setValue('DATE');
   ws.getRange('B1').setValue('[Replace with date e.g. 3 Jul 26]');
-  ws.getRange('A1:I1').setBackground('#1A1A2E').setFontColor('#FFFFFF')
+  ws.getRange('A1:H1').setBackground('#1A1A2E').setFontColor('#FFFFFF')
     .setFontWeight('bold').setFontSize(11);
   ws.getRange('A1').setFontSize(9).setFontColor('#6B7280');
 
   // -- ROW 2: COLUMN HEADERS --------------------------------------------------
   ws.setRowHeight(2, 28);
-  var headers = ['Activity', 'Item Code', 'Segment', 'Direction',
-                 'From Station', 'To Station', 'Quantity', 'UOM', 'Notes'];
-  ws.getRange(2, 1, 1, 9).setValues([headers]);
-  ws.getRange(2, 1, 1, 9)
+  var headers = ['Item Code', 'Activity', 'Quantity', 'UOM',
+                 'From Station', 'To Station', 'Direction', 'Notes'];
+  ws.getRange(2, 1, 1, 8).setValues([headers]);
+  ws.getRange(2, 1, 1, 8)
     .setBackground('#F59E0B').setFontColor('#111111')
     .setFontWeight('bold').setFontSize(10)
     .setHorizontalAlignment('center');
@@ -50,14 +49,14 @@ function createTemplate() {
   // -- ACTIVITY ROWS ----------------------------------------------------------
   // [Activity, Item Code, Segment, Direction, From ST, To ST, Quantity, UOM, Notes]
   var rows = [
-    ['Cold Mill 50mm',              '04.03.02', '', '', '', '', '', 'm2',    ''],
-    ['Tack Coat',                   '05.02.01', '', '', '', '', '=G3*0.26', 'Litre', 'Auto: milled area x 0.26 L/m2'],
-    ['Top Lift 50mm - Hwy 1',       '05.03.02', '', '', '', '', '', 'Tonne', ''],
-    ['Top Lift 50mm - Side Roads',  '05.03.03', '', '', '', '', '', 'Tonne', ''],
-    ['Level Course',                '05.03.01', '', '', '', '', '', 'Tonne', ''],
-    ['Hot Joint Sealant',           '04.08.01', '', '', '', '', '', 'Litre', ''],
-    ['Shoulder Stripping',          '04.04.01', '', '', '', '', '', 'm',     ''],
-    ['',                            '',          '', '', '', '', '', '',     ''],
+    ['04.03.02', 'Cold Mill 50mm',              '', 'm2',    '', '', '', ''],
+    ['05.02.01', 'Tack Coat',                   '=C3*0.26', 'Litre', '', '', '', 'Auto: milled area x 0.26 L/m2'],
+    ['05.03.02', 'Top Lift 50mm - Hwy 1',       '', 'Tonne', '', '', '', ''],
+    ['05.03.03', 'Top Lift 50mm - Side Roads',  '', 'Tonne', '', '', '', ''],
+    ['05.03.01', 'Level Course',                '', 'Tonne', '', '', '', ''],
+    ['04.08.01', 'Hot Joint Sealant',           '', 'Litre', '', '', '', ''],
+    ['04.04.01', 'Shoulder Stripping',          '', 'm',     '', '', '', ''],
+    ['',         '',                            '', '',      '', '', '', ''],
   ];
 
   ws.setRowHeight(3, 22); // milling
@@ -79,22 +78,22 @@ function createTemplate() {
   }
 
   // Number format for quantity column
-  ws.getRange('G3:G' + (3 + rows.length)).setNumberFormat('#,##0.00');
+  ws.getRange('C3:C' + (3 + rows.length)).setNumberFormat('#,##0.00');
 
   // Item code column - muted, smaller
-  ws.getRange('B3:B' + (3 + rows.length)).setFontColor('#6B7280').setFontSize(9);
+  ws.getRange('A3:A' + (3 + rows.length)).setFontColor('#6B7280').setFontSize(9);
 
   // Notes column - italic
-  ws.getRange('I3:I' + (3 + rows.length)).setFontStyle('italic').setFontColor('#6B7280');
+  ws.getRange('H3:H' + (3 + rows.length)).setFontStyle('italic').setFontColor('#6B7280');
 
   // Activity column - bold
-  ws.getRange('A3:A' + (3 + rows.length)).setFontWeight('bold');
+  ws.getRange('B3:B' + (3 + rows.length)).setFontWeight('bold');
 
   // Quantity column - right aligned, larger
-  ws.getRange('G3:G' + (3 + rows.length)).setHorizontalAlignment('right').setFontSize(11).setFontWeight('bold');
+  ws.getRange('C3:C' + (3 + rows.length)).setHorizontalAlignment('right').setFontSize(11).setFontWeight('bold');
 
   // Border around data range
-  var dataRange = ws.getRange(2, 1, rows.length + 1, 9);
+  var dataRange = ws.getRange(2, 1, rows.length + 1, 8);
   var border = SpreadsheetApp.newTextStyle().build();
   dataRange.setBorder(true, true, true, true, true, true, '#E5E7EB', SpreadsheetApp.BorderStyle.SOLID);
 
@@ -152,7 +151,7 @@ function writeActivity(dateStr, itemCode, quantity, fromSt, toSt, seg, dir, note
 
     // Find the row with matching item code in column B
     var lastRow = sheet.getLastRow();
-    var itemCodes = sheet.getRange('B1:B' + lastRow).getValues();
+    var itemCodes = sheet.getRange('A1:A' + lastRow).getValues();
     var targetRow = null;
     for (var i = 0; i < itemCodes.length; i++) {
       if (String(itemCodes[i][0]).trim() === String(itemCode).trim()) {
@@ -163,12 +162,11 @@ function writeActivity(dateStr, itemCode, quantity, fromSt, toSt, seg, dir, note
     if (!targetRow) return { ok: false, error: 'Item code not found: ' + itemCode };
 
     // Write values
+    if (quantity !== undefined && quantity !== null) sheet.getRange(targetRow, 3).setValue(quantity);
     if (fromSt !== undefined && fromSt !== null) sheet.getRange(targetRow, 5).setValue(fromSt);
-    if (toSt !== undefined && toSt !== null)   sheet.getRange(targetRow, 6).setValue(toSt);
-    if (quantity !== undefined && quantity !== null) sheet.getRange(targetRow, 7).setValue(quantity);
-    if (seg)   sheet.getRange(targetRow, 3).setValue(seg);
-    if (dir)   sheet.getRange(targetRow, 4).setValue(dir);
-    if (notes) sheet.getRange(targetRow, 9).setValue(notes);
+    if (toSt !== undefined && toSt !== null)     sheet.getRange(targetRow, 6).setValue(toSt);
+    if (dir)   sheet.getRange(targetRow, 7).setValue(dir);
+    if (notes) sheet.getRange(targetRow, 8).setValue(notes);
 
     return { ok: true, tabName: tabName, row: targetRow };
   } catch(err) {
