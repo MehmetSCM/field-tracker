@@ -133,30 +133,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 <div class="tracker-wrap on" id="pg-pave">
 
   <div class="topbar">
-    <button class="back" onclick="window.location.href='index.html?activity=paving'">← Sessions</button>
-    <div class="tb-title" id="pave-title">Segment 2 · Hwy 1 NBL</div>
-    <div class="tb-sub" id="pave-sub">2 Jul 26 · Top Lift · Paving</div>
-  </div>
-
-  <!-- Dashboard strip -->
-  <div class="dash-strip">
-    <div class="ds"><div class="dv" id="ds-trucks">0</div><div class="dl">Trucks</div></div>
-    <div class="ds"><div class="dv a" id="ds-tonnage">0.00</div><div class="dl">Tonnes</div></div>
-    <div class="ds"><div class="dv" id="ds-area">—</div><div class="dl">Area m²</div></div>
-    <div class="ds"><div class="dv a" id="ds-rate">—</div><div class="dl">Est. Rate</div></div>
-  </div>
-
-  <div class="scroll" id="pave-scroll">
-
-    <!-- ── SECTION 1: RATE ESTIMATOR ── -->
-    <button class="section-header" onclick="toggleSection('est')" style="background:var(--surface2);width:100%;text-align:left;">
-      <span class="section-header-title">📐 Rate Estimator</span>
-      <span class="section-header-right" id="est-toggle-label">
-        <span id="est-summary" style="color:var(--muted);font-size:12px;margin-right:8px">—</span>
-        Show
-      </span>
-    </button>
-    <div class="section-body collapsed" id="est-body">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--surface2);border-bottom:1px solid var(--border);cursor:pointer" onclick="(function(){sectionState.est=!sectionState.est;document.getElementById('est-body').style.display=sectionState.est?'block':'none';document.getElementById('est-lbl').textContent=sectionState.est?'Hide':'Show'})()">
+      <span style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">&#128208; Rate Estimator</span>
+      <span style="font-size:12px;color:var(--accent);font-weight:600" id="est-lbl">Show</span>
+    </div>
+    <div id="est-body" style="display:none">
       <div class="estimator">
         <div class="est-inputs">
           <div class="ef">
@@ -173,11 +154,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     </div>
 
     <!-- ── SECTION 2: WIDTH READINGS ── -->
-    <button class="section-header" onclick="toggleSection('width')" style="width:100%;text-align:left;">
-      <span class="section-header-title">📏 Width Readings</span>
-      <span class="section-header-right" id="width-toggle-label">Hide</span>
-    </button>
-    <div class="section-body" id="width-body">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--surface2);border-bottom:1px solid var(--border);cursor:pointer" onclick="(function(){sectionState.width=!sectionState.width;document.getElementById('width-body').style.display=sectionState.width?'block':'none';document.getElementById('width-lbl').textContent=sectionState.width?'Hide':'Show'})()">
+      <span style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">📏 Width Readings</span>
+      <span style="font-size:12px;color:var(--accent);font-weight:600" id="width-lbl">Hide</span>
+    </div>
+    <div id="width-body" style="display:block">
       <div class="width-entry">
         <div class="row mb">
           <div class="ef">
@@ -197,11 +178,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     </div>
 
     <!-- ── SECTION 3: TRUCK LOG ── -->
-    <button class="section-header" onclick="toggleSection('truck')" style="width:100%;text-align:left;">
-      <span class="section-header-title">🚛 Truck Log</span>
-      <span class="section-header-right" id="truck-toggle-label">Hide</span>
-    </button>
-    <div class="section-body" id="truck-body">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--surface2);border-bottom:1px solid var(--border);cursor:pointer" onclick="(function(){sectionState.truck=!sectionState.truck;document.getElementById('truck-body').style.display=sectionState.truck?'block':'none';document.getElementById('truck-lbl').textContent=sectionState.truck?'Hide':'Show'})()">
+      <span style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">🚛 Truck Log</span>
+      <span style="font-size:12px;color:var(--accent);font-weight:600" id="truck-lbl">Hide</span>
+    </div>
+    <div id="truck-body" style="display:block">
       <div class="truck-entry">
         <div class="erow mb">
           <div class="ef">
@@ -576,9 +557,8 @@ function calcRate() {
 
   // Auto-collapse
   sectionState.est = false;
-  document.getElementById('est-body').classList.add('collapsed');
-  const lbl = document.getElementById('est-toggle-label');
-  if(lbl && summary) lbl.innerHTML = summary.outerHTML + ' Show';
+  document.getElementById('est-body').style.display='none';
+  document.getElementById('est-lbl').textContent = 'Show (' + pct.toFixed(1) + '%)';
 
   showToast('Rate: '+pct.toFixed(1)+'% over '+area.toFixed(0)+' m²');
 }
