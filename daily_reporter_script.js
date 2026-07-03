@@ -68,7 +68,7 @@ function createTemplate() {
   ws.setRowHeight(9, 22); // shouldering
   ws.setRowHeight(10, 22); // spare
 
-  ws.getRange(3, 1, rows.length, 9).setValues(rows);
+  ws.getRange(3, 1, rows.length, 8).setValues(rows);
 
   // Alternating row shading
   for (var i = 0; i < rows.length; i++) {
