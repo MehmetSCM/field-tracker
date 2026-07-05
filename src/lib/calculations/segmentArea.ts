@@ -17,6 +17,10 @@ export interface Segment {
   area: number
   /** true when this segment's length was zeroed due to rollover */
   isRolloverBoundary: boolean
+  /** width at fromStation — needed to solve for a station partway through a segment (width varies linearly, not just the average) */
+  fromWidth: number
+  /** width at toStation */
+  toWidth: number
 }
 
 export function calculateSegments(readings: WidthReading[]): Segment[] {
@@ -47,6 +51,8 @@ export function calculateSegments(readings: WidthReading[]): Segment[] {
       avgWidth,
       area,
       isRolloverBoundary,
+      fromWidth: a.width,
+      toWidth: b.width,
     })
   }
 
