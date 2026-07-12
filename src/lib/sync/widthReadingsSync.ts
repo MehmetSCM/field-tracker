@@ -1,0 +1,169 @@
+import { db, type QueuedWidthReading } from '../db'
+import {
+  fetchTodaysWidthReadings,
+  insertWidthReading,
+  supersedeWidthReading,
+} from '../supabase/milling'
+
+/**
+ * width_readings is append-only (no in-place edits — only supersede via the
+ * existing is_correction/superseded_by/correction_reason columns and role
+ * gate), so there is no real "merge conflict" to resolve here. The only
+ * failure mode is a queued entry failing to sync (network drop, transient
+ * server error), which just needs retry — never two divergent versions of
+ * the same row to reconcile.
+ */
+
+/** Pulls today's server-confirmed rows into the local queue table (as 'synced'), so the running list always reads from one local source. */
+export async function importServerReadings(roadSegmentId: string, date: string): Promise<void> {
+  const serverRows = await fetchTodaysWidthReadings(roadSegmentId, date)
+  for (const row of serverRows) {
+    const existing = await db.widthReadingsQueue.where('serverId').equals(row.id).first()
+    if (existing) {
+      // Keep the local copy in sync with server-side changes made elsewhere
+      // (e.g. a correction from another device).
+      await db.widthReadingsQueue.update(existing.localId!, {
+        supersededBy: row.supersededBy,
+        correctionReason: row.correctionReason,
+        isCorrection: row.isCorrection,
+      })
+      continue
+    }
+    await db.widthReadingsQueue.add({
+      serverId: row.id,
+      roadSegmentId,
+      direction: row.direction,
+      date,
+      stationSequence: row.stationSequence,
+      station: row.station,
+      width: row.width,
+      isCorrection: row.isCorrection,
+      supersededBy: row.supersededBy,
+      correctionReason: row.correctionReason,
+      status: 'synced',
+      lastError: null,
+      createdAt: new Date(row.entryTimestamp).getTime(),
+    })
+  }
+}
+
+/** Queues a brand-new field entry immediately (optimistic UI), then attempts to sync it right away. */
+export async function enqueueWidthReading(entry: {
+  roadSegmentId: string
+  direction: string
+  date: string
+  station: number
+  width: number
+}): Promise<void> {
+  const existingCount = await db.widthReadingsQueue
+    .where('roadSegmentId')
+    .equals(entry.roadSegmentId)
+    .filter((r) => r.date === entry.date && !r.isCorrection)
+    .count()
+
+  await db.widthReadingsQueue.add({
+    serverId: null,
+    roadSegmentId: entry.roadSegmentId,
+    direction: entry.direction,
+    date: entry.date,
+    stationSequence: existingCount + 1,
+    station: entry.station,
+    width: entry.width,
+    isCorrection: false,
+    supersededBy: null,
+    correctionReason: null,
+    status: 'queued',
+    lastError: null,
+    createdAt: Date.now(),
+  })
+
+  void syncQueuedWidthReadings()
+}
+
+/** Attempts to push every currently-queued entry to Supabase. Safe to call repeatedly — entries already synced are skipped. */
+export async function syncQueuedWidthReadings(): Promise<void> {
+  const pending = await db.widthReadingsQueue.where('status').equals('queued').sortBy('createdAt')
+
+  for (const item of pending) {
+    try {
+      const inserted = await insertWidthReading({
+        roadSegmentId: item.roadSegmentId,
+        direction: item.direction,
+        date: item.date,
+        stationSequence: item.stationSequence,
+        station: item.station,
+        width: item.width,
+      })
+      await db.widthReadingsQueue.update(item.localId!, {
+        status: 'synced',
+        serverId: inserted.id,
+        lastError: null,
+      })
+    } catch (err) {
+      // Left as 'queued' — the online/visibility listeners (or the next
+      // manual retry) will pick it up again. Not marked 'error' since a
+      // network drop is expected and recoverable, not a permanent failure.
+      await db.widthReadingsQueue.update(item.localId!, {
+        lastError: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
+}
+
+/** Applies a correction: writes both Supabase operations, then mirrors the result into the local queue so the UI updates immediately without a refetch. Requires connectivity — corrections aren't queued offline in this milestone. */
+export async function applyCorrection(params: {
+  original: QueuedWidthReading
+  correctedStation: number
+  correctedWidth: number
+  reason: string
+}): Promise<void> {
+  const { original } = params
+  if (!original.serverId) {
+    throw new Error('Cannot correct an entry that has not synced yet — wait for it to sync first.')
+  }
+
+  const corrected = await supersedeWidthReading({
+    originalId: original.serverId,
+    roadSegmentId: original.roadSegmentId,
+    direction: original.direction,
+    date: original.date,
+    stationSequence: original.stationSequence,
+    correctedStation: params.correctedStation,
+    correctedWidth: params.correctedWidth,
+    reason: params.reason,
+  })
+
+  await db.widthReadingsQueue.update(original.localId!, {
+    supersededBy: corrected.id,
+    correctionReason: params.reason,
+  })
+
+  await db.widthReadingsQueue.add({
+    serverId: corrected.id,
+    roadSegmentId: original.roadSegmentId,
+    direction: original.direction,
+    date: original.date,
+    stationSequence: corrected.stationSequence,
+    station: corrected.station,
+    width: corrected.width,
+    isCorrection: true,
+    supersededBy: null,
+    correctionReason: params.reason,
+    status: 'synced',
+    lastError: null,
+    createdAt: new Date(corrected.entryTimestamp).getTime(),
+  })
+}
+
+let listenersRegistered = false
+
+/** Registers the two retry triggers (reconnect, app foreground). Safe to call multiple times — only registers once. */
+export function registerSyncListeners(): void {
+  if (listenersRegistered) return
+  listenersRegistered = true
+
+  window.addEventListener('online', () => void syncQueuedWidthReadings())
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') void syncQueuedWidthReadings()
+  })
+}
