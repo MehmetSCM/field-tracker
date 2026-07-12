@@ -1,0 +1,98 @@
+.profile-selector,
+.profile-selector * {
+  box-sizing: border-box;
+  color: #111111;
+}
+
+.profile-selector {
+  font-family: system-ui, sans-serif;
+  background: #ffffff;
+  border: 2px solid #b00020;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.profile-selector-warning {
+  background: #ffe0e0;
+  color: #b00020;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 0.4rem;
+}
+
+.profile-selector-current {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+}
+
+.profile-selector-current button {
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.5rem 0.75rem;
+  min-height: 2.5rem;
+  background: #eeeeee;
+  border: 2px solid #111111;
+  border-radius: 8px;
+}
+
+.profile-selector-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.profile-selector-picker label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-weight: 600;
+}
+
+.profile-selector-picker select {
+  width: 100%;
+  font-size: 1.1rem;
+  padding: 0.75rem;
+  border: 2px solid #111111;
+  border-radius: 8px;
+  min-height: 3rem;
+  background: #ffffff;
+}
+
+.profile-selector-error {
+  color: #b00020;
+  font-weight: 600;
+  margin: 0;
+}
+
+.profile-selector-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.profile-selector-actions button {
+  flex: 1;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0.75rem;
+  min-height: 3rem;
+  border-radius: 10px;
+  border: 2px solid #111111;
+  background: #eeeeee;
+}
+
+.profile-selector-actions button:not(:disabled):last-child {
+  background: #0a5c2b;
+  color: #ffffff;
+  border-color: #0a5c2b;
+}
+
+.profile-selector-actions button:disabled {
+  opacity: 0.5;
+}
