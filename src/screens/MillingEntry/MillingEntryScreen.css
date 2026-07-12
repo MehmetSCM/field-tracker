@@ -1,0 +1,306 @@
+/* Fixed high-contrast colors regardless of system light/dark preference —
+   this screen needs to stay readable in direct sunlight, not follow the
+   app shell's dark-mode variables. Every element that would otherwise
+   inherit a heading/text color from index.css's color-scheme-aware
+   variables gets its color set explicitly here, since a directly-targeted
+   rule (even low specificity) always beats an inherited value. */
+.milling-screen,
+.milling-screen * {
+  box-sizing: border-box;
+}
+
+.milling-screen {
+  min-height: 100vh;
+  background: #ffffff;
+  color: #111111;
+  font-family: system-ui, sans-serif;
+  padding: 1rem;
+  padding-bottom: 4rem;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.milling-screen * {
+  color: inherit;
+}
+
+.milling-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.milling-header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.milling-user {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.milling-user-error {
+  color: #b00020;
+}
+
+.milling-selectors {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.milling-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.milling-field select,
+.milling-field input {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 1.25rem;
+  padding: 0.75rem;
+  border: 2px solid #111111;
+  border-radius: 8px;
+  min-height: 3rem;
+  background: #ffffff;
+  color: #111111;
+}
+
+.milling-field-large input {
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.milling-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 2px solid #111111;
+  border-radius: 12px;
+}
+
+.milling-submit {
+  font-size: 1.5rem;
+  font-weight: 700;
+  padding: 1rem;
+  min-height: 3.5rem;
+  background: #0a5c2b;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+}
+
+.milling-submit:disabled {
+  background: #7a7a7a;
+}
+
+.milling-error {
+  color: #b00020;
+  font-weight: 600;
+  margin: 0;
+}
+
+.milling-identity-required {
+  margin: 0 0 1.5rem;
+  padding: 1rem;
+  border: 2px dashed #b00020;
+  border-radius: 12px;
+  color: #b00020;
+  font-weight: 600;
+  text-align: center;
+}
+
+.milling-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #fff4cc;
+  border: 2px solid #b8860b;
+  border-radius: 12px;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.milling-summary strong {
+  font-size: 1.75rem;
+}
+
+.milling-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.milling-entry,
+.milling-entry-superseded {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  font-size: 1.1rem;
+}
+
+.milling-entry-superseded {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.milling-entry-station {
+  font-weight: 700;
+}
+
+.milling-badge {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+}
+
+.milling-badge-synced {
+  background: #d7f2df;
+  color: #0a5c2b;
+}
+
+.milling-badge-superseded {
+  background: #eeeeee;
+  color: #555555;
+}
+
+.milling-badge-queued {
+  background: #fff4cc;
+  color: #8a6d00;
+}
+
+.milling-badge-correction {
+  background: #e6ddff;
+  color: #4b2fa8;
+}
+
+.milling-entry-station,
+.milling-entry-width {
+  flex-shrink: 0;
+}
+
+.milling-entry > .milling-badge:first-of-type {
+  margin-left: auto;
+}
+
+.milling-edit-button {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  padding: 0.25rem;
+  cursor: pointer;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+}
+
+.milling-sync-status {
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  font-weight: 700;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.milling-sync-pending {
+  background: #fff4cc;
+  color: #8a6d00;
+  border: 2px solid #b8860b;
+}
+
+.milling-sync-clear {
+  background: #d7f2df;
+  color: #0a5c2b;
+  border: 2px solid #0a5c2b;
+}
+
+.milling-correction-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 10;
+}
+
+.milling-correction-form {
+  background: #ffffff;
+  color: #111111;
+  width: 100%;
+  max-width: 480px;
+  padding: 1.5rem 1rem;
+  border-radius: 16px 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.milling-correction-form h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.milling-correction-original {
+  margin: 0;
+  color: #555555;
+  font-size: 0.95rem;
+}
+
+.milling-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 1.1rem;
+  padding: 0.75rem;
+  border: 2px solid #111111;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111111;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.milling-correction-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.milling-correction-actions .milling-submit {
+  flex: 1;
+}
+
+.milling-cancel {
+  flex: 1;
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding: 1rem;
+  min-height: 3.5rem;
+  background: #eeeeee;
+  color: #111111;
+  border: 2px solid #111111;
+  border-radius: 10px;
+}
