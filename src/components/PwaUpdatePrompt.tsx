@@ -1,0 +1,77 @@
+import { useEffect } from 'react'
+import { useRegisterSW } from 'virtual:pwa-register/react'
+import './PwaUpdatePrompt.css'
+
+/**
+ * A field app that stays open all day is exactly the case a stale PWA
+ * service-worker cache bites hardest — silently working against old code
+ * until someone happens to hard-refresh. registerType is 'prompt', not
+ * 'autoUpdate' (see vite.config.ts), specifically so a new service worker
+ * waits for this instead of taking over in the background on its own.
+ *
+ * Renders nothing until needRefresh flips true. Tapping the banner calls
+ * updateServiceWorker(), which sends the waiting worker a skip-waiting
+ * message — the actual reload is handled by the controllerchange listener
+ * below, not by the library's own internal reload wiring. That internal
+ * path (workbox-window's 'controlling' event) only reloads when its
+ * isUpdate flag is true, and that flag is captured once, at this page's
+ * original service-worker registration — Boolean(navigator.serviceWorker.
+ * controller) at that exact moment. If this tab happened to be the one
+ * that registered the very first service worker (no controller existed
+ * yet), isUpdate is permanently false for the rest of this tab's session,
+ * silently skipping the reload on every later update. Confirmed live: a
+ * tab that started with no prior service worker correctly showed this
+ * banner on a later deploy, but tapping it never reloaded until this
+ * listener was added. navigator.serviceWorker.oncontrollerchange is the
+ * unconditional, standard signal instead — it fires whenever control
+ * actually changes hands, regardless of that stale flag.
+ */
+const UPDATE_CHECK_INTERVAL_MS = 3 * 60 * 1000
+
+export function PwaUpdatePrompt() {
+  const {
+    needRefresh: [needRefresh, setNeedRefresh],
+    updateServiceWorker,
+  } = useRegisterSW({
+    onRegisteredSW(_swUrl, registration) {
+      if (!registration) return
+      // The browser only re-checks a service worker's script on its own at
+      // the next full navigation — an idle open tab (exactly what a field
+      // app does all day) would otherwise never discover a new version
+      // without this explicit poll.
+      setInterval(() => {
+        registration.update()
+      }, UPDATE_CHECK_INTERVAL_MS)
+    },
+  })
+
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return
+    let reloaded = false
+    function handleControllerChange() {
+      if (reloaded) return
+      reloaded = true
+      window.location.reload()
+    }
+    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange)
+    return () => navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange)
+  }, [])
+
+  if (!needRefresh) return null
+
+  return (
+    <div className="pwa-update-banner">
+      <button type="button" className="pwa-update-reload" onClick={() => updateServiceWorker()}>
+        Update available — tap to reload
+      </button>
+      <button
+        type="button"
+        className="pwa-update-dismiss"
+        aria-label="Dismiss"
+        onClick={() => setNeedRefresh(false)}
+      >
+        ✕
+      </button>
+    </div>
+  )
+}

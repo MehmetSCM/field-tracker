@@ -7,7 +7,13 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt', not 'autoUpdate' — a new service worker must wait for
+      // PwaUpdatePrompt's explicit tap-to-reload instead of silently taking
+      // over in the background. Registration is done manually via the
+      // virtual:pwa-register/react hook (injectRegister: false below), so
+      // there's a component in control of exactly when that happens.
+      registerType: 'prompt',
+      injectRegister: false,
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'Field Tracker',

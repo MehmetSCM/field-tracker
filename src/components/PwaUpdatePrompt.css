@@ -1,0 +1,38 @@
+/* Normal document flow, not fixed/overlaid — renders above the app header
+   and pushes it down when visible, so it never has to fight the header or
+   the mobile bottom nav for z-index/position. Fallback color values in case
+   this ever renders before applyDesignTokens() has run. */
+.pwa-update-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--color-navy, #1f3864);
+  color: #ffffff;
+  font-family: var(--font-family, system-ui, sans-serif);
+  box-sizing: border-box;
+}
+
+.pwa-update-reload {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--color-amber, #f5c518);
+  font-weight: 700;
+  font-size: 14px;
+  text-align: left;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.pwa-update-dismiss {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 16px;
+  padding: 8px 16px;
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+}
