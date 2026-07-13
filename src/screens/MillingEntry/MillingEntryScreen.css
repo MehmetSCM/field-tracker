@@ -1,9 +1,14 @@
-/* Fixed high-contrast colors regardless of system light/dark preference —
-   this screen needs to stay readable in direct sunlight, not follow the
-   app shell's dark-mode variables. Every element that would otherwise
-   inherit a heading/text color from index.css's color-scheme-aware
-   variables gets its color set explicitly here, since a directly-targeted
-   rule (even low specificity) always beats an inherited value. */
+/* Styling pass only — same logic as before, restyled onto the Stage 1
+   design tokens (CSS custom properties written onto :root by
+   applyDesignTokens()) instead of ad-hoc literals, matching Dashboard's and
+   Tracker's card/spacing/typography conventions (panel backgrounds,
+   --shadow-sm, navy/amber accents).
+
+   Two things deliberately NOT changed to match Dashboard/Tracker exactly:
+   borders stay bold (2px, not the thin 1px --color-border cards use
+   elsewhere) and every color is still set explicitly with no reliance on
+   inherited values — this screen has to stay readable in direct sunlight,
+   which is a real field-usability requirement Dashboard/Tracker don't have. */
 .milling-screen,
 .milling-screen * {
   box-sizing: border-box;
@@ -11,11 +16,11 @@
 
 .milling-screen {
   min-height: 100vh;
-  background: #ffffff;
-  color: #111111;
-  font-family: system-ui, sans-serif;
-  padding: 1rem;
-  padding-bottom: 4rem;
+  background: var(--color-panel);
+  color: var(--color-text);
+  font-family: var(--font-family);
+  padding: var(--space-4);
+  padding-bottom: var(--space-12);
   max-width: 480px;
   margin: 0 auto;
 }
@@ -28,95 +33,104 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
 }
 
 .milling-header h1 {
-  font-size: 1.5rem;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-navy);
   margin: 0;
 }
 
 .milling-user {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
 }
 
 .milling-user-error {
-  color: #b00020;
+  color: var(--color-red);
 }
 
 .milling-selectors {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
 }
 
 .milling-field {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  font-size: 1rem;
-  font-weight: 600;
+  gap: var(--space-1);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
 }
 
 .milling-field select,
 .milling-field input {
   width: 100%;
   box-sizing: border-box;
-  font-size: 1.25rem;
-  padding: 0.75rem;
-  border: 2px solid #111111;
-  border-radius: 8px;
-  min-height: 3rem;
-  background: #ffffff;
-  color: #111111;
+  font-size: var(--font-size-xl);
+  padding: var(--space-3);
+  border: 2px solid var(--color-navy);
+  border-radius: var(--radius-lg);
+  min-height: var(--touch-standard);
+  background: var(--color-input-bg);
+  color: var(--color-text);
+}
+
+.milling-field select:focus,
+.milling-field input:focus {
+  background: var(--color-input-focus);
 }
 
 .milling-field-large input {
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
   text-align: center;
 }
 
 .milling-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  border: 2px solid #111111;
-  border-radius: 12px;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
+  background: var(--color-panel);
+  border: 2px solid var(--color-navy);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
 }
 
 .milling-submit {
-  font-size: 1.5rem;
-  font-weight: 700;
-  padding: 1rem;
-  min-height: 3.5rem;
-  background: #0a5c2b;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  padding: var(--space-4);
+  min-height: var(--touch-large);
+  background: var(--color-green-dark);
   color: #ffffff;
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
 }
 
 .milling-submit:disabled {
-  background: #7a7a7a;
+  background: var(--color-muted);
 }
 
 .milling-error {
-  color: #b00020;
-  font-weight: 600;
+  color: var(--color-red);
+  font-weight: var(--font-weight-semibold);
   margin: 0;
 }
 
 .milling-identity-required {
-  margin: 0 0 1.5rem;
-  padding: 1rem;
-  border: 2px dashed #b00020;
-  border-radius: 12px;
-  color: #b00020;
-  font-weight: 600;
+  margin: 0 0 var(--space-6);
+  padding: var(--space-4);
+  border: 2px dashed var(--color-red);
+  border-radius: var(--radius-xl);
+  color: var(--color-red);
+  font-weight: var(--font-weight-semibold);
   text-align: center;
 }
 
@@ -124,17 +138,19 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  background: #fff4cc;
-  border: 2px solid #b8860b;
-  border-radius: 12px;
-  font-size: 1.25rem;
-  font-weight: 700;
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  background: var(--color-amber-light);
+  border: 2px solid var(--color-amber-dark);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-amber-dark);
 }
 
 .milling-summary strong {
-  font-size: 1.75rem;
+  font-size: var(--font-size-3xl);
 }
 
 .milling-list ul {
@@ -143,18 +159,19 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .milling-entry,
 .milling-entry-superseded {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  border: 1px solid #cccccc;
-  border-radius: 8px;
-  font-size: 1.1rem;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-lg);
 }
 
 .milling-entry-superseded {
@@ -163,36 +180,38 @@
 }
 
 .milling-entry-station {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .milling-badge {
   margin-left: auto;
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
   text-transform: uppercase;
-  padding: 0.25rem 0.5rem;
-  border-radius: 999px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
 }
 
 .milling-badge-synced {
-  background: #d7f2df;
-  color: #0a5c2b;
+  background: var(--color-green-light);
+  color: var(--color-green-dark);
 }
 
 .milling-badge-superseded {
-  background: #eeeeee;
-  color: #555555;
+  background: var(--color-bg);
+  color: var(--color-muted);
 }
 
 .milling-badge-queued {
-  background: #fff4cc;
-  color: #8a6d00;
+  background: var(--color-amber-light);
+  color: var(--color-amber-dark);
 }
 
+/* No purple in the token palette — blue is the closest "distinct, not
+   error/success/warning" accent available. */
 .milling-badge-correction {
-  background: #e6ddff;
-  color: #4b2fa8;
+  background: var(--color-blue-light);
+  color: var(--color-navy);
 }
 
 .milling-entry-station,
@@ -208,32 +227,32 @@
   flex-shrink: 0;
   background: none;
   border: none;
-  font-size: 1.25rem;
-  padding: 0.25rem;
+  font-size: var(--font-size-xl);
+  padding: var(--space-1);
   cursor: pointer;
-  min-width: 2.5rem;
-  min-height: 2.5rem;
+  min-width: var(--space-10);
+  min-height: var(--space-10);
 }
 
 .milling-sync-status {
-  padding: 0.5rem 1rem;
-  margin-bottom: 1rem;
-  border-radius: 8px;
-  font-weight: 700;
+  padding: var(--space-2) var(--space-4);
+  margin-bottom: var(--space-4);
+  border-radius: var(--radius-lg);
+  font-weight: var(--font-weight-bold);
   text-align: center;
-  font-size: 0.95rem;
+  font-size: var(--font-size-md);
 }
 
 .milling-sync-pending {
-  background: #fff4cc;
-  color: #8a6d00;
-  border: 2px solid #b8860b;
+  background: var(--color-amber-light);
+  color: var(--color-amber-dark);
+  border: 2px solid var(--color-amber-dark);
 }
 
 .milling-sync-clear {
-  background: #d7f2df;
-  color: #0a5c2b;
-  border: 2px solid #0a5c2b;
+  background: var(--color-green-light);
+  color: var(--color-green-dark);
+  border: 2px solid var(--color-green-dark);
 }
 
 .milling-correction-backdrop {
@@ -247,46 +266,47 @@
 }
 
 .milling-correction-form {
-  background: #ffffff;
-  color: #111111;
+  background: var(--color-panel);
+  color: var(--color-text);
   width: 100%;
   max-width: 480px;
-  padding: 1.5rem 1rem;
-  border-radius: 16px 16px 0 0;
+  padding: var(--space-6) var(--space-4);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-4);
   max-height: 90vh;
   overflow-y: auto;
 }
 
 .milling-correction-form h2 {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: var(--font-size-xl);
+  color: var(--color-navy);
 }
 
 .milling-correction-original {
   margin: 0;
-  color: #555555;
-  font-size: 0.95rem;
+  color: var(--color-muted);
+  font-size: var(--font-size-md);
 }
 
 .milling-field textarea {
   width: 100%;
   box-sizing: border-box;
-  font-size: 1.1rem;
-  padding: 0.75rem;
-  border: 2px solid #111111;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #111111;
+  font-size: var(--font-size-lg);
+  padding: var(--space-3);
+  border: 2px solid var(--color-navy);
+  border-radius: var(--radius-lg);
+  background: var(--color-input-bg);
+  color: var(--color-text);
   font-family: inherit;
   resize: vertical;
 }
 
 .milling-correction-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .milling-correction-actions .milling-submit {
@@ -295,84 +315,88 @@
 
 .milling-cancel {
   flex: 1;
-  font-size: 1.25rem;
-  font-weight: 700;
-  padding: 1rem;
-  min-height: 3.5rem;
-  background: #eeeeee;
-  color: #111111;
-  border: 2px solid #111111;
-  border-radius: 10px;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  padding: var(--space-4);
+  min-height: var(--touch-large);
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 2px solid var(--color-navy);
+  border-radius: var(--radius-lg);
 }
 
 .milling-direction-prompt {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  border: 2px solid #111111;
-  border-radius: 12px;
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
+  background: var(--color-panel);
+  border: 2px solid var(--color-navy);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
   text-align: center;
 }
 
 .milling-direction-prompt-label {
-  margin: 0 0 1rem;
-  font-size: 1.1rem;
-  font-weight: 700;
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-navy);
 }
 
 .milling-direction-buttons {
   display: flex;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .milling-direction-button {
   flex: 1;
-  font-size: 1.25rem;
-  font-weight: 700;
-  padding: 1rem;
-  min-height: 3.5rem;
-  background: #ffffff;
-  color: #111111;
-  border: 2px solid #111111;
-  border-radius: 10px;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  padding: var(--space-4);
+  min-height: var(--touch-large);
+  background: var(--color-panel);
+  color: var(--color-navy);
+  border: 2px solid var(--color-navy);
+  border-radius: var(--radius-lg);
 }
 
 .milling-direction-button:active {
-  background: #eeeeee;
+  background: var(--color-bg);
 }
 
 .milling-session-indicator {
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: #555555;
+  color: var(--color-muted);
 }
 
 .milling-coverage-note {
   margin: 0;
-  padding: 0.6rem 0.75rem;
-  background: #fff4cc;
-  border: 2px solid #b8860b;
-  border-radius: 8px;
-  color: #8a6d00;
-  font-weight: 600;
-  font-size: 0.9rem;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-amber-light);
+  border: 2px solid var(--color-amber-dark);
+  border-radius: var(--radius-lg);
+  color: var(--color-amber-dark);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-md);
 }
 
 .milling-session-blocked {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  border: 2px solid #b00020;
-  border-radius: 12px;
-  background: #ffe0e0;
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
+  border: 2px solid var(--color-red);
+  border-radius: var(--radius-xl);
+  background: var(--color-red-light);
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .milling-session-blocked-message {
   margin: 0;
-  color: #b00020;
-  font-weight: 700;
+  color: var(--color-red);
+  font-weight: var(--font-weight-bold);
   line-height: 1.4;
 }
