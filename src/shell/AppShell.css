@@ -1,0 +1,133 @@
+/* Same fixed-explicit-color convention as the rest of the app — every
+   color/background set explicitly from the design tokens (via the CSS
+   custom properties applyDesignTokens() writes onto :root), nothing left to
+   inherit from index.css's dark-mode variables. */
+.app-shell,
+.app-shell * {
+  box-sizing: border-box;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  font-family: var(--font-family);
+  color: var(--color-text);
+}
+
+.app-header {
+  background: var(--color-navy);
+  color: #ffffff;
+  padding: var(--space-3) var(--space-5);
+  min-height: var(--touch-standard);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.app-wordmark {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  color: #ffffff;
+}
+
+/* ProfileSelector styles itself as a standalone white card (it's used
+   elsewhere too) — this just stops its own margin-bottom from adding
+   unwanted space inside the header row, and keeps it from stretching
+   full-width when the header wraps it to its own line on narrow screens. */
+.app-header .profile-selector {
+  margin: 0;
+  flex: 1 1 320px;
+  max-width: 420px;
+}
+
+.app-shell-gate-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: var(--space-6) var(--space-4);
+  color: var(--color-text);
+}
+
+.app-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.app-nav {
+  background: var(--color-navy-dark);
+  display: flex;
+  flex-shrink: 0;
+}
+
+.app-nav-link {
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-4) var(--space-5);
+  border-left: 4px solid transparent;
+  white-space: nowrap;
+}
+
+.app-nav-link-active {
+  color: var(--color-amber);
+  border-left-color: var(--color-amber);
+  background: rgba(245, 197, 24, 0.08);
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  color: var(--color-text);
+}
+
+/* Desktop: vertical sidebar */
+@media (min-width: 768px) {
+  .app-body {
+    flex-direction: row;
+  }
+
+  .app-nav {
+    flex-direction: column;
+    width: 220px;
+  }
+}
+
+/* Mobile: fixed bottom bar */
+@media (max-width: 767px) {
+  .app-main {
+    padding-bottom: calc(var(--touch-large) + var(--space-4));
+  }
+
+  .app-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    flex-direction: row;
+    justify-content: space-around;
+    z-index: 20;
+  }
+
+  .app-nav-link {
+    flex: 1;
+    text-align: center;
+    padding: var(--space-2) var(--space-1);
+    font-size: var(--font-size-xs);
+    border-left: none;
+    border-top: 3px solid transparent;
+  }
+
+  .app-nav-link-active {
+    border-left: none;
+    border-top-color: var(--color-amber);
+  }
+}
