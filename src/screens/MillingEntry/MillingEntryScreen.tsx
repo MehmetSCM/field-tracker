@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ExtraAreaForm } from '../../components/ExtraAreaForm'
-import { ProfileSelector } from '../../components/ProfileSelector'
+import { findStrictlyInsideCoverage, mergeIntervals, type Interval } from '../../lib/calculations/intervalCoverage'
 import { calculateSegments, cumulativeArea } from '../../lib/calculations/segmentArea'
 import { db, type QueuedWidthReading } from '../../lib/db'
 import {
@@ -8,6 +8,7 @@ import {
   fetchProjects,
   fetchRoadSegmentGroups,
   fetchRoadSegments,
+  fetchStationCoverageIntervals,
   type CurrentCrewMember,
   type ProjectOption,
   type RoadSegmentGroupOption,
@@ -40,6 +41,20 @@ function extractErrorMessage(err: unknown, fallback: string): string {
     return err.message
   }
   return fallback
+}
+
+type SessionDirection = 'ascending' | 'descending'
+
+/**
+ * Uniform for both a clean multiple-of-50 last station and an irregular
+ * one — floor/ceil to the next full 50 in the declared direction, not a
+ * simple +/-50, so an irregular reading (e.g. 28,537) still proposes a
+ * clean round number (28,550) rather than another irregular one.
+ */
+function computeNextStation(lastStation: number, direction: SessionDirection): number {
+  return direction === 'ascending'
+    ? (Math.floor(lastStation / 50) + 1) * 50
+    : (Math.ceil(lastStation / 50) - 1) * 50
 }
 
 const today = todayLocalDateString()
@@ -75,6 +90,24 @@ export function MillingEntryScreen() {
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
+  // Fresh every session, deliberately never persisted (not localStorage, not
+  // the DB) — asked fresh every time a segment is (re)selected or a session
+  // is explicitly ended. sessionLastStation tracks the last station
+  // committed IN THIS SESSION only (not the day's history), since the first
+  // reading of a session always requires manual entry with no proposal.
+  const [sessionDirection, setSessionDirection] = useState<SessionDirection | null>(null)
+  const [sessionLastStation, setSessionLastStation] = useState<number | null>(null)
+  const [sessionBlocked, setSessionBlocked] = useState(false)
+  const [sessionBlockMessage, setSessionBlockMessage] = useState<string | null>(null)
+
+  // [lo, hi] per prior day with active readings on this segment — merged
+  // with today's live interval (from activeEntries, below) to check new
+  // stations against. Excludes today's own date since that comes from the
+  // live local queue instead, which reflects not-yet-synced entries this
+  // server fetch wouldn't have yet.
+  const [historicalIntervals, setHistoricalIntervals] = useState<Interval[]>([])
+  const [coverageError, setCoverageError] = useState<string | null>(null)
+
   const [correctingEntry, setCorrectingEntry] = useState<QueuedWidthReading | null>(null)
 
   useEffect(() => {
@@ -104,6 +137,26 @@ export function MillingEntryScreen() {
     if (!selectedGroupId) return
     fetchRoadSegments(selectedGroupId).then(setSegments)
   }, [selectedGroupId])
+
+  // Every segment (re)selection starts a brand-new session — direction gets
+  // asked fresh, no proposal carries over. Also (re)loads this segment's
+  // historical station coverage.
+  useEffect(() => {
+    setSessionDirection(null)
+    setSessionLastStation(null)
+    setSessionBlocked(false)
+    setSessionBlockMessage(null)
+    setStationInput('')
+    setWidthInput('')
+    setFormError(null)
+    setHistoricalIntervals([])
+    setCoverageError(null)
+
+    if (!selectedSegmentId) return
+    fetchStationCoverageIntervals(selectedSegmentId, today)
+      .then(setHistoricalIntervals)
+      .catch((err) => setCoverageError(extractErrorMessage(err, 'Failed to load station coverage.')))
+  }, [selectedSegmentId])
 
   // Pull today's server-confirmed rows into the local queue table once per
   // segment selection. After this, the running list reads entirely from
@@ -149,6 +202,20 @@ export function MillingEntryScreen() {
   // the correction row itself is what's authoritative.
   const activeEntries = useMemo(() => sortedEntries.filter((r) => r.supersededBy === null), [sortedEntries])
 
+  // Today's own coverage, computed live from the local queue rather than
+  // fetched — always reflects not-yet-synced entries, unlike
+  // historicalIntervals (a one-time server fetch per segment selection).
+  const todayCoverageInterval = useMemo<Interval | null>(() => {
+    if (activeEntries.length === 0) return null
+    const stations = activeEntries.map((r) => r.station)
+    return { lo: Math.min(...stations), hi: Math.max(...stations) }
+  }, [activeEntries])
+
+  const mergedCoverage = useMemo(
+    () => mergeIntervals(todayCoverageInterval ? [...historicalIntervals, todayCoverageInterval] : historicalIntervals),
+    [historicalIntervals, todayCoverageInterval],
+  )
+
   const liveSegments = useMemo(() => {
     if (activeEntries.length < 2) return []
     return calculateSegments(
@@ -166,7 +233,7 @@ export function MillingEntryScreen() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!selectedSegment || !hasIdentity) return
+    if (!selectedSegment || !hasIdentity || !sessionDirection || sessionBlocked) return
 
     const stationValue = Number(stationInput)
     const widthValue = Number(widthInput)
@@ -176,6 +243,17 @@ export function MillingEntryScreen() {
     }
     if (widthInput.trim() === '' || !Number.isFinite(widthValue)) {
       setFormError('Enter a valid width.')
+      return
+    }
+
+    // Rejected before ever reaching the queue — landing exactly on a
+    // boundary (continuing from where coverage currently ends) is fine,
+    // only strictly-inside is blocked.
+    const covering = findStrictlyInsideCoverage(stationValue, mergedCoverage)
+    if (covering) {
+      setFormError(
+        `Station ${stationValue} m is already covered (${covering.lo}–${covering.hi} m already recorded). Pick a station outside this range.`,
+      )
       return
     }
 
@@ -197,13 +275,48 @@ export function MillingEntryScreen() {
         station: stationValue,
         width: widthValue,
       })
-      setStationInput('')
+
+      // Direction-integrity check happens AFTER the reading is committed —
+      // its value is only final once submitted, and this reading itself is
+      // never rolled back. A violation only blocks further NEW entries in
+      // this session until an explicit reset; it resets the live proposal
+      // state (sessionLastStation), not the queued/synced data.
+      if (sessionLastStation !== null) {
+        const wentBackward = stationValue < sessionLastStation
+        const wentForward = stationValue > sessionLastStation
+        const violatesDirection =
+          (sessionDirection === 'ascending' && wentBackward) || (sessionDirection === 'descending' && wentForward)
+
+        if (violatesDirection) {
+          setSessionBlocked(true)
+          setSessionBlockMessage(
+            `Station ${stationValue} m moves ${wentBackward ? 'backward' : 'forward'} from ${sessionLastStation} m — opposite the declared ${sessionDirection} direction. That reading has been saved as entered. No further entries are allowed until you end this session.`,
+          )
+          setSessionLastStation(null)
+          setStationInput('')
+          setWidthInput('')
+          return
+        }
+      }
+
+      setSessionLastStation(stationValue)
+      setStationInput(String(computeNextStation(stationValue, sessionDirection)))
       setWidthInput('')
     } catch (err) {
       setFormError(extractErrorMessage(err, 'Failed to queue entry.'))
     } finally {
       setSubmitting(false)
     }
+  }
+
+  function handleEndSession() {
+    setSessionDirection(null)
+    setSessionLastStation(null)
+    setSessionBlocked(false)
+    setSessionBlockMessage(null)
+    setStationInput('')
+    setWidthInput('')
+    setFormError(null)
   }
 
   return (
@@ -216,8 +329,6 @@ export function MillingEntryScreen() {
           {!crewMemberError && !displayName && <span className="milling-user-error">Not signed in</span>}
         </div>
       </header>
-
-      <ProfileSelector />
 
       <section className="milling-selectors">
         <label className="milling-field">
@@ -271,8 +382,54 @@ export function MillingEntryScreen() {
             {queuedCount > 0 ? `${queuedCount} queued, syncing…` : 'All synced'}
           </div>
 
-          {hasIdentity ? (
+          {!hasIdentity && (
+            <p className="milling-identity-required">Select who you are above to start entering readings.</p>
+          )}
+
+          {hasIdentity && sessionBlocked && (
+            <div className="milling-session-blocked">
+              <p className="milling-session-blocked-message">{sessionBlockMessage}</p>
+              <button type="button" className="milling-submit" onClick={handleEndSession}>
+                End session and start new
+              </button>
+            </div>
+          )}
+
+          {hasIdentity && !sessionBlocked && sessionDirection === null && (
+            <div className="milling-direction-prompt">
+              <p className="milling-direction-prompt-label">Which direction are you walking?</p>
+              <div className="milling-direction-buttons">
+                <button
+                  type="button"
+                  className="milling-direction-button"
+                  onClick={() => setSessionDirection('ascending')}
+                >
+                  Ascending
+                </button>
+                <button
+                  type="button"
+                  className="milling-direction-button"
+                  onClick={() => setSessionDirection('descending')}
+                >
+                  Descending
+                </button>
+              </div>
+            </div>
+          )}
+
+          {hasIdentity && !sessionBlocked && sessionDirection !== null && (
             <form className="milling-form" onSubmit={handleSubmit}>
+              <div className="milling-session-indicator">
+                Session: {sessionDirection === 'ascending' ? 'Ascending' : 'Descending'}
+              </div>
+
+              {coverageError && <p className="milling-error">{coverageError}</p>}
+              {mergedCoverage.length > 0 && (
+                <p className="milling-coverage-note">
+                  Already covered: {mergedCoverage.map((iv) => `${iv.lo}–${iv.hi} m`).join(', ')}
+                </p>
+              )}
+
               <label className="milling-field milling-field-large">
                 <span>Station (m)</span>
                 <input
@@ -303,8 +460,6 @@ export function MillingEntryScreen() {
                 {submitting ? 'Saving…' : 'Add Reading'}
               </button>
             </form>
-          ) : (
-            <p className="milling-identity-required">Select who you are above to start entering readings.</p>
           )}
 
           <section className="milling-summary">

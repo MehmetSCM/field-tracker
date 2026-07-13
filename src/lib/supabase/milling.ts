@@ -1,3 +1,4 @@
+import type { Interval } from '../calculations/intervalCoverage'
 import { supabase } from './client'
 
 export interface ProjectOption {
@@ -135,6 +136,38 @@ export async function fetchTodaysWidthReadings(
     .order('station_sequence', { ascending: true })
   if (error) throw error
   return (data ?? []).map(mapWidthReadingRow)
+}
+
+/**
+ * One [min station, max station] interval per prior day that has active
+ * (non-superseded) readings for this segment — the raw material for the
+ * merge in intervalCoverage.ts. Excludes `excludeDate` (today) since that
+ * day's coverage is computed live from the local Dexie queue instead, which
+ * reflects not-yet-synced entries this server fetch wouldn't have yet.
+ */
+export async function fetchStationCoverageIntervals(
+  roadSegmentId: string,
+  excludeDate: string,
+): Promise<Interval[]> {
+  const { data, error } = await supabase
+    .from('width_readings')
+    .select('paving_date, station')
+    .eq('road_segment_id', roadSegmentId)
+    .is('superseded_by', null)
+    .neq('paving_date', excludeDate)
+  if (error) throw error
+
+  const byDate = new Map<string, number[]>()
+  for (const row of data ?? []) {
+    const stations = byDate.get(row.paving_date)
+    if (stations) stations.push(Number(row.station))
+    else byDate.set(row.paving_date, [Number(row.station)])
+  }
+
+  return [...byDate.values()].map((stations) => ({
+    lo: Math.min(...stations),
+    hi: Math.max(...stations),
+  }))
 }
 
 export async function insertWidthReading(params: {
