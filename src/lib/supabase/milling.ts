@@ -1,4 +1,5 @@
 import type { Interval } from '../calculations/intervalCoverage'
+import { calculateSegments, cumulativeArea } from '../calculations/segmentArea'
 import { supabase } from './client'
 
 export interface ProjectOption {
@@ -242,4 +243,193 @@ export async function supersedeWidthReading(params: {
   if (updateError) throw updateError
 
   return mapWidthReadingRow(inserted)
+}
+
+export interface PastReadingRow {
+  id: string
+  roadSegmentId: string
+  direction: string
+  date: string
+  stationSequence: number
+  station: number
+  width: number
+  isCorrection: boolean
+  supersededBy: string | null
+  correctionReason: string | null
+  entryTimestamp: string
+  highway: string
+  projectContractNumber: string
+  projectName: string
+}
+
+export interface DaySegmentGroup {
+  roadSegmentId: string
+  direction: string
+  highway: string
+  projectContractNumber: string
+  projectName: string
+  area: number
+  readings: PastReadingRow[]
+}
+
+export interface DaySummary {
+  date: string
+  totalArea: number
+  directions: string[]
+  projectContractNumbers: string[]
+}
+
+const PAST_READING_SELECT = `
+  id, road_segment_id, direction, paving_date, station_sequence, station, width,
+  is_correction, superseded_by, correction_reason, entry_timestamp,
+  road_segments!inner ( road_segment_groups!inner ( highway, jobs!inner ( projects!inner ( contract_number, name ) ) ) )
+`
+
+interface RawPastReadingRow {
+  id: string
+  road_segment_id: string
+  direction: string
+  paving_date: string
+  station_sequence: number
+  station: number
+  width: number
+  is_correction: boolean
+  superseded_by: string | null
+  correction_reason: string | null
+  entry_timestamp: string
+  road_segments: {
+    road_segment_groups: {
+      highway: string
+      jobs: {
+        projects: {
+          contract_number: string
+          name: string
+        }
+      }
+    }
+  }
+}
+
+function mapPastReadingRow(row: RawPastReadingRow): PastReadingRow {
+  const group = row.road_segments.road_segment_groups
+  const project = group.jobs.projects
+  return {
+    id: row.id,
+    roadSegmentId: row.road_segment_id,
+    direction: row.direction,
+    date: row.paving_date,
+    stationSequence: row.station_sequence,
+    station: Number(row.station),
+    width: Number(row.width),
+    isCorrection: row.is_correction,
+    supersededBy: row.superseded_by,
+    correctionReason: row.correction_reason,
+    entryTimestamp: row.entry_timestamp,
+    highway: group.highway,
+    projectContractNumber: project.contract_number,
+    projectName: project.name,
+  }
+}
+
+function groupBySegment(rows: PastReadingRow[]): Map<string, PastReadingRow[]> {
+  const bySegment = new Map<string, PastReadingRow[]>()
+  for (const row of rows) {
+    const existing = bySegment.get(row.roadSegmentId)
+    if (existing) existing.push(row)
+    else bySegment.set(row.roadSegmentId, [row])
+  }
+  return bySegment
+}
+
+/**
+ * Every non-superseded width_reading before `excludeDate` (today — today's
+ * entries live in the active session view, not "previous days"), across
+ * every project/segment, aggregated client-side into one summary per date.
+ * There's no crew-to-project scoping anywhere in this app yet (fetchProjects
+ * is similarly unscoped), and grouping only by date rather than
+ * date+project matches how these crews actually work — one project per day
+ * in practice. On the rare day multiple projects/segments were touched,
+ * their areas are summed into that day's total and all of them show up in
+ * its directions/project lists, rather than picking one arbitrarily.
+ */
+export async function fetchPastDaySummaries(excludeDate: string): Promise<DaySummary[]> {
+  const { data, error } = await supabase
+    .from('width_readings')
+    .select(PAST_READING_SELECT)
+    .is('superseded_by', null)
+    .neq('paving_date', excludeDate)
+  if (error) throw error
+
+  const rows = (data ?? []).map((row) => mapPastReadingRow(row as unknown as RawPastReadingRow))
+
+  const byDate = new Map<string, PastReadingRow[]>()
+  for (const row of rows) {
+    const existing = byDate.get(row.date)
+    if (existing) existing.push(row)
+    else byDate.set(row.date, [row])
+  }
+
+  const summaries: DaySummary[] = []
+  for (const [date, dateRows] of byDate) {
+    let totalArea = 0
+    for (const segmentRows of groupBySegment(dateRows).values()) {
+      const sorted = [...segmentRows].sort((a, b) => a.stationSequence - b.stationSequence)
+      if (sorted.length < 2) continue
+      totalArea += cumulativeArea(
+        calculateSegments(sorted.map((r) => ({ stationSequence: r.stationSequence, station: r.station, width: r.width }))),
+      )
+    }
+
+    summaries.push({
+      date,
+      totalArea,
+      directions: [...new Set(dateRows.map((r) => r.direction))].sort(),
+      projectContractNumbers: [...new Set(dateRows.map((r) => r.projectContractNumber))].sort(),
+    })
+  }
+
+  return summaries.sort((a, b) => (a.date < b.date ? 1 : -1))
+}
+
+/**
+ * Full reading list for one specific date — including superseded rows, so
+ * the day-detail view can show correction history the same way the live
+ * entry screen's badges do — grouped by segment, since station_sequence
+ * ordering is only meaningful within one segment's own continuous walk and
+ * readings from different segments touched the same day can't be
+ * interleaved by it.
+ */
+export async function fetchDayReadingGroups(date: string): Promise<DaySegmentGroup[]> {
+  const { data, error } = await supabase.from('width_readings').select(PAST_READING_SELECT).eq('paving_date', date)
+  if (error) throw error
+
+  const rows = (data ?? []).map((row) => mapPastReadingRow(row as unknown as RawPastReadingRow))
+
+  const groups: DaySegmentGroup[] = []
+  for (const [roadSegmentId, segmentRows] of groupBySegment(rows)) {
+    const sorted = [...segmentRows].sort((a, b) =>
+      a.stationSequence !== b.stationSequence
+        ? a.stationSequence - b.stationSequence
+        : a.entryTimestamp.localeCompare(b.entryTimestamp),
+    )
+    const activeRows = sorted.filter((r) => r.supersededBy === null)
+    const area =
+      activeRows.length < 2
+        ? 0
+        : cumulativeArea(
+            calculateSegments(activeRows.map((r) => ({ stationSequence: r.stationSequence, station: r.station, width: r.width }))),
+          )
+    const first = sorted[0]
+    groups.push({
+      roadSegmentId,
+      direction: first.direction,
+      highway: first.highway,
+      projectContractNumber: first.projectContractNumber,
+      projectName: first.projectName,
+      area,
+      readings: sorted,
+    })
+  }
+
+  return groups.sort((a, b) => a.projectContractNumber.localeCompare(b.projectContractNumber) || a.direction.localeCompare(b.direction))
 }

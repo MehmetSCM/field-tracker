@@ -3,6 +3,7 @@ import { ExtraAreaForm } from '../../components/ExtraAreaForm'
 import { findStrictlyInsideCoverage, mergeIntervals, type Interval } from '../../lib/calculations/intervalCoverage'
 import { calculateSegments, cumulativeArea } from '../../lib/calculations/segmentArea'
 import { resolveSegmentForStation } from '../../lib/calculations/segmentResolution'
+import { todayLocalDateString } from '../../lib/dateFormat'
 import { db, type QueuedWidthReading } from '../../lib/db'
 import { getEntrySession, type EntrySessionDirection } from '../../lib/entrySession'
 import {
@@ -26,14 +27,6 @@ import { CorrectionForm } from './CorrectionForm'
 import './MillingEntryScreen.css'
 
 const ACTIVITY = 'milling'
-
-function todayLocalDateString(): string {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
 
 // Supabase/PostgREST errors are plain objects with a `message` property, not
 // actual Error instances — `instanceof Error` misses them and would hide the

@@ -1,0 +1,130 @@
+.milling-home-screen,
+.milling-home-screen * {
+  box-sizing: border-box;
+}
+
+.milling-home-screen {
+  padding: var(--space-4);
+  padding-bottom: var(--space-12);
+  max-width: 480px;
+  margin: 0 auto;
+  font-family: var(--font-family);
+  color: var(--color-text);
+}
+
+.milling-home-start {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 96px;
+  margin-bottom: var(--space-6);
+  background: var(--color-navy);
+  color: #ffffff;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.milling-home-start:active {
+  background: var(--color-navy-dark);
+}
+
+.milling-home-history h2 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-navy);
+  margin: 0 0 var(--space-3);
+}
+
+.milling-home-error {
+  color: var(--color-red-dark);
+  font-weight: var(--font-weight-semibold);
+}
+
+.milling-home-empty {
+  color: var(--color-muted);
+}
+
+.milling-home-history ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.milling-home-day-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  min-height: var(--touch-standard);
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.milling-home-day-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.milling-home-day-date {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-lg);
+  color: var(--color-navy);
+}
+
+.milling-home-day-meta {
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.milling-home-day-area {
+  flex-shrink: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-amber-dark);
+  white-space: nowrap;
+}
+
+.milling-home-start-link-back {
+  display: inline-block;
+  margin-bottom: var(--space-4);
+  color: var(--color-navy);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  min-height: var(--touch-min);
+  line-height: var(--touch-min);
+}
+
+.milling-home-day-title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-navy);
+}
+
+.milling-day-segment-group {
+  margin-bottom: var(--space-4);
+}
+
+.milling-day-segment-heading {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-navy-light);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
