@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { formatDayLabel } from '../../lib/dateFormat'
+import { CorrectionForm } from '../MillingEntry/CorrectionForm'
+import { todayLocalDateString, formatDayLabel } from '../../lib/dateFormat'
+import { db, type QueuedWidthReading } from '../../lib/db'
 import { fetchDayReadingGroups, type DaySegmentGroup } from '../../lib/supabase/milling'
+import { importServerReadings } from '../../lib/sync/widthReadingsSync'
 // Reuses .milling-summary/.milling-list/.milling-entry*/.milling-badge* from
 // the entry screen rather than duplicating them — this view intentionally
 // looks like a read-only version of the same list.
@@ -18,24 +21,54 @@ function extractErrorMessage(err: unknown, fallback: string): string {
 
 /**
  * Read-only view of everything entered on one past date, across every
- * segment touched that day. Correction (with the past-day warning) is
- * wired in separately — this screen just displays.
+ * segment touched that day — with an edit path into the same correction
+ * flow the live entry screen uses (same supersede mechanism, same
+ * CorrectionForm), flagged with the "may affect previously calculated
+ * totals" warning the live same-day flow doesn't need.
  */
 export function MillingDayDetailScreen() {
   const { date } = useParams<{ date: string }>()
   const [groups, setGroups] = useState<DaySegmentGroup[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [preparingEntryId, setPreparingEntryId] = useState<string | null>(null)
+  const [correctingEntry, setCorrectingEntry] = useState<QueuedWidthReading | null>(null)
 
-  useEffect(() => {
+  function loadGroups() {
     if (!date) return
+    setLoading(true)
+    setError(null)
     fetchDayReadingGroups(date)
       .then(setGroups)
       .catch((err) => setError(extractErrorMessage(err, 'Failed to load this day.')))
       .finally(() => setLoading(false))
-  }, [date])
+  }
+
+  useEffect(loadGroups, [date])
 
   const totalArea = groups.reduce((sum, g) => sum + g.area, 0)
+
+  // The local offline queue only ever mirrors TODAY's active segment (see
+  // MillingEntryScreen) — a past day's readings usually aren't in it yet.
+  // applyCorrection needs a real QueuedWidthReading (with a Dexie localId)
+  // to update, so this imports that one segment/date first (idempotent —
+  // matches existing rows by serverId) and then reads back the row Dexie
+  // now has for it.
+  async function startCorrection(roadSegmentId: string, readingId: string) {
+    if (!date) return
+    setPreparingEntryId(readingId)
+    setError(null)
+    try {
+      await importServerReadings(roadSegmentId, date)
+      const queued = await db.widthReadingsQueue.where('serverId').equals(readingId).first()
+      if (!queued) throw new Error('Could not find this reading to correct.')
+      setCorrectingEntry(queued)
+    } catch (err) {
+      setError(extractErrorMessage(err, 'Failed to open this entry for correction.'))
+    } finally {
+      setPreparingEntryId(null)
+    }
+  }
 
   return (
     <div className="milling-home-screen">
@@ -65,6 +98,7 @@ export function MillingDayDetailScreen() {
               <ul>
                 {group.readings.map((r) => {
                   const isSuperseded = r.supersededBy !== null
+                  const canEdit = !isSuperseded
                   return (
                     <li key={r.id} className={isSuperseded ? 'milling-entry-superseded' : 'milling-entry'}>
                       <span className="milling-entry-station">{r.station} m</span>
@@ -72,6 +106,17 @@ export function MillingDayDetailScreen() {
                       {r.isCorrection && <span className="milling-badge milling-badge-correction">corrected</span>}
                       {isSuperseded && <span className="milling-badge milling-badge-superseded">superseded</span>}
                       {!isSuperseded && <span className="milling-badge milling-badge-synced">synced</span>}
+                      {canEdit && (
+                        <button
+                          type="button"
+                          className="milling-edit-button"
+                          aria-label="Edit entry"
+                          disabled={preparingEntryId === r.id}
+                          onClick={() => startCorrection(group.roadSegmentId, r.id)}
+                        >
+                          {preparingEntryId === r.id ? '…' : '✏️'}
+                        </button>
+                      )}
                     </li>
                   )
                 })}
@@ -79,6 +124,15 @@ export function MillingDayDetailScreen() {
             </section>
           ))}
         </>
+      )}
+
+      {correctingEntry && (
+        <CorrectionForm
+          entry={correctingEntry}
+          isPastDayCorrection={date !== todayLocalDateString()}
+          onClose={() => setCorrectingEntry(null)}
+          onSaved={loadGroups}
+        />
       )}
     </div>
   )

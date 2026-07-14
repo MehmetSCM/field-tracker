@@ -10,18 +10,38 @@ function extractErrorMessage(err: unknown, fallback: string): string {
   return fallback
 }
 
+// Built generically for reuse by the future Paving screen — pre-compaction
+// readings needing remeasurement after compaction is a real, recurring
+// paving scenario. Won't see real use on Milling yet; that's expected.
+const REASON_PRESETS = [
+  { id: 'post-compaction', label: 'Post-compaction remeasurement' },
+  { id: 'field-error', label: 'Field measurement error' },
+  { id: 'other', label: 'Other' },
+] as const
+
+type ReasonPresetId = (typeof REASON_PRESETS)[number]['id']
+
 export function CorrectionForm({
   entry,
   onClose,
+  onSaved,
+  isPastDayCorrection = false,
 }: {
   entry: QueuedWidthReading
   onClose: () => void
+  /** Called after a successful save, in addition to onClose — lets a caller (e.g. the day-detail view) refresh its own data instead of assuming onClose alone means "done, nothing to refetch." */
+  onSaved?: () => void
+  /** True when correcting an entry from a past day via the read-only history view, not the current live session — that live view already shows the recalculated total immediately, so it doesn't need this warning. */
+  isPastDayCorrection?: boolean
 }) {
   const [correctedStation, setCorrectedStation] = useState(String(entry.station))
   const [correctedWidth, setCorrectedWidth] = useState(String(entry.width))
-  const [reason, setReason] = useState('')
+  const [reasonPreset, setReasonPreset] = useState<ReasonPresetId | null>(null)
+  const [customReason, setCustomReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const reason = reasonPreset === 'other' ? customReason.trim() : (REASON_PRESETS.find((p) => p.id === reasonPreset)?.label ?? '')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -36,8 +56,8 @@ export function CorrectionForm({
       setError('Enter a valid width.')
       return
     }
-    if (reason.trim() === '') {
-      setError('A correction reason is required.')
+    if (reason === '') {
+      setError(reasonPreset === 'other' ? 'Enter a correction reason.' : 'Select a correction reason.')
       return
     }
 
@@ -48,8 +68,9 @@ export function CorrectionForm({
         original: entry,
         correctedStation: stationValue,
         correctedWidth: widthValue,
-        reason: reason.trim(),
+        reason,
       })
+      onSaved?.()
       onClose()
     } catch (err) {
       setError(extractErrorMessage(err, 'Failed to save correction.'))
@@ -92,15 +113,41 @@ export function CorrectionForm({
           />
         </label>
 
-        <label className="milling-field">
+        <div className="milling-field">
           <span>Reason (required)</span>
-          <textarea
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            rows={3}
-            placeholder="Why is this being corrected?"
-          />
-        </label>
+          <div className="milling-reason-presets">
+            {REASON_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                className={
+                  'milling-reason-preset' + (reasonPreset === preset.id ? ' milling-reason-preset-selected' : '')
+                }
+                onClick={() => setReasonPreset(preset.id)}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {reasonPreset === 'other' && (
+          <label className="milling-field">
+            <span>Describe the reason</span>
+            <textarea
+              value={customReason}
+              onChange={(e) => setCustomReason(e.target.value)}
+              rows={3}
+              placeholder="Why is this being corrected?"
+            />
+          </label>
+        )}
+
+        {isPastDayCorrection && (
+          <p className="milling-correction-past-day-warning">
+            This may affect previously calculated totals.
+          </p>
+        )}
 
         {error && <p className="milling-error">{error}</p>}
 
