@@ -37,3 +37,16 @@ export const spacing = { 1:'4px',2:'8px',3:'12px',4:'16px',5:'20px',6:'24px',8:'
 export const radius = { sm:'4px', md:'6px', lg:'8px', xl:'12px', full:'9999px' } as const;
 export const shadows = { sm:'0 1px 3px rgba(0,0,0,0.08)', md:'0 2px 8px rgba(0,0,0,0.10)', lg:'0 4px 16px rgba(0,0,0,0.12)' } as const;
 export const touchTarget = { min:'44px', standard:'48px', large:'56px' } as const;
+
+// Applied on top of the base values above whenever the viewport is <=767px
+// (see applyDesignTokens.ts) — one place that governs the "smaller and
+// tighter on mobile" rule for every screen, present and future (Paving
+// included), instead of each screen redoing its own per-element overrides.
+// touchTarget.min is deliberately absent here — 44px is the accessibility
+// floor and never shrinks further; standard/large still shrink but stay
+// at or above it.
+export const mobileOverrides = {
+  sizes: { base: '13px', md: '14px', lg: '15px', xl: '16px', '2xl': '19px', '3xl': '24px' },
+  spacing: { 4: '12px', 5: '16px', 6: '18px', 8: '24px', 10: '32px', 12: '40px' },
+  touchTarget: { standard: '44px', large: '48px' },
+} as const;
