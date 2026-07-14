@@ -19,7 +19,7 @@
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
   color: #1a1a2e;
-  background: #f4f6f9;
+  background: #f4f7fa;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -32,7 +32,7 @@
 
 html,
 body {
-  background: #f4f6f9;
+  background: #f4f7fa;
 }
 
 body {

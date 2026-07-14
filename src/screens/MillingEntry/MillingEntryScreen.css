@@ -39,7 +39,7 @@
 .milling-header h1 {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
-  color: var(--color-navy);
+  color: var(--color-indigo);
   margin: 0;
 }
 
@@ -148,13 +148,13 @@
   align-items: baseline;
   padding: var(--space-4);
   margin-bottom: var(--space-4);
-  background: var(--color-amber-light);
-  border: 2px solid var(--color-amber-dark);
+  background: var(--color-periwinkle-light);
+  border: 2px solid var(--color-periwinkle-dark);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-sm);
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
-  color: var(--color-amber-dark);
+  color: var(--color-periwinkle-dark);
 }
 
 .milling-summary strong {
@@ -188,7 +188,7 @@
 .milling-change-context-link {
   background: none;
   border: none;
-  color: var(--color-navy);
+  color: var(--color-ocean-blue);
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-sm);
   text-decoration: underline;
@@ -257,8 +257,8 @@
 }
 
 .milling-badge-queued {
-  background: var(--color-amber-light);
-  color: var(--color-amber-dark);
+  background: var(--color-periwinkle-light);
+  color: var(--color-periwinkle-dark);
 }
 
 /* No purple in the token palette — blue is the closest "distinct, not
@@ -298,9 +298,9 @@
 }
 
 .milling-sync-pending {
-  background: var(--color-amber-light);
-  color: var(--color-amber-dark);
-  border: 2px solid var(--color-amber-dark);
+  background: var(--color-periwinkle-light);
+  color: var(--color-periwinkle-dark);
+  border: 2px solid var(--color-periwinkle-dark);
 }
 
 /* Passive/steady-state — a small pill, not a full-width banner, so it
@@ -347,7 +347,7 @@
 .milling-correction-form h2 {
   margin: 0;
   font-size: var(--font-size-xl);
-  color: var(--color-navy);
+  color: var(--color-indigo);
 }
 
 .milling-correction-original {
@@ -384,10 +384,10 @@
 .milling-correction-past-day-warning {
   margin: 0;
   padding: var(--space-3);
-  background: var(--color-amber-light);
-  border: 2px solid var(--color-amber-dark);
+  background: var(--color-periwinkle-light);
+  border: 2px solid var(--color-periwinkle-dark);
   border-radius: var(--radius-lg);
-  color: var(--color-amber-dark);
+  color: var(--color-periwinkle-dark);
   font-weight: var(--font-weight-bold);
 }
 
@@ -498,10 +498,10 @@
 .milling-coverage-note {
   margin: 0;
   padding: var(--space-2) var(--space-3);
-  background: var(--color-amber-light);
-  border: 2px solid var(--color-amber-dark);
+  background: var(--color-periwinkle-light);
+  border: 2px solid var(--color-periwinkle-dark);
   border-radius: var(--radius-lg);
-  color: var(--color-amber-dark);
+  color: var(--color-periwinkle-dark);
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-md);
 }

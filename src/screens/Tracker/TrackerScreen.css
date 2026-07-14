@@ -26,7 +26,7 @@
 
 .tracker-project-code {
   font-weight: var(--font-weight-bold);
-  color: var(--color-navy);
+  color: var(--color-indigo);
   font-size: var(--font-size-lg);
 }
 
@@ -113,8 +113,8 @@
 }
 
 .tracker-percent-amber {
-  color: var(--color-amber-dark);
-  background: var(--color-amber-light);
+  color: var(--color-periwinkle-dark);
+  background: var(--color-periwinkle-light);
 }
 
 .tracker-percent-blue {

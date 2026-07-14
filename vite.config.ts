@@ -19,8 +19,8 @@ export default defineConfig({
         name: 'Novacore',
         short_name: 'Novacore',
         description: 'Keywest Asphalt field data tracker',
-        theme_color: '#1F3864',
-        background_color: '#F4F6F9',
+        theme_color: '#0D1B2A',
+        background_color: '#F4F7FA',
         display: 'standalone',
         start_url: '/',
         icons: [

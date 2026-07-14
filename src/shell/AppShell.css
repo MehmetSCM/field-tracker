@@ -95,9 +95,9 @@
 }
 
 .app-nav-link-active {
-  color: var(--color-amber);
-  border-left-color: var(--color-amber);
-  background: rgba(245, 197, 24, 0.08);
+  color: var(--color-periwinkle);
+  border-left-color: var(--color-periwinkle);
+  background: rgba(169, 166, 224, 0.08);
 }
 
 .app-main {
@@ -150,7 +150,7 @@
 
   .app-nav-link-active {
     border-left: none;
-    border-top-color: var(--color-amber);
+    border-top-color: var(--color-periwinkle);
   }
 
   /* Milling/Paving are already reached via Home's rows; Tracker/History

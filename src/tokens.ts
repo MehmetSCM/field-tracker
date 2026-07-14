@@ -5,13 +5,34 @@
 // as body/badge text on its own *Light background. See
 // contrast.test.ts for the enforcement.
 export const colors = {
-  navy: '#1F3864', navyDark: '#162847', navyLight: '#2E4F7A',
+  // Vektor Systems brand palette. navyDark/navyLight are recomputed as
+  // proportional shades of the new navy (not given directly) — the old
+  // fixed hex values were hand-tuned against the old, much lighter navy
+  // and would've looked mismatched sitting next to this one.
+  navy: '#0D1B2A', navyDark: '#08121B', navyLight: '#285381',
+  // indigo: heading/title text on light backgrounds — replaces navy's old
+  // role there specifically; navy itself stays for structural
+  // backgrounds/borders/button chrome.
+  indigo: '#2E2A5C',
+  // periwinkle: bright highlight on dark backgrounds (active nav, CTA-style
+  // emphasis) — replaces amber's old functional role there.
+  // periwinkleDark is the AAA-safe text-on-periwinkleLight variant,
+  // computed the same way amberDark was: darken the base hue until it
+  // clears 7:1 against periwinkleLight AND white (the two real surfaces it
+  // appears on), not assumed.
+  periwinkle: '#A9A6E0', periwinkleLight: '#DAD9F2', periwinkleDark: '#383393',
   // blueLight used to be #4A90D9 — a medium-bright blue, not a pale tint
   // like every other *Light token (a naming/value bug). Nothing else in
   // the codebase referenced that value, so it's replaced outright rather
   // than preserved under a new name.
   blue: '#2E75B6', blueLight: '#DCE9F5',
-  amber: '#F5C518', amberLight: '#FFF2CC', amberDark: '#614D00',
+  // oceanBlue: secondary accent for link-style text — darkened from the
+  // requested #0D5E8C (which cleared white at only 7.01, and FAILED AAA
+  // against the page bg at 6.52) to #0C557E, verified >=7.3 on both real
+  // surfaces it appears on.
+  oceanBlue: '#0C557E',
+  // amber/amberLight/amberDark removed entirely — periwinkle/
+  // periwinkleLight/periwinkleDark replace every usage.
   // greenDark is calibrated purely for AAA text-on-greenLight contrast, and
   // its hue has never actually matched --color-green (152.7° vs
   // greenDark's 96.5°, an unrelated olive) — greenButton is a real dark
@@ -21,8 +42,10 @@ export const colors = {
   green: '#4CAF82', greenLight: '#C6EFCE', greenDark: '#324F20', greenButton: '#2A6047',
   orange: '#E07000', orangeLight: '#FFF8F0', orangeDark: '#824100',
   red: '#E05252', redLight: '#FCE4D6', redDark: '#8F1A1A',
-  bg: '#F4F6F9', panel: '#FFFFFF', border: '#DDE3EC',
-  muted: '#48505A', text: '#1A1A2E', textLight: '#9CA3AF',
+  bg: '#F4F7FA', panel: '#FFFFFF', border: '#DDE3EC',
+  // muted darkened from the requested #4A6080 (6.41 on white, 5.96 on bg —
+  // both under AAA) to #3F516D, same hue, verified >=7.3 on both surfaces.
+  muted: '#3F516D', text: '#1A1A2E', textLight: '#9CA3AF',
   inputBg: '#FAFBFD', inputFocus: '#FFFFFF',
 } as const;
 

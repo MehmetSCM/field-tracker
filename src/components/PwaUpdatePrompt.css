@@ -7,7 +7,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: var(--color-navy, #1f3864);
+  background: var(--color-navy, #0d1b2a);
   color: #ffffff;
   font-family: var(--font-family, system-ui, sans-serif);
   box-sizing: border-box;
@@ -17,7 +17,7 @@
   flex: 1;
   background: none;
   border: none;
-  color: var(--color-amber, #f5c518);
+  color: var(--color-periwinkle, #a9a6e0);
   font-weight: 700;
   font-size: 14px;
   text-align: left;

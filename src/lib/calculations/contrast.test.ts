@@ -135,18 +135,78 @@ const CROSS_RULE_PAIRINGS: Pairing[] = [
   },
   {
     source: 'AppShell.css .app-nav-link-active / .app-nav bg',
-    fg: colors.amber,
+    fg: colors.periwinkle,
     bg: colors.navyDark,
   },
   {
     source: 'PwaUpdatePrompt.css .pwa-update-reload / .pwa-update-banner bg',
-    fg: colors.amber,
+    fg: colors.periwinkle,
     bg: colors.navy,
   },
   {
     source: 'PwaUpdatePrompt.css .pwa-update-dismiss / .pwa-update-banner bg',
     fg: '#FFFFFF',
     bg: colors.navy,
+  },
+  // indigo/oceanBlue heading- and link-style text — introduced by the
+  // Vektor palette swap for text-on-light contexts (see tokens.ts) — are
+  // always declared on a different rule from the background they actually
+  // sit on (a page/card wrapper several levels up), so none of these are
+  // auto-discoverable either.
+  {
+    source: 'MillingEntryScreen.css .milling-header h1 / .milling-screen bg',
+    fg: colors.indigo,
+    bg: colors.panel,
+  },
+  {
+    source: 'MillingEntryScreen.css .milling-correction-form h2 / .milling-correction-form bg',
+    fg: colors.indigo,
+    bg: colors.panel,
+  },
+  {
+    source: 'MillingEntryScreen.css .milling-change-context-link / .milling-screen bg',
+    fg: colors.oceanBlue,
+    bg: colors.panel,
+  },
+  {
+    source: 'MillingHomeScreen.css .milling-home-history h2 / app-shell bg',
+    fg: colors.indigo,
+    bg: colors.bg,
+  },
+  {
+    source: 'MillingHomeScreen.css .milling-home-day-title / app-shell bg',
+    fg: colors.indigo,
+    bg: colors.bg,
+  },
+  {
+    source: 'MillingHomeScreen.css .milling-home-start-link-back / app-shell bg',
+    fg: colors.oceanBlue,
+    bg: colors.bg,
+  },
+  {
+    source: 'MillingHomeScreen.css .milling-home-day-area / .milling-home-day-row bg',
+    fg: colors.periwinkleDark,
+    bg: colors.panel,
+  },
+  {
+    source: 'TrackerScreen.css .tracker-project-code / app-shell bg',
+    fg: colors.indigo,
+    bg: colors.bg,
+  },
+  {
+    source: 'DashboardScreen.css .dashboard-project-code / app-shell bg',
+    fg: colors.indigo,
+    bg: colors.bg,
+  },
+  {
+    source: 'DashboardScreen.css .dashboard-section-title / app-shell bg',
+    fg: colors.indigo,
+    bg: colors.bg,
+  },
+  {
+    source: 'DashboardScreen.css .dashboard-stat-value / .dashboard-stat-card bg',
+    fg: colors.periwinkleDark,
+    bg: colors.panel,
   },
   // Disabled controls: WCAG 1.4.3 explicitly excludes text that is part of
   // an inactive UI component, so these are intentionally allowed to stay
