@@ -4,6 +4,7 @@ import { useCurrentProfile } from '../lib/useCurrentProfile'
 import './AppShell.css'
 
 const NAV_ITEMS = [
+  { to: '/home', label: 'Home' },
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/milling', label: 'Milling' },
   { to: '/paving', label: 'Paving' },

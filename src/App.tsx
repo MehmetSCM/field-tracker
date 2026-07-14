@@ -3,6 +3,7 @@ import { PwaUpdatePrompt } from './components/PwaUpdatePrompt'
 import { AppShell } from './shell/AppShell'
 import { DashboardScreen } from './screens/Dashboard/DashboardScreen'
 import { HistoryScreen } from './screens/History/HistoryScreen'
+import { HomeScreen } from './screens/Home/HomeScreen'
 import { MillingEntryScreen } from './screens/MillingEntry/MillingEntryScreen'
 import { PavingScreen } from './screens/Paving/PavingScreen'
 import { TrackerScreen } from './screens/Tracker/TrackerScreen'
@@ -14,13 +15,14 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route element={<AppShell />}>
-            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route index element={<Navigate to="/home" replace />} />
+            <Route path="/home" element={<HomeScreen />} />
             <Route path="/dashboard" element={<DashboardScreen />} />
             <Route path="/milling" element={<MillingEntryScreen />} />
             <Route path="/paving" element={<PavingScreen />} />
             <Route path="/tracker" element={<TrackerScreen />} />
             <Route path="/history" element={<HistoryScreen />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/home" replace />} />
           </Route>
         </Routes>
       </BrowserRouter>

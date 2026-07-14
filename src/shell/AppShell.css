@@ -39,11 +39,18 @@
 /* ProfileSelector styles itself as a standalone white card (it's used
    elsewhere too) — this just stops its own margin-bottom from adding
    unwanted space inside the header row, and keeps it from stretching
-   full-width when the header wraps it to its own line on narrow screens. */
+   full-width when the header wraps it to its own line on narrow screens.
+   The collapsed single-line summary gets its own, much narrower rule —
+   it should sit at its natural width, not stretch to fill 320-420px like
+   the full expanded card does. */
 .app-header .profile-selector {
   margin: 0;
   flex: 1 1 320px;
   max-width: 420px;
+}
+
+.app-header .profile-selector-collapsed {
+  flex: 0 0 auto;
 }
 
 .app-shell-gate-content {

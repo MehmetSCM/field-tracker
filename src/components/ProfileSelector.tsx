@@ -13,6 +13,12 @@ import './ProfileSelector.css'
  * real login, and is clearly labeled as such. Persists in localStorage
  * across reloads on this device until switched or cleared. Real auth
  * (Google OAuth) will supersede this once it ships.
+ *
+ * Collapsed to a small single-line summary by default once a profile is
+ * set — the full warning + Switch control is still exactly one tap away;
+ * nothing about it is removed, just its constant on-screen footprint.
+ * There's nothing meaningful to collapse when no profile is set yet (the
+ * picker itself has to stay visible), so that state always shows in full.
  */
 export function ProfileSelector() {
   const profile = useCurrentProfile()
@@ -20,6 +26,7 @@ export function ProfileSelector() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [switching, setSwitching] = useState(false)
   const [selectedId, setSelectedId] = useState('')
+  const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
     fetchActiveCrewMembers()
@@ -33,12 +40,39 @@ export function ProfileSelector() {
     setCurrentProfile(chosen)
     setSwitching(false)
     setSelectedId('')
+    setExpanded(false)
   }
 
   const showPicker = !profile || switching
 
+  if (!showPicker && !expanded) {
+    return (
+      <div className="profile-selector-collapsed">
+        <button type="button" className="profile-selector-summary" onClick={() => setExpanded(true)}>
+          <span>
+            {profile.name} ({profile.role})
+          </span>
+          <span className="profile-selector-chevron" aria-hidden="true">
+            ▾
+          </span>
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="profile-selector">
+      {!showPicker && (
+        <button
+          type="button"
+          className="profile-selector-collapse"
+          onClick={() => setExpanded(false)}
+          aria-label="Collapse"
+        >
+          ▴
+        </button>
+      )}
+
       <div className="profile-selector-warning">⚠ Unverified identity — not real login</div>
 
       {!showPicker && profile && (
@@ -68,7 +102,13 @@ export function ProfileSelector() {
           {loadError && <p className="profile-selector-error">{loadError}</p>}
           <div className="profile-selector-actions">
             {profile && (
-              <button type="button" onClick={() => setSwitching(false)}>
+              <button
+                type="button"
+                onClick={() => {
+                  setSwitching(false)
+                  setExpanded(false)
+                }}
+              >
                 Cancel
               </button>
             )}

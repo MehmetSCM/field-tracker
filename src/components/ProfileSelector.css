@@ -1,5 +1,7 @@
 .profile-selector,
-.profile-selector * {
+.profile-selector *,
+.profile-selector-collapsed,
+.profile-selector-collapsed * {
   box-sizing: border-box;
   color: #111111;
 }
@@ -11,6 +13,45 @@
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 1rem;
+  position: relative;
+}
+
+.profile-selector-collapse {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  color: #b00020;
+  line-height: 1;
+}
+
+.profile-selector-collapsed {
+  display: inline-flex;
+  font-family: system-ui, sans-serif;
+}
+
+.profile-selector-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #ffffff;
+  border: 2px solid #111111;
+  border-radius: 999px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #111111;
+  cursor: pointer;
+  min-height: 2.25rem;
+  white-space: nowrap;
+}
+
+.profile-selector-chevron {
+  font-size: 0.7rem;
 }
 
 .profile-selector-warning {
