@@ -5,8 +5,8 @@
 // anyone with access to the device. It exists so the app is usable before
 // real auth (Google OAuth) ships, and should be retired once it does.
 
-const STORAGE_KEY = 'field-tracker:current-profile'
-const PROFILE_CHANGED_EVENT = 'field-tracker:profile-changed'
+const STORAGE_KEY = 'novacore:current-profile'
+const PROFILE_CHANGED_EVENT = 'novacore:profile-changed'
 
 export interface CurrentProfile {
   id: string

@@ -39,7 +39,7 @@ export function AppShell() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <span className="app-wordmark">FIELD TRACKER</span>
+        <span className="app-wordmark">NOVACORE</span>
         <ProfileSelector />
       </header>
 

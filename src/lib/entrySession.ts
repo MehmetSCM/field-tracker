@@ -34,8 +34,8 @@ export const DEFAULT_ENTRY_SESSION: EntrySessionState = {
   blockMessage: null,
 }
 
-const STORAGE_PREFIX = 'field-tracker:entry-session:'
-const ENTRY_SESSION_CHANGED_EVENT = 'field-tracker:entry-session-changed'
+const STORAGE_PREFIX = 'novacore:entry-session:'
+const ENTRY_SESSION_CHANGED_EVENT = 'novacore:entry-session-changed'
 
 function storageKey(activity: string, projectId: string, direction: string): string {
   return `${STORAGE_PREFIX}${activity}:${projectId}:${direction}`

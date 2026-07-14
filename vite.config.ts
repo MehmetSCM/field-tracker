@@ -16,8 +16,8 @@ export default defineConfig({
       injectRegister: false,
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Field Tracker',
-        short_name: 'Field Tracker',
+        name: 'Novacore',
+        short_name: 'Novacore',
         description: 'Keywest Asphalt field data tracker',
         theme_color: '#1F3864',
         background_color: '#F4F6F9',

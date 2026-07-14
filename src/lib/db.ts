@@ -57,7 +57,7 @@ export interface QueuedExtraAreaEntry {
   createdAt: number
 }
 
-const db = new Dexie('field-tracker') as Dexie & {
+const db = new Dexie('novacore') as Dexie & {
   widthReadingsQueue: EntityTable<QueuedWidthReading, 'localId'>
   extraAreaQueue: EntityTable<QueuedExtraAreaEntry, 'localId'>
 }
