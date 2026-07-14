@@ -46,7 +46,7 @@ export const touchTarget = { min:'44px', standard:'48px', large:'56px' } as cons
 // floor and never shrinks further; standard/large still shrink but stay
 // at or above it.
 export const mobileOverrides = {
-  sizes: { base: '13px', md: '14px', lg: '15px', xl: '16px', '2xl': '19px', '3xl': '24px' },
-  spacing: { 4: '12px', 5: '16px', 6: '18px', 8: '24px', 10: '32px', 12: '40px' },
+  sizes: { base: '13px', md: '14px', lg: '14px', xl: '15px', '2xl': '18px', '3xl': '20px' },
+  spacing: { 3: '9px', 4: '12px', 5: '16px', 6: '18px', 8: '24px', 10: '32px', 12: '40px' },
   touchTarget: { standard: '44px', large: '48px' },
 } as const;
