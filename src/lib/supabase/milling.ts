@@ -415,7 +415,7 @@ export async function fetchPastSessionGroups(excludeDate: string): Promise<PastS
 
   const byDateAndSegment = new Map<string, PastReadingRow[]>()
   for (const row of rows) {
-    const key = `${row.date} ${row.roadSegmentId}`
+    const key = `${row.date} ${row.roadSegmentId}`
     const existing = byDateAndSegment.get(key)
     if (existing) existing.push(row)
     else byDateAndSegment.set(key, [row])
@@ -433,7 +433,7 @@ export async function fetchPastSessionGroups(excludeDate: string): Promise<PastS
 
   const groups: PastSessionGroup[] = []
   for (const [key, segmentDateRows] of byDateAndSegment) {
-    const [date, roadSegmentId] = key.split(' ')
+    const [date, roadSegmentId] = key.split(' ')
     const sorted = [...segmentDateRows].sort((a, b) => a.stationSequence - b.stationSequence)
     const threads = splitIntoThreads(sorted)
     const range = segmentRange.get(roadSegmentId)
@@ -452,7 +452,7 @@ export async function fetchPastSessionGroups(excludeDate: string): Promise<PastS
       const first = thread.readings[0]
       const last = thread.readings[thread.readings.length - 1]
       groups.push({
-        key: `${key} ${threadIndex}`,
+        key: `${key} ${threadIndex}`,
         date,
         projectId: first.projectId,
         projectContractNumber: first.projectContractNumber,

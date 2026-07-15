@@ -47,7 +47,16 @@ export async function importServerReadings(roadSegmentId: string, date: string):
   }
 }
 
-/** Queues a brand-new field entry immediately (optimistic UI), then attempts to sync it right away. */
+/**
+ * Queues a brand-new field entry immediately (optimistic UI), then attempts
+ * to sync it right away. stationSequence here is a LOCAL-ONLY guess for
+ * offline ordering/display before sync — the server is the sole source of
+ * truth for the persisted value (assigned atomically by a DB trigger, see
+ * migration 20260714180000) and always overwrites it on insert. Once synced,
+ * syncQueuedWidthReadings reconciles this row with whatever the server
+ * actually assigned, so a collision with another device's concurrent entry
+ * never leaves the local copy out of sync with reality.
+ */
 export async function enqueueWidthReading(entry: {
   roadSegmentId: string
   direction: string
@@ -97,6 +106,12 @@ export async function syncQueuedWidthReadings(): Promise<void> {
       await db.widthReadingsQueue.update(item.localId!, {
         status: 'synced',
         serverId: inserted.id,
+        // The server may have assigned a different sequence than our local
+        // guess (e.g. another device's entry for the same segment/day/
+        // direction landed in between) — always take the authoritative
+        // value back, so the local copy this screen actually renders from
+        // can't drift from what's really stored.
+        stationSequence: inserted.stationSequence,
         lastError: null,
       })
     } catch (err) {
