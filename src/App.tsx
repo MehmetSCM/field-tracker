@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { PwaUpdatePrompt } from './components/PwaUpdatePrompt'
 import { AppShell } from './shell/AppShell'
 import { DashboardScreen } from './screens/Dashboard/DashboardScreen'
@@ -21,7 +22,14 @@ function App() {
             <Route path="/home" element={<HomeScreen />} />
             <Route path="/dashboard" element={<DashboardScreen />} />
             <Route path="/milling" element={<MillingHomeScreen />} />
-            <Route path="/milling/new" element={<MillingEntryScreen />} />
+            <Route
+              path="/milling/new"
+              element={
+                <ErrorBoundary>
+                  <MillingEntryScreen />
+                </ErrorBoundary>
+              }
+            />
             <Route path="/milling/day/:date" element={<MillingDayDetailScreen />} />
             <Route path="/paving" element={<PavingScreen />} />
             <Route path="/tracker" element={<TrackerScreen />} />

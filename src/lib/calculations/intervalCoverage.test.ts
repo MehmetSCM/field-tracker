@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { findStrictlyInsideCoverage, mergeIntervals } from './intervalCoverage'
+import { findStrictlyInsideCoverage, isRangeFullyCovered, mergeIntervals } from './intervalCoverage'
 
 describe('mergeIntervals', () => {
   it('returns nothing for an empty input', () => {
@@ -78,5 +78,27 @@ describe('findStrictlyInsideCoverage', () => {
 
   it('returns null for an empty coverage list', () => {
     expect(findStrictlyInsideCoverage(50, [])).toBeNull()
+  })
+})
+
+describe('isRangeFullyCovered', () => {
+  it('is true when one merged interval spans the whole range', () => {
+    expect(isRangeFullyCovered(0, 100, [{ lo: 0, hi: 100 }])).toBe(true)
+  })
+
+  it('is true when the merged interval extends past both ends', () => {
+    expect(isRangeFullyCovered(20, 80, [{ lo: 0, hi: 100 }])).toBe(true)
+  })
+
+  it('is false when there is a gap inside the range', () => {
+    expect(isRangeFullyCovered(0, 100, [{ lo: 0, hi: 40 }, { lo: 60, hi: 100 }])).toBe(false)
+  })
+
+  it('is false when coverage stops short of one end', () => {
+    expect(isRangeFullyCovered(0, 100, [{ lo: 0, hi: 90 }])).toBe(false)
+  })
+
+  it('is false for an empty coverage list', () => {
+    expect(isRangeFullyCovered(0, 100, [])).toBe(false)
   })
 })

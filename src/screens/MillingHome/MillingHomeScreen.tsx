@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { formatDayLabel, todayLocalDateString } from '../../lib/dateFormat'
-import { fetchPastDaySummaries, type DaySummary } from '../../lib/supabase/milling'
+import type { MillingResumePayload } from '../../lib/entrySession'
+import { fetchPastSessionGroups, type PastSessionGroup } from '../../lib/supabase/milling'
 import './MillingHomeScreen.css'
 
 function extractErrorMessage(err: unknown, fallback: string): string {
@@ -12,25 +13,62 @@ function extractErrorMessage(err: unknown, fallback: string): string {
   return fallback
 }
 
+interface DayGroup {
+  date: string
+  totalArea: number
+  sessions: PastSessionGroup[]
+}
+
+function groupByDay(sessions: PastSessionGroup[]): DayGroup[] {
+  const byDate = new Map<string, PastSessionGroup[]>()
+  for (const session of sessions) {
+    const existing = byDate.get(session.date)
+    if (existing) existing.push(session)
+    else byDate.set(session.date, [session])
+  }
+  return [...byDate.entries()]
+    .map(([date, dateSessions]) => ({
+      date,
+      totalArea: dateSessions.reduce((sum, s) => sum + s.area, 0),
+      sessions: dateSessions,
+    }))
+    .sort((a, b) => (a.date < b.date ? 1 : -1))
+}
+
 /**
  * Landing screen for Milling, reached from Home — separate from the actual
  * entry flow (MillingEntryScreen, at /milling/new) so starting a new entry
  * is one deliberate tap, not something that happens just by navigating
  * here. Below the start card: every previous day with entries, across all
- * projects (there's no crew-to-project scoping anywhere yet), grouped by
- * date and read-only until tapped into.
+ * projects (there's no crew-to-project scoping anywhere yet), broken out by
+ * individual session (not just by day — a day can hold several disjoint
+ * project/direction/thread sessions, each independently resumable). Every
+ * session gets a "Continue from here" resume icon except ones whose
+ * segment+direction is already fully covered by confirmed readings, since
+ * there'd be nothing left to add.
  */
 export function MillingHomeScreen() {
-  const [summaries, setSummaries] = useState<DaySummary[]>([])
+  const navigate = useNavigate()
+  const [days, setDays] = useState<DayGroup[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchPastDaySummaries(todayLocalDateString())
-      .then(setSummaries)
-      .catch((err) => setError(extractErrorMessage(err, 'Failed to load previous days.')))
+    fetchPastSessionGroups(todayLocalDateString())
+      .then((sessions) => setDays(groupByDay(sessions)))
+      .catch((err: unknown) => setError(extractErrorMessage(err, 'Failed to load previous days.')))
       .finally(() => setLoading(false))
   }, [])
+
+  function handleResume(session: PastSessionGroup) {
+    const resume: MillingResumePayload = {
+      projectId: session.projectId,
+      direction: session.direction,
+      ascendingDescending: session.ascendingDescending,
+      startingStation: session.startingStation,
+    }
+    navigate('/milling/new', { state: { resume } })
+  }
 
   return (
     <div className="milling-home-screen">
@@ -43,22 +81,39 @@ export function MillingHomeScreen() {
 
         {loading && <p>Loading…</p>}
         {error && <p className="milling-home-error">{error}</p>}
-        {!loading && !error && summaries.length === 0 && (
-          <p className="milling-home-empty">No previous entries yet.</p>
-        )}
+        {!loading && !error && days.length === 0 && <p className="milling-home-empty">No previous entries yet.</p>}
 
-        <ul>
-          {summaries.map((day) => (
-            <li key={day.date}>
-              <Link to={`/milling/day/${day.date}`} className="milling-home-day-row">
-                <div className="milling-home-day-main">
-                  <span className="milling-home-day-date">{formatDayLabel(day.date)}</span>
-                  <span className="milling-home-day-meta">
-                    {day.projectContractNumbers.join(', ')} · {day.directions.join(', ')}
-                  </span>
-                </div>
+        <ul className="milling-home-day-list">
+          {days.map((day) => (
+            <li key={day.date} className="milling-home-day-group">
+              <div className="milling-home-day-heading">
+                <span className="milling-home-day-date">{formatDayLabel(day.date)}</span>
                 <strong className="milling-home-day-area">{day.totalArea.toFixed(2)} m²</strong>
-              </Link>
+              </div>
+
+              <ul className="milling-home-session-list">
+                {day.sessions.map((session) => (
+                  <li key={session.key} className="milling-home-session-row">
+                    <Link to={`/milling/day/${day.date}`} className="milling-home-session-link">
+                      <span className="milling-home-session-meta">
+                        {session.projectContractNumber} · {session.direction}
+                        {session.ascendingDescending && ` · ${session.ascendingDescending}`}
+                      </span>
+                      <span className="milling-home-session-area">{session.area.toFixed(2)} m²</span>
+                    </Link>
+                    {!session.fullyCovered && (
+                      <button
+                        type="button"
+                        className="milling-home-resume-button"
+                        aria-label="Continue from here"
+                        onClick={() => handleResume(session)}
+                      >
+                        ▶
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
             </li>
           ))}
         </ul>

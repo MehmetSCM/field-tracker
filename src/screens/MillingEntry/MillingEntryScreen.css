@@ -91,6 +91,28 @@
   text-align: center;
 }
 
+/* Station + Width side by side rather than stacked — halves the vertical
+   footprint of the two most-used inputs on the entry screen. Smaller
+   font-size/padding than the standalone .milling-field-large usage (the
+   setup screen's Starting Station field, still full-width) since each of
+   these now only has half the row's width to work with; min-height stays
+   at the shared touch-standard target. Add Reading (.milling-submit) is
+   untouched, so it stays the largest, clearest control on the screen. */
+.milling-field-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.milling-field-row .milling-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.milling-field-row .milling-field-large input {
+  font-size: var(--font-size-2xl);
+  padding: var(--space-2);
+}
+
 /* Placeholder must never be mistakable for an entered value in direct
    sunlight — lighter color AND normal weight, since the large station/width
    inputs are bold. Real entered text stays var(--color-text) bold. */
@@ -177,34 +199,57 @@
   white-space: nowrap;
 }
 
-.milling-context-row {
-  display: flex;
+/* Three-slot topbar: icon-only back link (fixed width, so the centered
+   project label is genuinely centered rather than just left-biased),
+   project/direction context, and a small sync-state dot — see the comment
+   above this JSX in MillingEntryScreen.tsx for why this replaced the old
+   separate context-row + full-width sync banner. */
+.milling-topbar {
+  display: grid;
+  grid-template-columns: var(--touch-min) 1fr var(--touch-min);
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-2);
   margin-bottom: var(--space-2);
 }
 
-.milling-change-context-link {
+.milling-change-context-icon {
+  justify-self: start;
   background: none;
   border: none;
   color: var(--color-ocean-blue);
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-sm);
-  text-decoration: underline;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
   padding: var(--space-2);
   margin-left: calc(-1 * var(--space-2));
+  min-width: var(--touch-min);
   min-height: var(--touch-min);
   cursor: pointer;
 }
 
-.milling-context-label {
+.milling-topbar-project {
+  text-align: center;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   color: var(--color-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.milling-sync-dot {
+  justify-self: end;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.milling-sync-dot-synced {
+  background: var(--color-green-dark);
+}
+
+.milling-sync-dot-pending {
+  background: var(--color-orange-dark);
 }
 
 .milling-list ul {
@@ -286,38 +331,6 @@
   cursor: pointer;
   min-width: var(--space-10);
   min-height: var(--space-10);
-}
-
-.milling-sync-status {
-  padding: var(--space-2) var(--space-4);
-  margin-bottom: var(--space-4);
-  border-radius: var(--radius-lg);
-  font-weight: var(--font-weight-bold);
-  text-align: center;
-  font-size: var(--font-size-md);
-}
-
-.milling-sync-pending {
-  background: var(--color-periwinkle-light);
-  color: var(--color-periwinkle-dark);
-  border: 2px solid var(--color-periwinkle-dark);
-}
-
-/* Passive/steady-state — a small pill, not a full-width banner, so it
-   doesn't compete for space with the actual entry work. The pending state
-   above stays full-width since it's non-passive (something is actively
-   happening and worth the attention). */
-.milling-sync-pill {
-  display: inline-flex;
-  align-items: center;
-  margin-bottom: var(--space-2);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-  background: var(--color-green-light);
-  color: var(--color-green-dark);
-  border: 2px solid var(--color-green-dark);
-  font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-sm);
 }
 
 .milling-correction-backdrop {
@@ -468,6 +481,10 @@
   color: #ffffff;
 }
 
+/* Slim, uncarded line — no border/background of its own, sitting directly
+   above Station/Width — deliberately lighter-weight than the actual entry
+   controls below it, since it's passive context (which session is active)
+   rather than something the crew interacts with on every reading. */
 .milling-session-indicator-row {
   display: flex;
   align-items: center;
@@ -477,9 +494,7 @@
 
 .milling-session-indicator {
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  font-weight: var(--font-weight-normal);
   color: var(--color-muted);
 }
 
@@ -490,7 +505,7 @@
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-sm);
   text-decoration: underline;
-  padding: var(--space-2);
+  padding: var(--space-1) var(--space-2);
   min-height: var(--touch-min);
   cursor: pointer;
 }

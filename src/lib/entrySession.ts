@@ -26,6 +26,14 @@ export interface EntrySessionState {
   blockMessage: string | null
 }
 
+/** Carried via router state from a "Continue from here" tap on a past session (MillingHomeScreen) to the setup screen (MillingEntryScreen) — pre-fills its four fields without touching this device's own persisted session for that project/direction, since the resumed session may belong to a different day or device entirely. */
+export interface MillingResumePayload {
+  projectId: string
+  direction: string
+  ascendingDescending: EntrySessionDirection | null
+  startingStation: number
+}
+
 export const DEFAULT_ENTRY_SESSION: EntrySessionState = {
   direction: null,
   lastStation: null,

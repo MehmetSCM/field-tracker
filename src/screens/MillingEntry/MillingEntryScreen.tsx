@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { ExtraAreaForm } from '../../components/ExtraAreaForm'
 import { findStrictlyInsideCoverage, mergeIntervals, type Interval } from '../../lib/calculations/intervalCoverage'
 import { calculateSegments, cumulativeArea } from '../../lib/calculations/segmentArea'
 import { resolveSegmentForStation } from '../../lib/calculations/segmentResolution'
 import { todayLocalDateString } from '../../lib/dateFormat'
 import { db, type QueuedWidthReading } from '../../lib/db'
-import { getEntrySession, type EntrySessionDirection } from '../../lib/entrySession'
+import { getEntrySession, type EntrySessionDirection, type MillingResumePayload } from '../../lib/entrySession'
 import {
   fetchCurrentCrewMember,
   fetchProjects,
@@ -67,8 +68,18 @@ export function MillingEntryScreen() {
   const displayName = crewMember?.name ?? profile?.name ?? null
   const hasIdentity = crewMember !== null || profile !== null
 
+  // A "Continue from here" tap on MillingHomeScreen navigates here with this
+  // payload in router state — captured once via the lazy useState
+  // initializer (not re-read on later re-renders/navigations within this
+  // same mount) since it's a one-shot hydration of the setup screen, not a
+  // live binding to browser history state.
+  const location = useLocation()
+  const [pendingResume] = useState<MillingResumePayload | null>(
+    () => (location.state as { resume?: MillingResumePayload } | null)?.resume ?? null,
+  )
+
   const [projects, setProjects] = useState<ProjectOption[]>([])
-  const [selectedProjectId, setSelectedProjectId] = useState('')
+  const [selectedProjectId, setSelectedProjectId] = useState(() => pendingResume?.projectId ?? '')
 
   // Segment is no longer manually picked — every road_segment for the
   // project is fetched once, and segmentResolution.ts resolves which one a
@@ -83,28 +94,28 @@ export function MillingEntryScreen() {
     [segmentCandidates],
   )
 
-  // Ascending/descending (direction of travel) is decided on the setup
-  // screen now, alongside Project + Direction (NB/SB) — all three before
-  // "Begin Entry". Only relevant for a genuinely fresh start: if the picked
-  // project/direction combo already has a session with a declared
-  // ascending/descending, showEntry (below) skips setup entirely, so this
-  // picker never even renders for a resumed session.
+  // Ascending/descending (direction of travel) and the starting station are
+  // both decided on the setup screen, alongside Project + Direction (NB/SB)
+  // — all four before "Begin Entry". Starting station is never computed or
+  // defaulted here (see the pre-fill effect below for why) — the crew
+  // always sees and explicitly confirms it, since the mechanical "next
+  // round 50" isn't always right (segment-cut exceptions).
   const [setupDirection, setSetupDirection] = useState<EntrySessionDirection | null>(null)
+  const [setupStartingStation, setSetupStartingStation] = useState('')
 
   const projectDirectionChosen = selectedProjectId !== '' && selectedDirection !== ''
-  // Gates the "Begin Entry" button specifically — requires all three fresh
-  // choices. Deliberately NOT what showEntry (below) checks: resuming a
-  // session that already has a declared ascending/descending must skip
-  // setup even though setupDirection itself was never touched this load.
-  const ready = projectDirectionChosen && setupDirection !== null
+  const startingStationValue = Number(setupStartingStation)
+  const ready =
+    projectDirectionChosen &&
+    setupDirection !== null &&
+    setupStartingStation.trim() !== '' &&
+    Number.isFinite(startingStationValue)
 
-  // Two-step flow: setup (Project + Direction + ascending/descending) then
-  // entry. entryStarted is the explicit "Begin Entry" tap; showEntry ALSO
-  // turns true automatically once a session already has a declared
-  // direction for this project/direction combo, so resuming an in-progress
-  // session (navigated away and back, or reloaded) lands straight on step 2
-  // without re-tapping through setup — matching the existing
-  // session-persistence guarantee.
+  // Two-step flow: setup (Project + Direction + ascending/descending +
+  // starting station) then entry. showEntry is true ONLY after the explicit
+  // "Begin Entry" tap — a persisted session with an already-declared
+  // direction does NOT skip setup anymore; it just pre-fills setup's fields
+  // (see the effect below) so confirming it again is fast, not skipped.
   const [entryStarted, setEntryStarted] = useState(false)
 
   const [loadingReadings, setLoadingReadings] = useState(false)
@@ -131,7 +142,7 @@ export function MillingEntryScreen() {
 
   const activeSegment = segmentCandidates.find((c) => c.id === session.activeSegmentId) ?? null
 
-  const showEntry = projectDirectionChosen && (entryStarted || session.direction !== null)
+  const showEntry = entryStarted
 
   // [lo, hi] per prior day with active readings on the active segment —
   // merged with today's live interval (from activeEntries, below) to check
@@ -164,29 +175,55 @@ export function MillingEntryScreen() {
     fetchProjectSegmentCandidates(selectedProjectId).then(setSegmentCandidates)
   }, [selectedProjectId])
 
-  // Every project/direction (re)selection resumes THAT combination's own
-  // persisted session (useEntrySession's own effect handles loading
-  // `session` itself) — this effect's job is just to pre-fill the station
-  // proposal to match whatever's already stored. Reads storage directly via
-  // getEntrySession rather than through `session` so it can't race the
-  // hook's own change effect (both fire off this same selectedDirection
-  // change).
+  // Applies a pending resume's Direction (NB/SB) once the project's segment
+  // candidates have loaded and actually offer it — the select's options
+  // don't exist yet on the same tick selectedProjectId is first set from
+  // pendingResume, so this can't just be folded into that initial state.
+  useEffect(() => {
+    if (!pendingResume) return
+    if (selectedProjectId !== pendingResume.projectId) return
+    if (!(availableDirections as string[]).includes(pendingResume.direction)) return
+    setSelectedDirection(pendingResume.direction)
+  }, [pendingResume, selectedProjectId, availableDirections])
+
+  // Every project/direction (re)selection pre-fills the SETUP screen's own
+  // fields (ascending/descending, starting station) from that combination's
+  // persisted session, if one exists — never the entry screen directly,
+  // since step 2 is only ever reached via the explicit Begin Entry tap now
+  // (no auto-skip). Starting station pre-fills with the session's raw
+  // lastStation (where it left off), not a computed "next" proposal — the
+  // crew reviews and can edit it before confirming, since the mechanical
+  // next-round-50 guess isn't always right (segment-cut exceptions). Reads
+  // storage directly via getEntrySession rather than through `session` so
+  // it can't race the hook's own change effect (both fire off this same
+  // selectedDirection change).
+  //
+  // A pendingResume matching the current Project+Direction wins over the
+  // persisted local session — it's an explicit "continue this specific past
+  // session" request, which may be a different session than whatever this
+  // device last has stored locally for that combination (or there may be
+  // nothing stored locally at all, e.g. a different device recorded it).
+  // Per its own fallback rule (see sessionThreads.ts), an unresolvable
+  // ascending/descending on the resumed session is left unset here too,
+  // rather than guessed — the crew confirms it explicitly instead.
   useEffect(() => {
     setFormError(null)
     setWidthInput('')
+    setSetupDirection(null)
+    setSetupStartingStation('')
 
-    if (!selectedProjectId || !selectedDirection) {
-      setStationInput('')
+    if (!selectedProjectId || !selectedDirection) return
+
+    if (pendingResume && pendingResume.projectId === selectedProjectId && pendingResume.direction === selectedDirection) {
+      if (pendingResume.ascendingDescending) setSetupDirection(pendingResume.ascendingDescending)
+      setSetupStartingStation(String(pendingResume.startingStation))
       return
     }
 
     const persisted = getEntrySession(ACTIVITY, selectedProjectId, selectedDirection)
-    setStationInput(
-      persisted.direction && persisted.lastStation !== null
-        ? String(computeNextStation(persisted.lastStation, persisted.direction))
-        : '',
-    )
-  }, [selectedProjectId, selectedDirection])
+    if (persisted.direction) setSetupDirection(persisted.direction)
+    if (persisted.lastStation !== null) setSetupStartingStation(String(persisted.lastStation))
+  }, [selectedProjectId, selectedDirection, pendingResume])
 
   // Whenever the resolved active segment changes (including a mid-session
   // crossing into a different segment) — reload its historical coverage.
@@ -391,10 +428,10 @@ export function MillingEntryScreen() {
   // useEntrySession('paving', projectId, direction) instance, same pattern,
   // entirely independent key).
   //
-  // Also resets entryStarted/setupDirection so this returns to the setup
-  // screen with all three choices (Project, Direction, ascending/
-  // descending) to make again — not just back to a step-2 prompt, since
-  // ascending/descending no longer has anywhere to be re-declared there.
+  // Also resets entryStarted/setupDirection/setupStartingStation so this
+  // returns to the setup screen with all four choices (Project, Direction,
+  // ascending/descending, starting station) to make again — setup is the
+  // only place any of these are declared now, there's no step-2 fallback.
   function handleEndSession() {
     clearSession()
     setStationInput('')
@@ -402,6 +439,7 @@ export function MillingEntryScreen() {
     setFormError(null)
     setEntryStarted(false)
     setSetupDirection(null)
+    setSetupStartingStation('')
   }
 
   // Returns to step 1 without touching the persisted session — Project and
@@ -487,6 +525,18 @@ export function MillingEntryScreen() {
             </div>
           </div>
 
+          <label className="milling-field milling-field-large">
+            <span>Starting station (m)</span>
+            <input
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
+              value={setupStartingStation}
+              onChange={(e) => setSetupStartingStation(e.target.value)}
+              placeholder="0.00"
+            />
+          </label>
+
           <button
             type="button"
             className="milling-submit"
@@ -494,6 +544,7 @@ export function MillingEntryScreen() {
             onClick={() => {
               if (!setupDirection) return
               updateSession({ direction: setupDirection })
+              setStationInput(setupStartingStation)
               setEntryStarted(true)
             }}
           >
@@ -508,20 +559,32 @@ export function MillingEntryScreen() {
           them. */}
       {showEntry && (
         <>
-          <div className="milling-context-row">
-            <button type="button" className="milling-change-context-link" onClick={handleChangeProjectDirection}>
-              ← Change Project/Direction
+          {/* Combined topbar: icon-only "back to setup" (no label — same
+              learnable-icon convention as the resume icon on
+              MillingHomeScreen's previous-day cards), the project/direction
+              context centered, and sync state as a small dot rather than a
+              full-width banner — replaces the old separate context-row +
+              sync-status banner, which competed with the entry form for
+              vertical space above the fold. */}
+          <div className="milling-topbar">
+            <button
+              type="button"
+              className="milling-change-context-icon"
+              onClick={handleChangeProjectDirection}
+              aria-label="Change Project/Direction"
+            >
+              ←
             </button>
-            <span className="milling-context-label">
+            <span className="milling-topbar-project">
               {projects.find((p) => p.id === selectedProjectId)?.contractNumber} · {selectedDirection}
             </span>
+            <span
+              className={'milling-sync-dot' + (queuedCount > 0 ? ' milling-sync-dot-pending' : ' milling-sync-dot-synced')}
+              role="status"
+              aria-label={queuedCount > 0 ? `${queuedCount} queued, syncing` : 'All synced'}
+              title={queuedCount > 0 ? `${queuedCount} queued, syncing` : 'All synced'}
+            />
           </div>
-
-          {queuedCount > 0 ? (
-            <div className="milling-sync-status milling-sync-pending">{queuedCount} queued, syncing…</div>
-          ) : (
-            <span className="milling-sync-pill">All synced</span>
-          )}
 
           {!hasIdentity && (
             <p className="milling-identity-required">Select who you are above to start entering readings.</p>
@@ -562,7 +625,7 @@ export function MillingEntryScreen() {
             <form className="milling-form" onSubmit={handleSubmit}>
               <div className="milling-session-indicator-row">
                 <span className="milling-session-indicator">
-                  Session: {session.direction === 'ascending' ? 'Ascending' : 'Descending'}
+                  {session.direction === 'ascending' ? 'Ascending' : 'Descending'} session
                   {activeSegment && ` · ${activeSegment.highway} ${activeSegment.direction}`}
                 </span>
                 {/* Same handleEndSession as the direction-violation recovery
@@ -573,7 +636,7 @@ export function MillingEntryScreen() {
                     nothing else — already-submitted readings are untouched
                     either way. */}
                 <button type="button" className="milling-end-session-link" onClick={handleEndSession}>
-                  End Session
+                  End
                 </button>
               </div>
 
@@ -584,29 +647,31 @@ export function MillingEntryScreen() {
                 </p>
               )}
 
-              <label className="milling-field milling-field-large">
-                <span>Station (m)</span>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  autoComplete="off"
-                  value={stationInput}
-                  onChange={(e) => setStationInput(e.target.value)}
-                  placeholder="0.00"
-                />
-              </label>
+              <div className="milling-field-row">
+                <label className="milling-field milling-field-large">
+                  <span>Station (m)</span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    autoComplete="off"
+                    value={stationInput}
+                    onChange={(e) => setStationInput(e.target.value)}
+                    placeholder="0.00"
+                  />
+                </label>
 
-              <label className="milling-field milling-field-large">
-                <span>Width (m)</span>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  autoComplete="off"
-                  value={widthInput}
-                  onChange={(e) => setWidthInput(e.target.value)}
-                  placeholder="0.00"
-                />
-              </label>
+                <label className="milling-field milling-field-large">
+                  <span>Width (m)</span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    autoComplete="off"
+                    value={widthInput}
+                    onChange={(e) => setWidthInput(e.target.value)}
+                    placeholder="0.00"
+                  />
+                </label>
+              </div>
 
               {formError && <p className="milling-error">{formError}</p>}
 

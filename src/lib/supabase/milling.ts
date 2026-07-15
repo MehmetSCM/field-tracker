@@ -1,5 +1,6 @@
-import type { Interval } from '../calculations/intervalCoverage'
+import { isRangeFullyCovered, mergeIntervals, type Interval } from '../calculations/intervalCoverage'
 import { calculateSegments, cumulativeArea } from '../calculations/segmentArea'
+import { splitIntoThreads } from '../calculations/sessionThreads'
 import { supabase } from './client'
 
 export interface ProjectOption {
@@ -132,23 +133,14 @@ export async function fetchTodaysWidthReadings(
   return (data ?? []).map(mapWidthReadingRow)
 }
 
-/**
- * One [min station, max station] interval per prior day that has active
- * (non-superseded) readings for this segment — the raw material for the
- * merge in intervalCoverage.ts. Excludes `excludeDate` (today) since that
- * day's coverage is computed live from the local Dexie queue instead, which
- * reflects not-yet-synced entries this server fetch wouldn't have yet.
- */
-export async function fetchStationCoverageIntervals(
-  roadSegmentId: string,
-  excludeDate: string,
-): Promise<Interval[]> {
-  const { data, error } = await supabase
+async function queryStationCoverageIntervals(roadSegmentId: string, excludeDate?: string): Promise<Interval[]> {
+  let query = supabase
     .from('width_readings')
     .select('paving_date, station')
     .eq('road_segment_id', roadSegmentId)
     .is('superseded_by', null)
-    .neq('paving_date', excludeDate)
+  if (excludeDate) query = query.neq('paving_date', excludeDate)
+  const { data, error } = await query
   if (error) throw error
 
   const byDate = new Map<string, number[]>()
@@ -162,6 +154,31 @@ export async function fetchStationCoverageIntervals(
     lo: Math.min(...stations),
     hi: Math.max(...stations),
   }))
+}
+
+/**
+ * One [min station, max station] interval per prior day that has active
+ * (non-superseded) readings for this segment — the raw material for the
+ * merge in intervalCoverage.ts. Excludes `excludeDate` (today) since that
+ * day's coverage is computed live from the local Dexie queue instead, which
+ * reflects not-yet-synced entries this server fetch wouldn't have yet.
+ */
+export async function fetchStationCoverageIntervals(
+  roadSegmentId: string,
+  excludeDate: string,
+): Promise<Interval[]> {
+  return queryStationCoverageIntervals(roadSegmentId, excludeDate)
+}
+
+/**
+ * Same shape as fetchStationCoverageIntervals but across every date,
+ * including today — used to decide whether a past session's segment+
+ * direction is now fully covered end to end (so its "Continue from here"
+ * resume icon can be hidden), which needs the complete confirmed-reading
+ * picture, not just history before some particular day.
+ */
+export async function fetchFullStationCoverageIntervals(roadSegmentId: string): Promise<Interval[]> {
+  return queryStationCoverageIntervals(roadSegmentId)
 }
 
 export async function insertWidthReading(params: {
@@ -258,6 +275,7 @@ export interface PastReadingRow {
   correctionReason: string | null
   entryTimestamp: string
   highway: string
+  projectId: string
   projectContractNumber: string
   projectName: string
 }
@@ -272,17 +290,35 @@ export interface DaySegmentGroup {
   readings: PastReadingRow[]
 }
 
-export interface DaySummary {
+/**
+ * One independently-resumable past session: every reading for one segment
+ * on one date that shares a single direction-of-travel thread (see
+ * sessionThreads.ts — a thread breaks wherever the station order reverses,
+ * since a segment-cut exception is the only real-world reason a crew
+ * restarts elsewhere on the same segment/day). A day with three distinct
+ * sessions produces three of these, each independently resumable, rather
+ * than being collapsed into one calendar-day summary.
+ */
+export interface PastSessionGroup {
+  key: string
   date: string
-  totalArea: number
-  directions: string[]
-  projectContractNumbers: string[]
+  projectId: string
+  projectContractNumber: string
+  projectName: string
+  roadSegmentId: string
+  direction: string
+  highway: string
+  ascendingDescending: 'ascending' | 'descending' | null
+  startingStation: number
+  area: number
+  readingCount: number
+  fullyCovered: boolean
 }
 
 const PAST_READING_SELECT = `
   id, road_segment_id, direction, paving_date, station_sequence, station, width,
   is_correction, superseded_by, correction_reason, entry_timestamp,
-  road_segments!inner ( road_segment_groups!inner ( highway, jobs!inner ( projects!inner ( contract_number, name ) ) ) )
+  road_segments!inner ( from_station, to_station, road_segment_groups!inner ( highway, jobs!inner ( projects!inner ( id, contract_number, name ) ) ) )
 `
 
 interface RawPastReadingRow {
@@ -298,10 +334,13 @@ interface RawPastReadingRow {
   correction_reason: string | null
   entry_timestamp: string
   road_segments: {
+    from_station: number
+    to_station: number
     road_segment_groups: {
       highway: string
       jobs: {
         projects: {
+          id: string
           contract_number: string
           name: string
         }
@@ -326,6 +365,7 @@ function mapPastReadingRow(row: RawPastReadingRow): PastReadingRow {
     correctionReason: row.correction_reason,
     entryTimestamp: row.entry_timestamp,
     highway: group.highway,
+    projectId: project.id,
     projectContractNumber: project.contract_number,
     projectName: project.name,
   }
@@ -342,17 +382,18 @@ function groupBySegment(rows: PastReadingRow[]): Map<string, PastReadingRow[]> {
 }
 
 /**
- * Every non-superseded width_reading before `excludeDate` (today — today's
- * entries live in the active session view, not "previous days"), across
- * every project/segment, aggregated client-side into one summary per date.
- * There's no crew-to-project scoping anywhere in this app yet (fetchProjects
- * is similarly unscoped), and grouping only by date rather than
- * date+project matches how these crews actually work — one project per day
- * in practice. On the rare day multiple projects/segments were touched,
- * their areas are summed into that day's total and all of them show up in
- * its directions/project lists, rather than picking one arbitrarily.
+ * Every past session (see PastSessionGroup), across every project/segment,
+ * before `excludeDate` (today — today's entries live in the active session
+ * view, not "previous days"). There's no crew-to-project scoping anywhere
+ * in this app yet (fetchProjects is similarly unscoped). fullyCovered is
+ * computed from the segment's complete confirmed-reading history (every
+ * date, not just before excludeDate — a session resumed after the segment
+ * was later finished elsewhere no longer needs a resume icon), reusing the
+ * same mergeIntervals/isRangeFullyCovered logic the live entry screen's
+ * no-double-entry check already uses, against the segment's declared
+ * from_station/to_station range.
  */
-export async function fetchPastDaySummaries(excludeDate: string): Promise<DaySummary[]> {
+export async function fetchPastSessionGroups(excludeDate: string): Promise<PastSessionGroup[]> {
   const { data, error } = await supabase
     .from('width_readings')
     .select(PAST_READING_SELECT)
@@ -360,35 +401,75 @@ export async function fetchPastDaySummaries(excludeDate: string): Promise<DaySum
     .neq('paving_date', excludeDate)
   if (error) throw error
 
-  const rows = (data ?? []).map((row) => mapPastReadingRow(row as unknown as RawPastReadingRow))
-
-  const byDate = new Map<string, PastReadingRow[]>()
-  for (const row of rows) {
-    const existing = byDate.get(row.date)
-    if (existing) existing.push(row)
-    else byDate.set(row.date, [row])
+  const rawRows = (data ?? []) as unknown as RawPastReadingRow[]
+  const rows = rawRows.map(mapPastReadingRow)
+  const segmentRange = new Map<string, { fromStation: number; toStation: number }>()
+  for (const row of rawRows) {
+    if (!segmentRange.has(row.road_segment_id)) {
+      segmentRange.set(row.road_segment_id, {
+        fromStation: Number(row.road_segments.from_station),
+        toStation: Number(row.road_segments.to_station),
+      })
+    }
   }
 
-  const summaries: DaySummary[] = []
-  for (const [date, dateRows] of byDate) {
-    let totalArea = 0
-    for (const segmentRows of groupBySegment(dateRows).values()) {
-      const sorted = [...segmentRows].sort((a, b) => a.stationSequence - b.stationSequence)
-      if (sorted.length < 2) continue
-      totalArea += cumulativeArea(
-        calculateSegments(sorted.map((r) => ({ stationSequence: r.stationSequence, station: r.station, width: r.width }))),
-      )
-    }
+  const byDateAndSegment = new Map<string, PastReadingRow[]>()
+  for (const row of rows) {
+    const key = `${row.date} ${row.roadSegmentId}`
+    const existing = byDateAndSegment.get(key)
+    if (existing) existing.push(row)
+    else byDateAndSegment.set(key, [row])
+  }
 
-    summaries.push({
-      date,
-      totalArea,
-      directions: [...new Set(dateRows.map((r) => r.direction))].sort(),
-      projectContractNumbers: [...new Set(dateRows.map((r) => r.projectContractNumber))].sort(),
+  const coverageCache = new Map<string, Promise<Interval[]>>()
+  function coverageFor(roadSegmentId: string): Promise<Interval[]> {
+    let cached = coverageCache.get(roadSegmentId)
+    if (!cached) {
+      cached = fetchFullStationCoverageIntervals(roadSegmentId)
+      coverageCache.set(roadSegmentId, cached)
+    }
+    return cached
+  }
+
+  const groups: PastSessionGroup[] = []
+  for (const [key, segmentDateRows] of byDateAndSegment) {
+    const [date, roadSegmentId] = key.split(' ')
+    const sorted = [...segmentDateRows].sort((a, b) => a.stationSequence - b.stationSequence)
+    const threads = splitIntoThreads(sorted)
+    const range = segmentRange.get(roadSegmentId)
+    const merged = mergeIntervals(await coverageFor(roadSegmentId))
+    const fullyCovered = range ? isRangeFullyCovered(Math.min(range.fromStation, range.toStation), Math.max(range.fromStation, range.toStation), merged) : false
+
+    threads.forEach((thread, threadIndex) => {
+      const area =
+        thread.readings.length < 2
+          ? 0
+          : cumulativeArea(
+              calculateSegments(
+                thread.readings.map((r) => ({ stationSequence: r.stationSequence, station: r.station, width: r.width })),
+              ),
+            )
+      const first = thread.readings[0]
+      const last = thread.readings[thread.readings.length - 1]
+      groups.push({
+        key: `${key} ${threadIndex}`,
+        date,
+        projectId: first.projectId,
+        projectContractNumber: first.projectContractNumber,
+        projectName: first.projectName,
+        roadSegmentId,
+        direction: first.direction,
+        highway: first.highway,
+        ascendingDescending: thread.direction,
+        startingStation: last.station,
+        area,
+        readingCount: thread.readings.length,
+        fullyCovered,
+      })
     })
   }
 
-  return summaries.sort((a, b) => (a.date < b.date ? 1 : -1))
+  return groups.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : a.projectContractNumber.localeCompare(b.projectContractNumber)))
 }
 
 /**

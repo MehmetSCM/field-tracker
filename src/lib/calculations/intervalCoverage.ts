@@ -52,3 +52,13 @@ export function findStrictlyInsideCoverage(station: number, merged: Interval[]):
   }
   return null
 }
+
+/**
+ * True when some already-merged interval spans the entire [lo, hi] range —
+ * i.e. a whole segment's declared station range has confirmed readings
+ * covering it end to end, with no gap. Used to decide whether a past
+ * session is worth resuming (fully covered ones have nothing left to add).
+ */
+export function isRangeFullyCovered(lo: number, hi: number, merged: Interval[]): boolean {
+  return merged.some((interval) => interval.lo <= lo && interval.hi >= hi)
+}

@@ -164,7 +164,7 @@ const CROSS_RULE_PAIRINGS: Pairing[] = [
     bg: colors.panel,
   },
   {
-    source: 'MillingEntryScreen.css .milling-change-context-link / .milling-screen bg',
+    source: 'MillingEntryScreen.css .milling-change-context-icon / .milling-screen bg',
     fg: colors.oceanBlue,
     bg: colors.panel,
   },
@@ -184,8 +184,13 @@ const CROSS_RULE_PAIRINGS: Pairing[] = [
     bg: colors.bg,
   },
   {
-    source: 'MillingHomeScreen.css .milling-home-day-area / .milling-home-day-row bg',
+    source: 'MillingHomeScreen.css .milling-home-day-area / .milling-home-day-group bg',
     fg: colors.periwinkleDark,
+    bg: colors.panel,
+  },
+  {
+    source: 'MillingHomeScreen.css .milling-home-resume-button / .milling-home-day-group bg',
+    fg: colors.oceanBlue,
     bg: colors.panel,
   },
   {
