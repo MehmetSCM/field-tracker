@@ -133,6 +133,19 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* Begin Entry stays its natural (non-full-width) size and sits right-aligned
+   below Starting Station, with real breathing room from the input above it —
+   same "primary action, deliberately spaced from its input" idea as Add
+   Reading/End Session/Save Correction elsewhere on this screen, just laid
+   out as a dedicated flex row instead of relying on a shared-container gap,
+   since this button is a bare sibling of the field rather than living
+   inside one of those flex containers. */
+.milling-begin-entry-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-6);
+}
+
 .milling-submit {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);

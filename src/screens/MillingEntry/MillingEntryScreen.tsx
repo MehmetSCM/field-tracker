@@ -485,13 +485,13 @@ export function MillingEntryScreen() {
             </label>
 
             <label className="milling-field">
-              <span>Direction</span>
+              <span>Lane</span>
               <select
                 value={selectedDirection}
                 onChange={(e) => setSelectedDirection(e.target.value)}
                 disabled={!selectedProjectId}
               >
-                <option value="">Select direction…</option>
+                <option value="">Select lane…</option>
                 {availableDirections.map((d) => (
                   <option key={d} value={d}>
                     {d}
@@ -537,19 +537,21 @@ export function MillingEntryScreen() {
             />
           </label>
 
-          <button
-            type="button"
-            className="milling-submit"
-            disabled={!ready}
-            onClick={() => {
-              if (!setupDirection) return
-              updateSession({ direction: setupDirection })
-              setStationInput(setupStartingStation)
-              setEntryStarted(true)
-            }}
-          >
-            Begin Entry
-          </button>
+          <div className="milling-begin-entry-row">
+            <button
+              type="button"
+              className="milling-submit"
+              disabled={!ready}
+              onClick={() => {
+                if (!setupDirection) return
+                updateSession({ direction: setupDirection })
+                setStationInput(setupStartingStation)
+                setEntryStarted(true)
+              }}
+            >
+              Begin Entry
+            </button>
+          </div>
         </>
       )}
 
@@ -571,7 +573,7 @@ export function MillingEntryScreen() {
               type="button"
               className="milling-change-context-icon"
               onClick={handleChangeProjectDirection}
-              aria-label="Change Project/Direction"
+              aria-label="Change Project/Lane"
             >
               ←
             </button>
