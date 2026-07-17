@@ -1,3 +1,8 @@
+// When this gets built for real (Stage 4), it should read project context
+// from useCurrentProject (see src/lib/currentProject.ts) from day one, the
+// same way Dashboard/Tracker/Milling do — not reinvent its own per-screen
+// project handling the way Dashboard originally did (a hardcoded "whichever
+// project has data" guess) before that got fixed.
 export function HistoryScreen() {
   return (
     <div style={{ padding: 24, color: '#1A1A2E' }}>

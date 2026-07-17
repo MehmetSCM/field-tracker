@@ -6,6 +6,7 @@ import { calculateSegments, cumulativeArea } from '../../lib/calculations/segmen
 import { resolveSegmentForStation } from '../../lib/calculations/segmentResolution'
 import { todayLocalDateString } from '../../lib/dateFormat'
 import { db, type QueuedWidthReading } from '../../lib/db'
+import { getCurrentProjectId, setCurrentProject } from '../../lib/currentProject'
 import { getEntrySession, type EntrySessionDirection, type MillingResumePayload } from '../../lib/entrySession'
 import {
   fetchCurrentCrewMember,
@@ -23,6 +24,7 @@ import {
 } from '../../lib/sync/widthReadingsSync'
 import { useLiveQuery } from '../../lib/sync/useLiveQuery'
 import { useCurrentProfile } from '../../lib/useCurrentProfile'
+import { useCurrentProject } from '../../lib/useCurrentProject'
 import { useEntrySession } from '../../lib/useEntrySession'
 import { CorrectionForm } from './CorrectionForm'
 import './MillingEntryScreen.css'
@@ -78,8 +80,16 @@ export function MillingEntryScreen() {
     () => (location.state as { resume?: MillingResumePayload } | null)?.resume ?? null,
   )
 
+  // A resume payload wins if present; otherwise the setup screen starts
+  // pre-filled with the app-wide current project (see currentProject.ts)
+  // rather than empty, so picking a project isn't a fresh choice every
+  // single time an entry starts — see the effect below for the other half
+  // of this: keeping the current project in sync going forward too.
+  const currentProject = useCurrentProject()
   const [projects, setProjects] = useState<ProjectOption[]>([])
-  const [selectedProjectId, setSelectedProjectId] = useState(() => pendingResume?.projectId ?? '')
+  const [selectedProjectId, setSelectedProjectId] = useState(
+    () => pendingResume?.projectId ?? currentProject?.id ?? '',
+  )
 
   // Segment is no longer manually picked — every road_segment for the
   // project is fetched once, and segmentResolution.ts resolves which one a
@@ -167,6 +177,23 @@ export function MillingEntryScreen() {
   useEffect(() => {
     fetchProjects().then(setProjects)
   }, [])
+
+  // Whenever selectedProjectId settles on a real project — a manual pick
+  // in the dropdown below, a resumed session's project, or just the
+  // initial pre-fill from currentProject itself (a harmless no-op in that
+  // last case, guarded by the id check so it never dispatches a change
+  // event for a value that's already current) — that becomes the new
+  // app-wide current project. This is the only place a project actually
+  // gets chosen today, so it's also the only place that needs to keep
+  // currentProject in sync; ProjectSelector (the header control) writes it
+  // directly itself when used there instead.
+  useEffect(() => {
+    if (!selectedProjectId) return
+    const found = projects.find((p) => p.id === selectedProjectId)
+    if (found && getCurrentProjectId() !== found.id) {
+      setCurrentProject(found)
+    }
+  }, [selectedProjectId, projects])
 
   useEffect(() => {
     setSelectedDirection('')

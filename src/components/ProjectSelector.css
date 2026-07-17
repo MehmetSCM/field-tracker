@@ -1,0 +1,93 @@
+.project-selector-summary,
+.project-selector,
+.project-selector * {
+  box-sizing: border-box;
+}
+
+/* Deliberately smaller/quieter than .profile-selector-summary — project
+   switching is meant to read as an infrequent, secondary action next to
+   "who am I", not an equally-weighted control. Outlined rather than the
+   profile pill's solid white fill, so it visually recedes against it. */
+.project-selector-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 999px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: #ffffff;
+  cursor: pointer;
+  min-height: var(--touch-min);
+  white-space: nowrap;
+}
+
+.project-selector-chevron {
+  font-size: var(--font-size-xs);
+}
+
+.project-selector {
+  background: var(--color-panel);
+  color: var(--color-text);
+  border: 2px solid var(--color-navy);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 260px;
+}
+
+.project-selector label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.project-selector select {
+  width: 100%;
+  font-size: var(--font-size-md);
+  padding: var(--space-2);
+  border: 2px solid var(--color-navy);
+  border-radius: var(--radius-md);
+  min-height: var(--touch-standard);
+  background: var(--color-input-bg);
+  color: var(--color-text);
+}
+
+.project-selector-error {
+  color: var(--color-red-dark);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+.project-selector-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.project-selector-actions button {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--space-2);
+  min-height: var(--touch-standard);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-navy);
+  background: var(--color-panel);
+  color: var(--color-text);
+}
+
+.project-selector-actions button:not(:disabled):last-child {
+  background: var(--color-navy);
+  color: #ffffff;
+}
+
+.project-selector-actions button:disabled {
+  opacity: 0.5;
+}

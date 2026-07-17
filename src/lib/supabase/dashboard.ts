@@ -40,25 +40,6 @@ export interface DashboardData {
   itemsBySection: Map<string, ItemProgress[]>
 }
 
-/**
- * The project with contract_item_targets defined — there is exactly one
- * today (Venables, 26754-0000). If a second contract gets its own targets
- * seeded later, this becomes a real project picker instead of "the first
- * one found"; not built now since there's nothing to pick between yet.
- */
-export async function fetchDashboardProject(): Promise<DashboardProject | null> {
-  const { data, error } = await supabase
-    .from('contract_item_targets')
-    .select('projects!inner(id, contract_number, name)')
-    .limit(1)
-    .maybeSingle()
-  if (error) throw error
-  if (!data) return null
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const p = (data as any).projects
-  return { id: p.id, contractNumber: p.contract_number, name: p.name }
-}
-
 export async function fetchContractItemTargets(projectId: string): Promise<ContractItemTarget[]> {
   const { data, error } = await supabase
     .from('contract_item_targets')
@@ -203,10 +184,14 @@ function currentMonthStart(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
 }
 
-export async function fetchDashboardData(): Promise<DashboardData | null> {
-  const project = await fetchDashboardProject()
-  if (!project) return null
-
+/**
+ * project is the caller's responsibility to supply (from useCurrentProject
+ * — see currentProject.ts) rather than this module guessing one. It used
+ * to pick "whichever project has contract_item_targets rows, .limit(1)",
+ * silently correct only by accident while there was exactly one project
+ * with targets seeded; a second one would have made it nondeterministic.
+ */
+export async function fetchDashboardData(project: DashboardProject): Promise<DashboardData> {
   const segmentIds = await fetchProjectSegmentIds(project.id)
 
   const [targets, totalArea, totalTonnes, confirmedRows, daysLogged] = await Promise.all([

@@ -431,21 +431,23 @@ function groupBySegment(rows: PastReadingRow[]): Map<string, PastReadingRow[]> {
 }
 
 /**
- * Every past session (see PastSessionGroup), across every project/segment,
+ * Every past session (see PastSessionGroup) for one project's segments,
  * before `excludeDate` (today — today's entries live in the active session
- * view, not "previous days"). There's no crew-to-project scoping anywhere
- * in this app yet (fetchProjects is similarly unscoped). fullyCovered is
- * computed from the segment's complete confirmed-reading history (every
- * date, not just before excludeDate — a session resumed after the segment
- * was later finished elsewhere no longer needs a resume icon), reusing the
- * same mergeIntervals/isRangeFullyCovered logic the live entry screen's
+ * view, not "previous days"). Scoped to `projectId` — the caller's current
+ * project (see currentProject.ts) — so a crew working project A never sees
+ * project B's sessions mixed into the same list. fullyCovered is computed
+ * from the segment's complete confirmed-reading history (every date, not
+ * just before excludeDate — a session resumed after the segment was later
+ * finished elsewhere no longer needs a resume icon), reusing the same
+ * mergeIntervals/isRangeFullyCovered logic the live entry screen's
  * no-double-entry check already uses, against the segment's declared
  * from_station/to_station range.
  */
-export async function fetchPastSessionGroups(excludeDate: string): Promise<PastSessionGroup[]> {
+export async function fetchPastSessionGroups(excludeDate: string, projectId: string): Promise<PastSessionGroup[]> {
   const { data, error } = await supabase
     .from('width_readings')
     .select(PAST_READING_SELECT)
+    .eq('road_segments.road_segment_groups.jobs.project_id', projectId)
     .is('superseded_by', null)
     .eq('is_voided', false)
     .neq('paving_date', excludeDate)

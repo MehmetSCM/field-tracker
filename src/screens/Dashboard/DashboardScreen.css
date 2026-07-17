@@ -19,6 +19,11 @@
   font-weight: var(--font-weight-semibold);
 }
 
+.dashboard-project-prompt {
+  color: var(--color-muted);
+  font-weight: var(--font-weight-semibold);
+}
+
 .dashboard-project {
   display: flex;
   align-items: baseline;

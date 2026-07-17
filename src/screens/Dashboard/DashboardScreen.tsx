@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useCurrentProject } from '../../lib/useCurrentProject'
 import {
   fetchDashboardData,
   type DashboardData,
@@ -26,16 +27,32 @@ function progressColorClass(percent: number): string {
 }
 
 export function DashboardScreen() {
+  const currentProject = useCurrentProject()
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchDashboardData()
+    if (!currentProject) {
+      setData(null)
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    setError(null)
+    fetchDashboardData(currentProject)
       .then(setData)
       .catch((err) => setError(extractErrorMessage(err, 'Failed to load dashboard.')))
       .finally(() => setLoading(false))
-  }, [])
+  }, [currentProject])
+
+  if (!currentProject) {
+    return (
+      <div className="dashboard-screen">
+        <p className="dashboard-project-prompt">No project selected — choose one from the header to see your dashboard.</p>
+      </div>
+    )
+  }
 
   if (loading) {
     return (
@@ -53,13 +70,7 @@ export function DashboardScreen() {
     )
   }
 
-  if (!data) {
-    return (
-      <div className="dashboard-screen">
-        <p>No contract set up yet — add contract_item_targets for a project to see it here.</p>
-      </div>
-    )
-  }
+  if (!data) return null
 
   const { project, stats, itemsBySection } = data
   const sections = [...itemsBySection.keys()]

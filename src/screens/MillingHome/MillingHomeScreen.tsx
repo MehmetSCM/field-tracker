@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { formatDayLabel, todayLocalDateString } from '../../lib/dateFormat'
 import type { MillingResumePayload } from '../../lib/entrySession'
+import { useCurrentProject } from '../../lib/useCurrentProject'
 import { fetchPastSessionGroups, type PastSessionGroup } from '../../lib/supabase/milling'
 import './MillingHomeScreen.css'
 
@@ -39,26 +40,34 @@ function groupByDay(sessions: PastSessionGroup[]): DayGroup[] {
  * Landing screen for Milling, reached from Home — separate from the actual
  * entry flow (MillingEntryScreen, at /milling/new) so starting a new entry
  * is one deliberate tap, not something that happens just by navigating
- * here. Below the start card: every previous day with entries, across all
- * projects (there's no crew-to-project scoping anywhere yet), broken out by
- * individual session (not just by day — a day can hold several disjoint
- * project/direction/thread sessions, each independently resumable). Every
- * session gets a "Continue from here" resume icon except ones whose
- * segment+direction is already fully covered by confirmed readings, since
- * there'd be nothing left to add.
+ * here. Below the start card: every previous day with entries FOR THE
+ * CURRENT PROJECT (see currentProject.ts) — never mixed across projects —
+ * broken out by individual session (not just by day — a day can hold
+ * several disjoint direction/thread sessions within that one project, each
+ * independently resumable). Every session gets a "Continue from here"
+ * resume icon except ones whose segment+direction is already fully covered
+ * by confirmed readings, since there'd be nothing left to add.
  */
 export function MillingHomeScreen() {
   const navigate = useNavigate()
+  const currentProject = useCurrentProject()
   const [days, setDays] = useState<DayGroup[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchPastSessionGroups(todayLocalDateString())
+    if (!currentProject) {
+      setDays([])
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    setError(null)
+    fetchPastSessionGroups(todayLocalDateString(), currentProject.id)
       .then((sessions) => setDays(groupByDay(sessions)))
       .catch((err: unknown) => setError(extractErrorMessage(err, 'Failed to load previous days.')))
       .finally(() => setLoading(false))
-  }, [])
+  }, [currentProject])
 
   function handleResume(session: PastSessionGroup) {
     const resume: MillingResumePayload = {
@@ -79,9 +88,14 @@ export function MillingHomeScreen() {
       <section className="milling-home-history">
         <h2>Previous Days</h2>
 
-        {loading && <p>Loading…</p>}
-        {error && <p className="milling-home-error">{error}</p>}
-        {!loading && !error && days.length === 0 && <p className="milling-home-empty">No previous entries yet.</p>}
+        {!currentProject && (
+          <p className="milling-home-empty">No project selected — choose one from the header to see previous sessions.</p>
+        )}
+        {currentProject && loading && <p>Loading…</p>}
+        {currentProject && error && <p className="milling-home-error">{error}</p>}
+        {currentProject && !loading && !error && days.length === 0 && (
+          <p className="milling-home-empty">No previous entries yet.</p>
+        )}
 
         <ul className="milling-home-day-list">
           {days.map((day) => (

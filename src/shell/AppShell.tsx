@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { ProfileSelector } from '../components/ProfileSelector'
+import { ProjectSelector } from '../components/ProjectSelector'
 import { useCurrentProfile } from '../lib/useCurrentProfile'
 import './AppShell.css'
 
@@ -32,6 +33,12 @@ const NAV_ITEMS = [
  * embedded directly in MillingEntryScreen (the only screen that existed
  * before this shell); that copy is now removed — this header instance
  * covers every route, including Milling, so the duplicate was dead weight.
+ *
+ * ProjectSelector sits next to it — the app-wide current project (see
+ * currentProject.ts), same "mounted once in the shell, every screen reads
+ * it reactively" shape. Only shown once a profile exists: before that the
+ * whole nav/content area is gated anyway (see the identity check below),
+ * so there's nothing for a project choice to do yet.
  */
 export function AppShell() {
   const profile = useCurrentProfile()
@@ -40,7 +47,10 @@ export function AppShell() {
     <div className="app-shell">
       <header className="app-header">
         <span className="app-wordmark">NOVACORE</span>
-        <ProfileSelector />
+        <div className="app-header-controls">
+          {profile && <ProjectSelector />}
+          <ProfileSelector />
+        </div>
       </header>
 
       {profile ? (

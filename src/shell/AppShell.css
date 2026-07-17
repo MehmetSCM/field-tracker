@@ -47,6 +47,13 @@
   color: #ffffff;
 }
 
+.app-header-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
 /* ProfileSelector styles itself as a standalone white card (it's used
    elsewhere too) — this just stops its own margin-bottom from adding
    unwanted space inside the header row, and keeps it from stretching

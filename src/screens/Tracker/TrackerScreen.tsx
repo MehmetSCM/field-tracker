@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useCurrentProject } from '../../lib/useCurrentProject'
 import { fetchDashboardData, type DashboardData, type ItemProgress } from '../../lib/supabase/dashboard'
 import './TrackerScreen.css'
 
@@ -36,16 +37,32 @@ function percentClass(percent: number): string {
  * instruction — the aggregate table below is real, tested data either way.
  */
 export function TrackerScreen() {
+  const currentProject = useCurrentProject()
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchDashboardData()
+    if (!currentProject) {
+      setData(null)
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    setError(null)
+    fetchDashboardData(currentProject)
       .then(setData)
       .catch((err) => setError(extractErrorMessage(err, 'Failed to load tracker.')))
       .finally(() => setLoading(false))
-  }, [])
+  }, [currentProject])
+
+  if (!currentProject) {
+    return (
+      <div className="tracker-screen">
+        <p className="tracker-project-prompt">No project selected — choose one from the header to see the tracker.</p>
+      </div>
+    )
+  }
 
   if (loading) {
     return (
@@ -63,13 +80,7 @@ export function TrackerScreen() {
     )
   }
 
-  if (!data) {
-    return (
-      <div className="tracker-screen">
-        <p>No contract set up yet — add contract_item_targets for a project to see it here.</p>
-      </div>
-    )
-  }
+  if (!data) return null
 
   const { project, itemsBySection } = data
   const sections = [...itemsBySection.keys()]

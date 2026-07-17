@@ -17,6 +17,11 @@
   font-weight: var(--font-weight-semibold);
 }
 
+.tracker-project-prompt {
+  color: var(--color-muted);
+  font-weight: var(--font-weight-semibold);
+}
+
 .tracker-project {
   display: flex;
   align-items: baseline;
