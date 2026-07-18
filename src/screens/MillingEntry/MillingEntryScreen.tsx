@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { ExtraAreaForm } from '../../components/ExtraAreaForm'
+import { PhotoCaptureForm } from '../../components/PhotoCaptureForm'
 import { findStrictlyInsideCoverage, mergeIntervals, type Interval } from '../../lib/calculations/intervalCoverage'
 import { calculateSegments, cumulativeArea } from '../../lib/calculations/segmentArea'
 import { resolveSegmentForStation } from '../../lib/calculations/segmentResolution'
@@ -818,6 +819,15 @@ export function MillingEntryScreen() {
                   hasIdentity={hasIdentity}
                   segmentFromStation={activeSegment.fromStation}
                   segmentToStation={activeSegment.toStation}
+                />
+              )}
+
+              {selectedProjectId && (
+                <PhotoCaptureForm
+                  projectId={selectedProjectId}
+                  workDate={workDate}
+                  hasIdentity={hasIdentity}
+                  sessionDirection={selectedDirection}
                 />
               )}
             </>

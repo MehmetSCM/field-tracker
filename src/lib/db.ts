@@ -57,9 +57,40 @@ export interface QueuedExtraAreaEntry {
   createdAt: number
 }
 
+/**
+ * Local, offline-first store for photo_attachments (daily_activity /
+ * proof_of_work only — ticket_scan capture is Paving-specific and doesn't
+ * exist yet). Unlike widthReadingsQueue/extraAreaQueue, the blob itself
+ * lives here too: a queued photo has nothing server-side to import back
+ * until it fully syncs (photo_attachments has no client-reachable UPDATE,
+ * so there's no "insert now, flip status later" row to mirror — see
+ * photoSync.ts), so the compressed image data has to survive a page reload
+ * on its own.
+ */
+export interface QueuedPhoto {
+  localId?: number
+  /** photo_attachments.id once synced; null while only queued locally. */
+  serverId: string | null
+  projectId: string
+  /** work_date, in YYYY-MM-DD form. */
+  workDate: string
+  photoCategory: 'daily_activity' | 'proof_of_work'
+  lineItemTag: string | null
+  station: number | null
+  direction: string | null
+  freeText: string | null
+  blob: Blob
+  /** Set once this photo has actually uploaded to Storage — null while only queued locally. Lets the list resolve a viewable image (via a signed URL) for rows imported from a previous session, where the local blob is just an empty placeholder. */
+  storagePath: string | null
+  status: 'queued' | 'synced' | 'error'
+  lastError: string | null
+  createdAt: number
+}
+
 const db = new Dexie('novacore') as Dexie & {
   widthReadingsQueue: EntityTable<QueuedWidthReading, 'localId'>
   extraAreaQueue: EntityTable<QueuedExtraAreaEntry, 'localId'>
+  photosQueue: EntityTable<QueuedPhoto, 'localId'>
 }
 
 db.version(1).stores({
@@ -69,6 +100,12 @@ db.version(1).stores({
 db.version(2).stores({
   widthReadingsQueue: '++localId, serverId, roadSegmentId, date, status',
   extraAreaQueue: '++localId, serverId, roadSegmentId, date, status',
+})
+
+db.version(3).stores({
+  widthReadingsQueue: '++localId, serverId, roadSegmentId, date, status',
+  extraAreaQueue: '++localId, serverId, roadSegmentId, date, status',
+  photosQueue: '++localId, serverId, projectId, workDate, status',
 })
 
 export { db }
