@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { ProfileSelector } from '../components/ProfileSelector'
 import { ProjectSelector } from '../components/ProjectSelector'
 import { useCurrentProfile } from '../lib/useCurrentProfile'
+import { useProjectAssignment } from '../lib/useProjectAssignment'
 import './AppShell.css'
 
 // mobilePrimary marks the items shown in the mobile bottom bar — Milling
@@ -39,16 +40,36 @@ const NAV_ITEMS = [
  * it reactively" shape. Only shown once a profile exists: before that the
  * whole nav/content area is gated anyway (see the identity check below),
  * so there's nothing for a project choice to do yet.
+ *
+ * Which of the four project-indicator states renders is driven by
+ * useProjectAssignment, keyed off the current profile's crew member id —
+ * a visibility/UX restriction, not a security boundary (see the
+ * crew_member_projects migration comment). Exactly one assignment: a
+ * plain, non-interactive pill (no ProjectSelector at all — nothing to
+ * switch between). More than one: ProjectSelector, restricted to that
+ * person's assigned projects. Zero: a clear "contact your coordinator"
+ * notice instead of an empty picker. Still loading/error: nothing, to
+ * avoid a flash of the wrong state.
  */
 export function AppShell() {
   const profile = useCurrentProfile()
+  const assignment = useProjectAssignment(profile?.id ?? null)
 
   return (
     <div className="app-shell">
       <header className="app-header">
         <span className="app-wordmark">NOVACORE</span>
         <div className="app-header-controls">
-          {profile && <ProjectSelector />}
+          {profile && assignment.status === 'multi' && <ProjectSelector projects={assignment.projects} />}
+          {profile && assignment.status === 'single' && (
+            <span className="app-project-static">{assignment.project.contractNumber}</span>
+          )}
+          {profile && assignment.status === 'none' && (
+            <span className="app-project-unassigned">Not assigned to any project — contact your coordinator</span>
+          )}
+          {profile && assignment.status === 'error' && (
+            <span className="app-project-unassigned">{assignment.message}</span>
+          )}
           <ProfileSelector />
         </div>
       </header>

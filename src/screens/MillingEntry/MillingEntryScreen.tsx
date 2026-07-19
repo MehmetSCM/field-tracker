@@ -11,11 +11,9 @@ import { getCurrentProjectId, setCurrentProject } from '../../lib/currentProject
 import { getEntrySession, type EntrySessionDirection, type MillingResumePayload } from '../../lib/entrySession'
 import {
   fetchCurrentCrewMember,
-  fetchProjects,
   fetchProjectSegmentCandidates,
   fetchStationCoverageIntervals,
   type CurrentCrewMember,
-  type ProjectOption,
   type SegmentCandidate,
 } from '../../lib/supabase/milling'
 import {
@@ -27,6 +25,7 @@ import { useLiveQuery } from '../../lib/sync/useLiveQuery'
 import { useCurrentProfile } from '../../lib/useCurrentProfile'
 import { useCurrentProject } from '../../lib/useCurrentProject'
 import { useEntrySession } from '../../lib/useEntrySession'
+import { useProjectAssignment } from '../../lib/useProjectAssignment'
 import { CorrectionForm } from './CorrectionForm'
 import './MillingEntryScreen.css'
 
@@ -69,6 +68,18 @@ export function MillingEntryScreen() {
   const displayName = crewMember?.name ?? profile?.name ?? null
   const hasIdentity = crewMember !== null || profile !== null
 
+  // Same restriction, same underlying data, as the header's ProjectSelector
+  // (see useProjectAssignment.ts) — this dropdown must never offer, and the
+  // sync-to-currentProject effect below must never accept, a project this
+  // crew member isn't assigned to. assignedProjects is the single source of
+  // truth for both the <select>'s options and that effect's validation, so
+  // there's no separate allowlist to keep in sync.
+  const assignment = useProjectAssignment(crewMember?.id ?? profile?.id ?? null)
+  const assignedProjects = useMemo(
+    () => (assignment.status === 'single' ? [assignment.project] : assignment.status === 'multi' ? assignment.projects : []),
+    [assignment],
+  )
+
   // A "Continue from here" tap on MillingHomeScreen navigates here with this
   // payload in router state — captured once via the lazy useState
   // initializer (not re-read on later re-renders/navigations within this
@@ -85,7 +96,6 @@ export function MillingEntryScreen() {
   // single time an entry starts — see the effect below for the other half
   // of this: keeping the current project in sync going forward too.
   const currentProject = useCurrentProject()
-  const [projects, setProjects] = useState<ProjectOption[]>([])
   const [selectedProjectId, setSelectedProjectId] = useState(
     () => pendingResume?.projectId ?? currentProject?.id ?? '',
   )
@@ -186,10 +196,6 @@ export function MillingEntryScreen() {
       .catch((err) => setCrewMemberError(extractErrorMessage(err, 'Failed to load crew member.')))
   }, [])
 
-  useEffect(() => {
-    fetchProjects().then(setProjects)
-  }, [])
-
   // Whenever selectedProjectId settles on a real project — a manual pick
   // in the dropdown below, a resumed session's project, or just the
   // initial pre-fill from currentProject itself (a harmless no-op in that
@@ -199,13 +205,32 @@ export function MillingEntryScreen() {
   // gets chosen today, so it's also the only place that needs to keep
   // currentProject in sync; ProjectSelector (the header control) writes it
   // directly itself when used there instead.
+  //
+  // found comes from assignedProjects, never the raw selectedProjectId —
+  // this is the actual enforcement point for the assignment restriction,
+  // not just the dropdown's visible options. Even if selectedProjectId
+  // somehow ended up holding a project this crew member isn't assigned to
+  // (a stale resume payload, direct state manipulation, a future bug
+  // elsewhere), found stays undefined and currentProject is never touched.
   useEffect(() => {
     if (!selectedProjectId) return
-    const found = projects.find((p) => p.id === selectedProjectId)
+    const found = assignedProjects.find((p) => p.id === selectedProjectId)
     if (found && getCurrentProjectId() !== found.id) {
       setCurrentProject(found)
     }
-  }, [selectedProjectId, projects])
+  }, [selectedProjectId, assignedProjects])
+
+  // Single-assignment crew members never get a real choice here — force
+  // selectedProjectId to that one project the moment assignment resolves,
+  // regardless of what it started as (pendingResume, a stale currentProject,
+  // anything else). Mirrors useProjectAssignment's own auto-set of
+  // currentProject in the header; this just also covers this screen's local
+  // selection state, which the header's hook has no reason to know about.
+  useEffect(() => {
+    if (assignment.status === 'single' && selectedProjectId !== assignment.project.id) {
+      setSelectedProjectId(assignment.project.id)
+    }
+  }, [assignment, selectedProjectId])
 
   useEffect(() => {
     setSelectedDirection('')
@@ -524,14 +549,22 @@ export function MillingEntryScreen() {
           <section className="milling-selectors">
             <label className="milling-field">
               <span>Project</span>
-              <select value={selectedProjectId} onChange={(e) => setSelectedProjectId(e.target.value)}>
-                <option value="">Select project…</option>
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.contractNumber} — {p.name}
-                  </option>
-                ))}
-              </select>
+              {assignment.status === 'single' ? (
+                // Nothing to choose — same "no way to switch" treatment as
+                // the header's plain pill for a single-assignment crew
+                // member, just rendered as a disabled field here to match
+                // this screen's own label/input shape.
+                <input type="text" value={`${assignment.project.contractNumber} — ${assignment.project.name}`} disabled readOnly />
+              ) : (
+                <select value={selectedProjectId} onChange={(e) => setSelectedProjectId(e.target.value)}>
+                  <option value="">Select project…</option>
+                  {assignedProjects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.contractNumber} — {p.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </label>
 
             <label className="milling-field">
@@ -662,7 +695,7 @@ export function MillingEntryScreen() {
               ←
             </button>
             <span className="milling-topbar-project">
-              {projects.find((p) => p.id === selectedProjectId)?.contractNumber} · {selectedDirection}
+              {assignedProjects.find((p) => p.id === selectedProjectId)?.contractNumber} · {selectedDirection}
               {/* Only surfaced when it's not today — the common case needs
                   no reminder, but entering against a backdated work date
                   with nothing on screen showing which date that is would

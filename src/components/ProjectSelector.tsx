@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { setCurrentProject } from '../lib/currentProject'
-import { fetchProjects, type ProjectOption } from '../lib/supabase/milling'
+import type { ProjectOption } from '../lib/supabase/milling'
 import { useCurrentProject } from '../lib/useCurrentProject'
 import './ProjectSelector.css'
 
@@ -13,19 +13,18 @@ import './ProjectSelector.css'
  * collapses again once a project is confirmed. Every project-scoped screen
  * (Dashboard, Tracker, Milling) reads the result via useCurrentProject
  * rather than each keeping its own picker.
+ *
+ * Only ever mounted for multi-project crew members (see AppShell +
+ * useProjectAssignment) — `projects` is that person's assigned list, not
+ * every project in the system, so the picker can't offer a project they
+ * don't actually work on. Single-assignment crew members never see this
+ * component at all; zero-assignment ones see a "not assigned" message
+ * instead.
  */
-export function ProjectSelector() {
+export function ProjectSelector({ projects }: { projects: ProjectOption[] }) {
   const currentProject = useCurrentProject()
-  const [projects, setProjects] = useState<ProjectOption[]>([])
-  const [loadError, setLoadError] = useState<string | null>(null)
   const [expanded, setExpanded] = useState(false)
   const [selectedId, setSelectedId] = useState('')
-
-  useEffect(() => {
-    fetchProjects()
-      .then(setProjects)
-      .catch((err) => setLoadError(err instanceof Error ? err.message : 'Failed to load projects.'))
-  }, [])
 
   function handleConfirm() {
     const chosen = projects.find((p) => p.id === selectedId)
@@ -59,7 +58,6 @@ export function ProjectSelector() {
           ))}
         </select>
       </label>
-      {loadError && <p className="project-selector-error">{loadError}</p>}
       <div className="project-selector-actions">
         <button type="button" onClick={() => setExpanded(false)}>
           Cancel

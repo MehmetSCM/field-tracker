@@ -59,13 +59,6 @@
   color: var(--color-text);
 }
 
-.project-selector-error {
-  color: var(--color-red-dark);
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-sm);
-  margin: 0;
-}
-
 .project-selector-actions {
   display: flex;
   gap: var(--space-2);

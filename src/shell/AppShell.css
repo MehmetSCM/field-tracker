@@ -54,6 +54,40 @@
   gap: var(--space-3);
 }
 
+/* Same quiet-outlined treatment as .project-selector-summary, minus the
+   chevron/pointer — a single-project crew member's context is still
+   always visible, it just isn't a control (see useProjectAssignment). */
+.app-project-static {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 999px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: #ffffff;
+  min-height: var(--touch-min);
+  white-space: nowrap;
+}
+
+/* Same warning color pair as .profile-selector-warning — reused rather
+   than invented, and already contrast-tested there. */
+.app-project-unassigned {
+  display: flex;
+  align-items: center;
+  background: #ffe0e0;
+  border: 1px solid #94001b;
+  border-radius: 999px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: #94001b;
+  min-height: var(--touch-min);
+  white-space: nowrap;
+}
+
 /* ProfileSelector styles itself as a standalone white card (it's used
    elsewhere too) — this just stops its own margin-bottom from adding
    unwanted space inside the header row, and keeps it from stretching
