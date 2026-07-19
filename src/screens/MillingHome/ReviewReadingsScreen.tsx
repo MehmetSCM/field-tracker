@@ -6,6 +6,7 @@ import { db, type QueuedWidthReading } from '../../lib/db'
 import { fetchSessionReadings, type DaySegmentGroup, type PastReadingRow } from '../../lib/supabase/milling'
 import { importServerReadings } from '../../lib/sync/widthReadingsSync'
 import { InsertReadingAfterForm } from './InsertReadingAfterForm'
+import { InsertReadingBeforeForm } from './InsertReadingBeforeForm'
 import { VoidReadingForm } from './VoidReadingForm'
 import '../MillingEntry/MillingEntryScreen.css'
 import './MillingHomeScreen.css'
@@ -25,10 +26,11 @@ function extractErrorMessage(err: unknown, fallback: string): string {
  * MillingDayDetailScreen is. Every reading shows here, including superseded
  * and voided ones (struck through, never hidden — this table has no delete
  * path at all), with a per-row "⋮" menu for Edit / Void / Insert reading
- * after. Edit reuses the existing correction flow as-is. Void and Insert
- * go through voidWidthReading/insertWidthReadingBetween directly — both are
+ * after / Insert reading before. Edit reuses the existing correction flow
+ * as-is. Void and both Inserts go through voidWidthReading/
+ * insertWidthReadingBetween/insertWidthReadingBefore directly — all
  * one-shot server mutations keyed by the reading's real id, so unlike Edit
- * neither needs the local-Dexie-import detour (that's specifically there so
+ * none of them need the local-Dexie-import detour (that's specifically there so
  * applyCorrection can hand supersedeWidthReading a QueuedWidthReading with
  * a localId; Void and Insert never touch the local queue at all). Always
  * reached from a past day (this screen only exists off the previous-days
@@ -44,6 +46,7 @@ export function ReviewReadingsScreen() {
   const [correctingEntry, setCorrectingEntry] = useState<QueuedWidthReading | null>(null)
   const [voidingReading, setVoidingReading] = useState<PastReadingRow | null>(null)
   const [insertingAfterReading, setInsertingAfterReading] = useState<PastReadingRow | null>(null)
+  const [insertingBeforeReading, setInsertingBeforeReading] = useState<PastReadingRow | null>(null)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
 
   function load() {
@@ -132,6 +135,16 @@ export function ReviewReadingsScreen() {
                 >
                   Insert reading after
                 </button>
+                <button
+                  type="button"
+                  className="milling-row-menu-item"
+                  onClick={() => {
+                    setOpenMenuId(null)
+                    setInsertingBeforeReading(r)
+                  }}
+                >
+                  Insert reading before
+                </button>
               </div>
             )}
           </div>
@@ -188,6 +201,16 @@ export function ReviewReadingsScreen() {
           afterStation={insertingAfterReading.station}
           isPastDayInsert
           onClose={() => setInsertingAfterReading(null)}
+          onSaved={load}
+        />
+      )}
+
+      {insertingBeforeReading && (
+        <InsertReadingBeforeForm
+          beforeReadingId={insertingBeforeReading.id}
+          beforeStation={insertingBeforeReading.station}
+          isPastDayInsert
+          onClose={() => setInsertingBeforeReading(null)}
           onSaved={load}
         />
       )}

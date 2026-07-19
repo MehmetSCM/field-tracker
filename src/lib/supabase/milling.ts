@@ -308,6 +308,28 @@ export async function insertWidthReadingBetween(
   return mapWidthReadingRow(data)
 }
 
+/**
+ * Mirror of insertWidthReadingBetween, via insert_width_reading_before (see
+ * migration 20260719100000) — same atomic, server-side sequence assignment,
+ * just computing the midpoint against the PRIOR neighbor instead of the
+ * next one. Inserting before the first reading in a session falls back to
+ * one below the current minimum rather than a midpoint, entirely inside
+ * the DB function — nothing for this call site to special-case.
+ */
+export async function insertWidthReadingBefore(
+  beforeReadingId: string,
+  station: number,
+  width: number,
+): Promise<WidthReadingRow> {
+  const { data, error } = await supabase.rpc('insert_width_reading_before', {
+    before_reading_id: beforeReadingId,
+    new_station: station,
+    new_width: width,
+  })
+  if (error) throw error
+  return mapWidthReadingRow(data)
+}
+
 export interface PastReadingRow {
   id: string
   roadSegmentId: string

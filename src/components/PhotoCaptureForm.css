@@ -12,25 +12,26 @@
   margin-top: 1.5rem;
 }
 
-/* Same "additional, less-common action" ghost treatment as
-   .extra-area-toggle — outlined, dashed, neutral blue — so the two read as
-   one consistent "occasional action" visual language rather than each
-   screen inventing its own. */
+/* Same understated text-link treatment as .extra-area-toggle — same
+   weight class as "End" session / the row-level edit pencil, not a box
+   competing with Station/Width/Add Reading. Kept identical to
+   .extra-area-toggle on purpose, same "one consistent occasional-action
+   language" reasoning as before — just lighter now than the old
+   dashed-box version both shared. */
 .photo-capture-toggle {
-  width: 100%;
-  font-size: 1.1rem;
-  font-weight: 700;
-  padding: 0.85rem;
-  min-height: 3rem;
-  background: #ffffff;
+  background: none;
+  border: none;
   color: #1a4fa0;
-  border: 2px dashed #1a4fa0;
-  border-radius: 10px;
+  font-weight: 600;
+  font-size: 12px;
+  text-decoration: underline;
+  padding: 4px 8px;
+  min-height: 44px;
+  cursor: pointer;
 }
 
 .photo-capture-toggle:disabled {
   color: #7a7a7a;
-  border-color: #999999;
 }
 
 .photo-capture-confirmation {

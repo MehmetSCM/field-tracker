@@ -7,7 +7,6 @@ import { calculateSegments, cumulativeArea } from '../../lib/calculations/segmen
 import { resolveSegmentForStation } from '../../lib/calculations/segmentResolution'
 import { daysAgo, formatDayLabel, todayLocalDateString } from '../../lib/dateFormat'
 import { db, type QueuedWidthReading } from '../../lib/db'
-import { getCurrentProjectId, setCurrentProject } from '../../lib/currentProject'
 import { setEntrySessionActive } from '../../lib/entrySessionActive'
 import { getEntrySession, type EntrySessionDirection, type MillingResumePayload } from '../../lib/entrySession'
 import {
@@ -26,7 +25,6 @@ import { useLiveQuery } from '../../lib/sync/useLiveQuery'
 import { useCurrentProfile } from '../../lib/useCurrentProfile'
 import { useCurrentProject } from '../../lib/useCurrentProject'
 import { useEntrySession } from '../../lib/useEntrySession'
-import { useProjectAssignment } from '../../lib/useProjectAssignment'
 import { CorrectionForm } from './CorrectionForm'
 import './MillingEntryScreen.css'
 
@@ -69,18 +67,6 @@ export function MillingEntryScreen() {
   const displayName = crewMember?.name ?? profile?.name ?? null
   const hasIdentity = crewMember !== null || profile !== null
 
-  // Same restriction, same underlying data, as the header's ProjectSelector
-  // (see useProjectAssignment.ts) — this dropdown must never offer, and the
-  // sync-to-currentProject effect below must never accept, a project this
-  // crew member isn't assigned to. assignedProjects is the single source of
-  // truth for both the <select>'s options and that effect's validation, so
-  // there's no separate allowlist to keep in sync.
-  const assignment = useProjectAssignment(crewMember?.id ?? profile?.id ?? null)
-  const assignedProjects = useMemo(
-    () => (assignment.status === 'single' ? [assignment.project] : assignment.status === 'multi' ? assignment.projects : []),
-    [assignment],
-  )
-
   // A "Continue from here" tap on MillingHomeScreen navigates here with this
   // payload in router state — captured once via the lazy useState
   // initializer (not re-read on later re-renders/navigations within this
@@ -91,20 +77,20 @@ export function MillingEntryScreen() {
     () => (location.state as { resume?: MillingResumePayload } | null)?.resume ?? null,
   )
 
-  // A resume payload wins if present; otherwise the setup screen starts
-  // pre-filled with the app-wide current project (see currentProject.ts)
-  // rather than empty, so picking a project isn't a fresh choice every
-  // single time an entry starts — see the effect below for the other half
-  // of this: keeping the current project in sync going forward too.
+  // There is no Project field on this screen anymore — it's purely
+  // app-wide context now (see currentProject.ts / the header's
+  // ProjectSelector), already validated/reconciled against this crew
+  // member's assignment by AppShell's useProjectAssignment before this
+  // screen ever mounts, so nothing here needs its own copy of that
+  // validation. selectedProjectId is just a convenience alias for
+  // everywhere below that already reads it by that name (segment
+  // fetching, useEntrySession's key, PhotoCaptureForm's prop, etc.) — a
+  // resume payload is never a different project than currentProject in
+  // practice, since MillingHomeScreen's own "Previous Days" list is
+  // already scoped to currentProject, so there's nothing to reconcile
+  // between the two here.
   const currentProject = useCurrentProject()
-  const [selectedProjectId, setSelectedProjectId] = useState(
-    () => pendingResume?.projectId ?? currentProject?.id ?? '',
-  )
-  // Resolved once here and reused everywhere this screen needs to display
-  // (rather than show) the selected project — its field, its topbar
-  // summary — since Project is never interactively changed on this screen
-  // (see the field's own comment below).
-  const selectedProjectOption = assignedProjects.find((p) => p.id === selectedProjectId) ?? null
+  const selectedProjectId = currentProject?.id ?? ''
 
   // Segment is no longer manually picked — every road_segment for the
   // project is fetched once, and segmentResolution.ts resolves which one a
@@ -210,42 +196,6 @@ export function MillingEntryScreen() {
       .then(setCrewMember)
       .catch((err) => setCrewMemberError(extractErrorMessage(err, 'Failed to load crew member.')))
   }, [])
-
-  // Whenever selectedProjectId settles on a real project — a manual pick
-  // in the dropdown below, a resumed session's project, or just the
-  // initial pre-fill from currentProject itself (a harmless no-op in that
-  // last case, guarded by the id check so it never dispatches a change
-  // event for a value that's already current) — that becomes the new
-  // app-wide current project. This is the only place a project actually
-  // gets chosen today, so it's also the only place that needs to keep
-  // currentProject in sync; ProjectSelector (the header control) writes it
-  // directly itself when used there instead.
-  //
-  // found comes from assignedProjects, never the raw selectedProjectId —
-  // this is the actual enforcement point for the assignment restriction,
-  // not just the dropdown's visible options. Even if selectedProjectId
-  // somehow ended up holding a project this crew member isn't assigned to
-  // (a stale resume payload, direct state manipulation, a future bug
-  // elsewhere), found stays undefined and currentProject is never touched.
-  useEffect(() => {
-    if (!selectedProjectId) return
-    const found = assignedProjects.find((p) => p.id === selectedProjectId)
-    if (found && getCurrentProjectId() !== found.id) {
-      setCurrentProject(found)
-    }
-  }, [selectedProjectId, assignedProjects])
-
-  // Single-assignment crew members never get a real choice here — force
-  // selectedProjectId to that one project the moment assignment resolves,
-  // regardless of what it started as (pendingResume, a stale currentProject,
-  // anything else). Mirrors useProjectAssignment's own auto-set of
-  // currentProject in the header; this just also covers this screen's local
-  // selection state, which the header's hook has no reason to know about.
-  useEffect(() => {
-    if (assignment.status === 'single' && selectedProjectId !== assignment.project.id) {
-      setSelectedProjectId(assignment.project.id)
-    }
-  }, [assignment, selectedProjectId])
 
   useEffect(() => {
     setSelectedDirection('')
@@ -556,27 +506,20 @@ export function MillingEntryScreen() {
         </div>
       </header>
 
-      {/* Step 1: setup. Project + Direction (NB/SB) + ascending/descending,
-          with a clear "Begin Entry" tap to move to step 2 — the transition
-          never happens just by having everything filled in. */}
-      {!showEntry && (
+      {/* Step 1: setup. Direction (NB/SB) + ascending/descending, with a
+          clear "Begin Entry" tap to move to step 2 — the transition never
+          happens just by having everything filled in. Project isn't a
+          field here at all: it's app-wide context (see currentProject.ts /
+          the header's ProjectSelector), already shown in the header pill,
+          so a second, permanently-disabled copy of it here was pure
+          duplication. Gated on currentProject existing at all — there's
+          nothing to fetch Direction options for otherwise. */}
+      {!showEntry && !currentProject && (
+        <p className="milling-identity-required">No project selected — choose one from the header to continue.</p>
+      )}
+      {!showEntry && currentProject && (
         <>
           <section className="milling-selectors">
-            <label className="milling-field">
-              <span>Project</span>
-              {/* Always plain, non-interactive text on this screen —
-                  setup and live entry alike — regardless of how many
-                  projects this crew member is assigned to. Switching
-                  project mid-entry has no legitimate use and risks
-                  attributing a reading to the wrong one; multi-project
-                  people (e.g. Mehmet) still switch normally via
-                  Dashboard/Tracker/History/Home. selectedProjectId is
-                  still set (from currentProject/a resume payload), just
-                  never editable here, so this always reflects whatever
-                  was already current when the screen loaded. */}
-              <input type="text" value={selectedProjectOption ? `${selectedProjectOption.contractNumber} — ${selectedProjectOption.name}` : ''} disabled readOnly />
-            </label>
-
             <label className="milling-field">
               {/* "Direction" deliberately, not "Lane" — Lane is reserved
                   for a real, distinct upcoming concept (Fast/Slow/Middle
@@ -584,11 +527,7 @@ export function MillingEntryScreen() {
                   would recreate the exact ambiguity that word was meant to
                   avoid. */}
               <span>Direction</span>
-              <select
-                value={selectedDirection}
-                onChange={(e) => setSelectedDirection(e.target.value)}
-                disabled={!selectedProjectId}
-              >
+              <select value={selectedDirection} onChange={(e) => setSelectedDirection(e.target.value)}>
                 <option value="">Select direction…</option>
                 {availableDirections.map((d) => (
                   <option key={d} value={d}>
@@ -705,7 +644,7 @@ export function MillingEntryScreen() {
               ←
             </button>
             <span className="milling-topbar-project">
-              {selectedProjectOption?.contractNumber} · {selectedDirection}
+              {currentProject?.contractNumber} · {selectedDirection}
               {/* Only surfaced when it's not today — the common case needs
                   no reminder, but entering against a backdated work date
                   with nothing on screen showing which date that is would
