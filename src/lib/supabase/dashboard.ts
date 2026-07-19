@@ -92,6 +92,7 @@ async function fetchTotalAreaMilled(segmentIds: string[]): Promise<number> {
   const { data, error } = await supabase
     .from('width_readings')
     .select('road_segment_id, paving_date, direction, station_sequence, station, width, superseded_by')
+    .eq('activity', 'milling')
     .in('road_segment_id', segmentIds)
   if (error) throw error
 
@@ -160,7 +161,7 @@ function sumByEventType(rows: RawEventRow[], monthStart?: string): Map<string, n
   return totals
 }
 
-/** "Days with any field data logged" counts activity, not confirmation — any width reading, truck ticket, or lifecycle event on a date counts, regardless of review_status. */
+/** "Days with any field data logged" counts activity, not confirmation — any width reading, truck ticket, or lifecycle event on a date counts, regardless of review_status. width_readings is deliberately NOT scoped to activity='milling' here (unlike fetchTotalAreaMilled) — this stat wants a day with EITHER milling or paving readings to count, not just milling's. */
 async function fetchFieldDataDayCount(segmentIds: string[]): Promise<number> {
   if (segmentIds.length === 0) return 0
   const [widthRes, truckRes, eventRes] = await Promise.all([

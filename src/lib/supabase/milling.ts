@@ -122,13 +122,39 @@ function mapWidthReadingRow(row: {
   }
 }
 
+export interface MillingReferenceReading {
+  station: number
+  width: number
+}
+
+/**
+ * Milling's own active readings for a segment (any date, station+width
+ * only) — the raw material for the milled-width reference display on
+ * Paving's entry screen (see milledWidthReference.ts). Always
+ * activity='milling' regardless of who's asking — Paving looks up
+ * MILLING's readings specifically, never its own.
+ */
+export async function fetchMillingReferenceReadings(roadSegmentId: string): Promise<MillingReferenceReading[]> {
+  const { data, error } = await supabase
+    .from('width_readings')
+    .select('station, width')
+    .eq('activity', 'milling')
+    .eq('road_segment_id', roadSegmentId)
+    .is('superseded_by', null)
+    .eq('is_voided', false)
+  if (error) throw error
+  return (data ?? []).map((row) => ({ station: Number(row.station), width: Number(row.width) }))
+}
+
 export async function fetchTodaysWidthReadings(
+  activity: string,
   roadSegmentId: string,
   date: string,
 ): Promise<WidthReadingRow[]> {
   const { data, error } = await supabase
     .from('width_readings')
     .select(WIDTH_READING_SELECT)
+    .eq('activity', activity)
     .eq('road_segment_id', roadSegmentId)
     .eq('paving_date', date)
     .order('station_sequence', { ascending: true })
@@ -136,10 +162,15 @@ export async function fetchTodaysWidthReadings(
   return (data ?? []).map(mapWidthReadingRow)
 }
 
-async function queryStationCoverageIntervals(roadSegmentId: string, excludeDate?: string): Promise<Interval[]> {
+async function queryStationCoverageIntervals(
+  activity: string,
+  roadSegmentId: string,
+  excludeDate?: string,
+): Promise<Interval[]> {
   let query = supabase
     .from('width_readings')
     .select('paving_date, station')
+    .eq('activity', activity)
     .eq('road_segment_id', roadSegmentId)
     .is('superseded_by', null)
     .eq('is_voided', false)
@@ -166,12 +197,16 @@ async function queryStationCoverageIntervals(roadSegmentId: string, excludeDate?
  * merge in intervalCoverage.ts. Excludes `excludeDate` (today) since that
  * day's coverage is computed live from the local Dexie queue instead, which
  * reflects not-yet-synced entries this server fetch wouldn't have yet.
+ * activity scopes this to one activity's own readings — Paving's coverage
+ * check reads this with activity='milling' to validate against MILLING's
+ * coverage (see Stage 1 spec), never its own.
  */
 export async function fetchStationCoverageIntervals(
+  activity: string,
   roadSegmentId: string,
   excludeDate: string,
 ): Promise<Interval[]> {
-  return queryStationCoverageIntervals(roadSegmentId, excludeDate)
+  return queryStationCoverageIntervals(activity, roadSegmentId, excludeDate)
 }
 
 /**
@@ -181,11 +216,12 @@ export async function fetchStationCoverageIntervals(
  * resume icon can be hidden), which needs the complete confirmed-reading
  * picture, not just history before some particular day.
  */
-export async function fetchFullStationCoverageIntervals(roadSegmentId: string): Promise<Interval[]> {
-  return queryStationCoverageIntervals(roadSegmentId)
+export async function fetchFullStationCoverageIntervals(activity: string, roadSegmentId: string): Promise<Interval[]> {
+  return queryStationCoverageIntervals(activity, roadSegmentId)
 }
 
 export async function insertWidthReading(params: {
+  activity: string
   roadSegmentId: string
   direction: string
   date: string
@@ -199,6 +235,7 @@ export async function insertWidthReading(params: {
   const { data, error } = await supabase
     .from('width_readings')
     .insert({
+      activity: params.activity,
       road_segment_id: params.roadSegmentId,
       direction: params.direction,
       paving_date: params.date,
@@ -233,6 +270,7 @@ export async function insertWidthReading(params: {
  */
 export async function supersedeWidthReading(params: {
   originalId: string
+  activity: string
   roadSegmentId: string
   direction: string
   date: string
@@ -244,6 +282,7 @@ export async function supersedeWidthReading(params: {
   const { data: inserted, error: insertError } = await supabase
     .from('width_readings')
     .insert({
+      activity: params.activity,
       road_segment_id: params.roadSegmentId,
       direction: params.direction,
       paving_date: params.date,
@@ -465,10 +504,15 @@ function groupBySegment(rows: PastReadingRow[]): Map<string, PastReadingRow[]> {
  * no-double-entry check already uses, against the segment's declared
  * from_station/to_station range.
  */
-export async function fetchPastSessionGroups(excludeDate: string, projectId: string): Promise<PastSessionGroup[]> {
+export async function fetchPastSessionGroups(
+  activity: string,
+  excludeDate: string,
+  projectId: string,
+): Promise<PastSessionGroup[]> {
   const { data, error } = await supabase
     .from('width_readings')
     .select(PAST_READING_SELECT)
+    .eq('activity', activity)
     .eq('road_segments.road_segment_groups.jobs.project_id', projectId)
     .is('superseded_by', null)
     .eq('is_voided', false)
@@ -499,7 +543,7 @@ export async function fetchPastSessionGroups(excludeDate: string, projectId: str
   function coverageFor(roadSegmentId: string): Promise<Interval[]> {
     let cached = coverageCache.get(roadSegmentId)
     if (!cached) {
-      cached = fetchFullStationCoverageIntervals(roadSegmentId)
+      cached = fetchFullStationCoverageIntervals(activity, roadSegmentId)
       coverageCache.set(roadSegmentId, cached)
     }
     return cached
@@ -554,8 +598,12 @@ export async function fetchPastSessionGroups(excludeDate: string, projectId: str
  * readings from different segments touched the same day can't be
  * interleaved by it.
  */
-export async function fetchDayReadingGroups(date: string): Promise<DaySegmentGroup[]> {
-  const { data, error } = await supabase.from('width_readings').select(PAST_READING_SELECT).eq('paving_date', date)
+export async function fetchDayReadingGroups(activity: string, date: string): Promise<DaySegmentGroup[]> {
+  const { data, error } = await supabase
+    .from('width_readings')
+    .select(PAST_READING_SELECT)
+    .eq('activity', activity)
+    .eq('paving_date', date)
   if (error) throw error
 
   const rows = (data ?? []).map((row) => mapPastReadingRow(row as unknown as RawPastReadingRow))
@@ -601,12 +649,14 @@ export async function fetchDayReadingGroups(date: string): Promise<DaySegmentGro
  * fetch every other segment touched that same day just to discard them.
  */
 export async function fetchSessionReadings(
+  activity: string,
   date: string,
   roadSegmentId: string,
 ): Promise<DaySegmentGroup | null> {
   const { data, error } = await supabase
     .from('width_readings')
     .select(PAST_READING_SELECT)
+    .eq('activity', activity)
     .eq('paving_date', date)
     .eq('road_segment_id', roadSegmentId)
   if (error) throw error

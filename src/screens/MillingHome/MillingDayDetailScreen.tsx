@@ -25,8 +25,11 @@ function extractErrorMessage(err: unknown, fallback: string): string {
  * flow the live entry screen uses (same supersede mechanism, same
  * CorrectionForm), flagged with the "may affect previously calculated
  * totals" warning the live same-day flow doesn't need.
+ *
+ * Shared by both activities via the `activity` prop — see MillingHomeScreen's
+ * own comment for why this stays "Milling*"-named despite serving Paving too.
  */
-export function MillingDayDetailScreen() {
+export function MillingDayDetailScreen({ activity }: { activity: 'milling' | 'paving' }) {
   const { date } = useParams<{ date: string }>()
   const [groups, setGroups] = useState<DaySegmentGroup[]>([])
   const [loading, setLoading] = useState(true)
@@ -38,13 +41,13 @@ export function MillingDayDetailScreen() {
     if (!date) return
     setLoading(true)
     setError(null)
-    fetchDayReadingGroups(date)
+    fetchDayReadingGroups(activity, date)
       .then(setGroups)
       .catch((err) => setError(extractErrorMessage(err, 'Failed to load this day.')))
       .finally(() => setLoading(false))
   }
 
-  useEffect(loadGroups, [date])
+  useEffect(loadGroups, [activity, date])
 
   const totalArea = groups.reduce((sum, g) => sum + g.area, 0)
 
@@ -59,7 +62,7 @@ export function MillingDayDetailScreen() {
     setPreparingEntryId(readingId)
     setError(null)
     try {
-      await importServerReadings(roadSegmentId, date)
+      await importServerReadings(activity, roadSegmentId, date)
       const queued = await db.widthReadingsQueue.where('serverId').equals(readingId).first()
       if (!queued) throw new Error('Could not find this reading to correct.')
       setCorrectingEntry(queued)
@@ -72,7 +75,7 @@ export function MillingDayDetailScreen() {
 
   return (
     <div className="milling-home-screen">
-      <Link to="/milling" className="milling-home-start-link-back">
+      <Link to={`/${activity}`} className="milling-home-start-link-back">
         ← Previous Days
       </Link>
 

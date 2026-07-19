@@ -1,0 +1,9 @@
+/* Milled-width reference — informational only, deliberately quieter than
+   the actual Width input it sits below (muted color, no border/background)
+   so it never reads as another field to fill in. */
+.paving-milled-reference {
+  margin: calc(-1 * var(--space-1)) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+  font-weight: var(--font-weight-normal);
+}

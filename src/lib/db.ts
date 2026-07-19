@@ -1,15 +1,18 @@
 import Dexie, { type EntityTable } from 'dexie'
 
 /**
- * Local, offline-first store for width_readings. This is the single source
- * of truth the milling screen renders from — both server-confirmed rows
- * (imported on load) and locally-queued not-yet-synced entries live here,
- * so the UI never has to reconcile two separate lists.
+ * Local, offline-first store for width_readings — shared by both Milling
+ * and Paving's entry screens (same table, same queue shape, distinguished
+ * by `activity`), not a Milling-only store despite the name. Both server-
+ * confirmed rows (imported on load) and locally-queued not-yet-synced
+ * entries live here together, so the UI never has to reconcile two
+ * separate lists.
  */
 export interface QueuedWidthReading {
   localId?: number
   /** width_readings.id once synced to Supabase; null while only queued locally. */
   serverId: string | null
+  activity: 'milling' | 'paving'
   roadSegmentId: string
   direction: string
   /** paving_date, in YYYY-MM-DD form. */
@@ -104,6 +107,12 @@ db.version(2).stores({
 
 db.version(3).stores({
   widthReadingsQueue: '++localId, serverId, roadSegmentId, date, status',
+  extraAreaQueue: '++localId, serverId, roadSegmentId, date, status',
+  photosQueue: '++localId, serverId, projectId, workDate, status',
+})
+
+db.version(4).stores({
+  widthReadingsQueue: '++localId, serverId, activity, roadSegmentId, date, status',
   extraAreaQueue: '++localId, serverId, roadSegmentId, date, status',
   photosQueue: '++localId, serverId, projectId, workDate, status',
 })

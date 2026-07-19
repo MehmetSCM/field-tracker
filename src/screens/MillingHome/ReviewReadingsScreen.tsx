@@ -36,8 +36,11 @@ function extractErrorMessage(err: unknown, fallback: string): string {
  * reached from a past day (this screen only exists off the previous-days
  * list, never today's live session), so the "may affect previously
  * calculated totals" warning is unconditional here, same as Edit's.
+ *
+ * Shared by both activities via the `activity` prop — see MillingHomeScreen's
+ * own comment for why this stays "Milling*"-named despite serving Paving too.
  */
-export function ReviewReadingsScreen() {
+export function ReviewReadingsScreen({ activity }: { activity: 'milling' | 'paving' }) {
   const { date, roadSegmentId } = useParams<{ date: string; roadSegmentId: string }>()
   const [group, setGroup] = useState<DaySegmentGroup | null>(null)
   const [loading, setLoading] = useState(true)
@@ -53,13 +56,13 @@ export function ReviewReadingsScreen() {
     if (!date || !roadSegmentId) return
     setLoading(true)
     setError(null)
-    fetchSessionReadings(date, roadSegmentId)
+    fetchSessionReadings(activity, date, roadSegmentId)
       .then(setGroup)
       .catch((err) => setError(extractErrorMessage(err, 'Failed to load this session.')))
       .finally(() => setLoading(false))
   }
 
-  useEffect(load, [date, roadSegmentId])
+  useEffect(load, [activity, date, roadSegmentId])
 
   async function startCorrection(readingId: string) {
     if (!date || !roadSegmentId) return
@@ -67,7 +70,7 @@ export function ReviewReadingsScreen() {
     setPreparingEntryId(readingId)
     setError(null)
     try {
-      await importServerReadings(roadSegmentId, date)
+      await importServerReadings(activity, roadSegmentId, date)
       const queued = await db.widthReadingsQueue.where('serverId').equals(readingId).first()
       if (!queued) throw new Error('Could not find this reading to correct.')
       setCorrectingEntry(queued)
@@ -155,7 +158,7 @@ export function ReviewReadingsScreen() {
 
   return (
     <div className="milling-home-screen" onClick={() => setOpenMenuId(null)}>
-      <Link to="/milling" className="milling-home-start-link-back">
+      <Link to={`/${activity}`} className="milling-home-start-link-back">
         ← Previous Days
       </Link>
 

@@ -12,11 +12,16 @@ import {
  * failure mode is a queued entry failing to sync (network drop, transient
  * server error), which just needs retry — never two divergent versions of
  * the same row to reconcile.
+ *
+ * Shared by both Milling and Paving's entry screens — every function here
+ * takes `activity` explicitly rather than assuming 'milling', since both
+ * activities' readings now live in the same width_readings table (see the
+ * activity column migration) and the same local Dexie queue.
  */
 
 /** Pulls today's server-confirmed rows into the local queue table (as 'synced'), so the running list always reads from one local source. */
-export async function importServerReadings(roadSegmentId: string, date: string): Promise<void> {
-  const serverRows = await fetchTodaysWidthReadings(roadSegmentId, date)
+export async function importServerReadings(activity: 'milling' | 'paving', roadSegmentId: string, date: string): Promise<void> {
+  const serverRows = await fetchTodaysWidthReadings(activity, roadSegmentId, date)
   for (const row of serverRows) {
     const existing = await db.widthReadingsQueue.where('serverId').equals(row.id).first()
     if (existing) {
@@ -31,6 +36,7 @@ export async function importServerReadings(roadSegmentId: string, date: string):
     }
     await db.widthReadingsQueue.add({
       serverId: row.id,
+      activity,
       roadSegmentId,
       direction: row.direction,
       date,
@@ -58,6 +64,7 @@ export async function importServerReadings(roadSegmentId: string, date: string):
  * never leaves the local copy out of sync with reality.
  */
 export async function enqueueWidthReading(entry: {
+  activity: 'milling' | 'paving'
   roadSegmentId: string
   direction: string
   date: string
@@ -67,11 +74,12 @@ export async function enqueueWidthReading(entry: {
   const existingCount = await db.widthReadingsQueue
     .where('roadSegmentId')
     .equals(entry.roadSegmentId)
-    .filter((r) => r.date === entry.date && !r.isCorrection)
+    .filter((r) => r.activity === entry.activity && r.date === entry.date && !r.isCorrection)
     .count()
 
   await db.widthReadingsQueue.add({
     serverId: null,
+    activity: entry.activity,
     roadSegmentId: entry.roadSegmentId,
     direction: entry.direction,
     date: entry.date,
@@ -96,6 +104,7 @@ export async function syncQueuedWidthReadings(): Promise<void> {
   for (const item of pending) {
     try {
       const inserted = await insertWidthReading({
+        activity: item.activity,
         roadSegmentId: item.roadSegmentId,
         direction: item.direction,
         date: item.date,
@@ -139,6 +148,7 @@ export async function applyCorrection(params: {
 
   const corrected = await supersedeWidthReading({
     originalId: original.serverId,
+    activity: original.activity,
     roadSegmentId: original.roadSegmentId,
     direction: original.direction,
     date: original.date,
@@ -155,6 +165,7 @@ export async function applyCorrection(params: {
 
   await db.widthReadingsQueue.add({
     serverId: corrected.id,
+    activity: original.activity,
     roadSegmentId: original.roadSegmentId,
     direction: original.direction,
     date: original.date,

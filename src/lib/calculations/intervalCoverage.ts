@@ -54,6 +54,19 @@ export function findStrictlyInsideCoverage(station: number, merged: Interval[]):
 }
 
 /**
+ * True when a station falls within (inclusive of both boundaries) at least
+ * one already-merged interval. Used for Paving's coverage-against-milling
+ * check: a paving station must land somewhere milling has actually milled,
+ * which is a different question from findStrictlyInsideCoverage's
+ * boundary-exclusive "is this a self-referential double-entry" check —
+ * landing exactly on milling's own boundary is still validly-milled ground,
+ * not a violation.
+ */
+export function isStationWithinCoverage(station: number, merged: Interval[]): boolean {
+  return merged.some((interval) => station >= interval.lo && station <= interval.hi)
+}
+
+/**
  * True when some already-merged interval spans the entire [lo, hi] range —
  * i.e. a whole segment's declared station range has confirmed readings
  * covering it end to end, with no gap. Used to decide whether a past

@@ -9,8 +9,8 @@ import './HomeScreen.css'
  * to start logging something. Anyone who wants to check overall progress
  * instead goes to Dashboard/Tracker via the persistent nav.
  *
- * Paving has no screen yet (that's a separate build), so its row is a
- * disabled "coming soon" state rather than a route that doesn't exist.
+ * Paving Stage 1 (width entry) is live now — its row is a real link, same
+ * as Milling's.
  */
 export function HomeScreen() {
   return (
@@ -19,10 +19,9 @@ export function HomeScreen() {
         <span className="home-row-label">Milling</span>
       </Link>
 
-      <div className="home-row home-row-disabled" aria-disabled="true">
+      <Link to="/paving" className="home-row home-row-active">
         <span className="home-row-label">Paving</span>
-        <span className="home-row-sublabel">Coming soon</span>
-      </div>
+      </Link>
     </div>
   )
 }

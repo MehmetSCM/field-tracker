@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { formatDayLabel, todayLocalDateString } from '../../lib/dateFormat'
-import type { MillingResumePayload } from '../../lib/entrySession'
+import type { EntryResumePayload } from '../../lib/entrySession'
 import { useCurrentProject } from '../../lib/useCurrentProject'
 import { fetchPastSessionGroups, type PastSessionGroup } from '../../lib/supabase/milling'
 import './MillingHomeScreen.css'
@@ -37,18 +37,25 @@ function groupByDay(sessions: PastSessionGroup[]): DayGroup[] {
 }
 
 /**
- * Landing screen for Milling, reached from Home — separate from the actual
- * entry flow (MillingEntryScreen, at /milling/new) so starting a new entry
- * is one deliberate tap, not something that happens just by navigating
- * here. Below the start card: every previous day with entries FOR THE
- * CURRENT PROJECT (see currentProject.ts) — never mixed across projects —
- * broken out by individual session (not just by day — a day can hold
- * several disjoint direction/thread sessions within that one project, each
- * independently resumable). Every session gets a "Continue from here"
+ * Landing screen for an activity (Milling or Paving — see the `activity`
+ * prop), reached from Home — separate from the actual entry flow
+ * (MillingEntryScreen/PavingEntryScreen, at /:activity/new) so starting a
+ * new entry is one deliberate tap, not something that happens just by
+ * navigating here. Below the start card: every previous day with entries
+ * FOR THE CURRENT PROJECT (see currentProject.ts) — never mixed across
+ * projects — broken out by individual session (not just by day — a day can
+ * hold several disjoint direction/thread sessions within that one project,
+ * each independently resumable). Every session gets a "Continue from here"
  * resume icon except ones whose segment+direction is already fully covered
  * by confirmed readings, since there'd be nothing left to add.
+ *
+ * Shared by both activities rather than duplicated — only fetchPastSessionGroups'
+ * activity argument and the two hardcoded /milling/... routes below differ
+ * per activity, everything else (markup, CSS, grouping/resume logic) is
+ * identical. Still named "Milling*" for historical reasons (this predates
+ * Paving reusing it) — a purely cosmetic mismatch, not a functional one.
  */
-export function MillingHomeScreen() {
+export function MillingHomeScreen({ activity }: { activity: 'milling' | 'paving' }) {
   const navigate = useNavigate()
   const currentProject = useCurrentProject()
   const [days, setDays] = useState<DayGroup[]>([])
@@ -63,25 +70,25 @@ export function MillingHomeScreen() {
     }
     setLoading(true)
     setError(null)
-    fetchPastSessionGroups(todayLocalDateString(), currentProject.id)
+    fetchPastSessionGroups(activity, todayLocalDateString(), currentProject.id)
       .then((sessions) => setDays(groupByDay(sessions)))
       .catch((err: unknown) => setError(extractErrorMessage(err, 'Failed to load previous days.')))
       .finally(() => setLoading(false))
-  }, [currentProject])
+  }, [activity, currentProject])
 
   function handleResume(session: PastSessionGroup) {
-    const resume: MillingResumePayload = {
+    const resume: EntryResumePayload = {
       projectId: session.projectId,
       direction: session.direction,
       ascendingDescending: session.ascendingDescending,
       startingStation: session.startingStation,
     }
-    navigate('/milling/new', { state: { resume } })
+    navigate(`/${activity}/new`, { state: { resume } })
   }
 
   return (
     <div className="milling-home-screen">
-      <Link to="/milling/new" className="milling-home-start">
+      <Link to={`/${activity}/new`} className="milling-home-start">
         Start New Entry
       </Link>
 
@@ -109,7 +116,7 @@ export function MillingHomeScreen() {
                 {day.sessions.map((session) => (
                   <li key={session.key} className="milling-home-session-row">
                     <Link
-                      to={`/milling/day/${day.date}/segment/${session.roadSegmentId}`}
+                      to={`/${activity}/day/${day.date}/segment/${session.roadSegmentId}`}
                       className="milling-home-session-link"
                     >
                       <span className="milling-home-session-meta">
