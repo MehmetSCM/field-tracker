@@ -86,6 +86,22 @@
   color: var(--color-text);
 }
 
+/* iOS Safari specifically was still overflowing after min-width: 0 alone
+   (confirmed on a real iPhone) — width: 100% and box-sizing: border-box
+   applied directly to input[type="date"] here, at higher specificity than
+   the shared .milling-field input rule above, rather than trusting that
+   rule (or a parent's min-width) to be enough on its own.
+   -webkit-appearance: none strips iOS's default control chrome, which
+   otherwise carries its own intrinsic sizing that the box-model
+   properties above don't fully override on that engine. */
+.milling-field input[type='date'] {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 /* Starting Station and Date are standalone sibling fields directly under
    .milling-screen (unlike Project/Direction, which share
    .milling-selectors' flex gap) — without this they render with zero

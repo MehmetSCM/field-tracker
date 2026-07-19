@@ -114,7 +114,21 @@ export function MillingHomeScreen() {
                     >
                       <span className="milling-home-session-meta">
                         {session.projectContractNumber} · {session.direction}
-                        {session.ascendingDescending && ` · ${session.ascendingDescending}`}
+                        {session.ascendingDescending && (
+                          <>
+                            {' · '}
+                            {/* Icon, not the word — "ascending"/"descending" was
+                                truncating to "ascen…"/"descen…" on narrow cards,
+                                real information loss rather than just tight
+                                spacing. Same ↑/↓ already used on the entry
+                                setup screen's Ascending/Descending buttons.
+                                aria-label keeps it non-ambiguous for screen
+                                readers too, not just sighted users. */}
+                            <span aria-label={session.ascendingDescending}>
+                              {session.ascendingDescending === 'ascending' ? '↑' : '↓'}
+                            </span>
+                          </>
+                        )}
                       </span>
                       <span className="milling-home-session-area">{session.area.toFixed(2)} m²</span>
                     </Link>

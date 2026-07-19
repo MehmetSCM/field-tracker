@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { ProfileSelector } from '../components/ProfileSelector'
 import { ProjectSelector } from '../components/ProjectSelector'
+import { PwaUpdatePrompt } from '../components/PwaUpdatePrompt'
 import { useCurrentProfile } from '../lib/useCurrentProfile'
 import { useCurrentProject } from '../lib/useCurrentProject'
 import { useEntrySessionActive } from '../lib/useEntrySessionActive'
@@ -70,6 +71,16 @@ const NAV_ITEMS = [
  * mid-session on the same device serves no purpose; the real path for a
  * new person continuing someone else's work is Home → pick their own
  * profile → "Continue from here".
+ *
+ * PwaUpdatePrompt renders first, inside .app-shell itself rather than as
+ * a standalone sibling above the router (where it used to live, in
+ * App.tsx) — that placement put it outside .app-shell's own
+ * height:100dvh flex column, so when it appeared it pushed the whole
+ * shell (including the fixed-position bottom nav) taller than the
+ * viewport instead of just taking a slice of it. Living inside the shell
+ * now, it renders identically on every route — a real fix, not just a
+ * relocation, for reliably surfacing an update regardless of which
+ * screen happens to be open when one's detected.
  */
 export function AppShell() {
   const profile = useCurrentProfile()
@@ -84,6 +95,7 @@ export function AppShell() {
 
   return (
     <div className="app-shell">
+      <PwaUpdatePrompt />
       <header className="app-header">
         <span className="app-wordmark">NOVACORE</span>
         <div className="app-header-controls">
