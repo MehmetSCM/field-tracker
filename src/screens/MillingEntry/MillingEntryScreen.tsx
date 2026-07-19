@@ -8,6 +8,7 @@ import { resolveSegmentForStation } from '../../lib/calculations/segmentResoluti
 import { daysAgo, formatDayLabel, todayLocalDateString } from '../../lib/dateFormat'
 import { db, type QueuedWidthReading } from '../../lib/db'
 import { getCurrentProjectId, setCurrentProject } from '../../lib/currentProject'
+import { setEntrySessionActive } from '../../lib/entrySessionActive'
 import { getEntrySession, type EntrySessionDirection, type MillingResumePayload } from '../../lib/entrySession'
 import {
   fetchCurrentCrewMember,
@@ -99,6 +100,11 @@ export function MillingEntryScreen() {
   const [selectedProjectId, setSelectedProjectId] = useState(
     () => pendingResume?.projectId ?? currentProject?.id ?? '',
   )
+  // Resolved once here and reused everywhere this screen needs to display
+  // (rather than show) the selected project — its field, its topbar
+  // summary — since Project is never interactively changed on this screen
+  // (see the field's own comment below).
+  const selectedProjectOption = assignedProjects.find((p) => p.id === selectedProjectId) ?? null
 
   // Segment is no longer manually picked — every road_segment for the
   // project is fetched once, and segmentResolution.ts resolves which one a
@@ -189,6 +195,15 @@ export function MillingEntryScreen() {
   useEffect(() => {
     registerSyncListeners()
   }, [])
+
+  // Tells AppShell's ProfileSelector when the live entry step (not setup)
+  // is showing, so it can go non-interactive — see entrySessionActive.ts
+  // for why this needs a shared flag rather than a prop. Cleanup covers
+  // both leaving showEntry and navigating away from this screen entirely.
+  useEffect(() => {
+    setEntrySessionActive(showEntry)
+    return () => setEntrySessionActive(false)
+  }, [showEntry])
 
   useEffect(() => {
     fetchCurrentCrewMember()
@@ -549,22 +564,17 @@ export function MillingEntryScreen() {
           <section className="milling-selectors">
             <label className="milling-field">
               <span>Project</span>
-              {assignment.status === 'single' ? (
-                // Nothing to choose — same "no way to switch" treatment as
-                // the header's plain pill for a single-assignment crew
-                // member, just rendered as a disabled field here to match
-                // this screen's own label/input shape.
-                <input type="text" value={`${assignment.project.contractNumber} — ${assignment.project.name}`} disabled readOnly />
-              ) : (
-                <select value={selectedProjectId} onChange={(e) => setSelectedProjectId(e.target.value)}>
-                  <option value="">Select project…</option>
-                  {assignedProjects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.contractNumber} — {p.name}
-                    </option>
-                  ))}
-                </select>
-              )}
+              {/* Always plain, non-interactive text on this screen —
+                  setup and live entry alike — regardless of how many
+                  projects this crew member is assigned to. Switching
+                  project mid-entry has no legitimate use and risks
+                  attributing a reading to the wrong one; multi-project
+                  people (e.g. Mehmet) still switch normally via
+                  Dashboard/Tracker/History/Home. selectedProjectId is
+                  still set (from currentProject/a resume payload), just
+                  never editable here, so this always reflects whatever
+                  was already current when the screen loaded. */}
+              <input type="text" value={selectedProjectOption ? `${selectedProjectOption.contractNumber} — ${selectedProjectOption.name}` : ''} disabled readOnly />
             </label>
 
             <label className="milling-field">
@@ -599,7 +609,7 @@ export function MillingEntryScreen() {
                 }
                 onClick={() => setSetupDirection('ascending')}
               >
-                Ascending
+                <span aria-hidden="true">↑</span> Ascending
               </button>
               <button
                 type="button"
@@ -608,7 +618,7 @@ export function MillingEntryScreen() {
                 }
                 onClick={() => setSetupDirection('descending')}
               >
-                Descending
+                <span aria-hidden="true">↓</span> Descending
               </button>
             </div>
           </div>
@@ -690,12 +700,12 @@ export function MillingEntryScreen() {
               type="button"
               className="milling-change-context-icon"
               onClick={handleChangeProjectDirection}
-              aria-label="Change Project/Direction"
+              aria-label="Change Direction"
             >
               ←
             </button>
             <span className="milling-topbar-project">
-              {assignedProjects.find((p) => p.id === selectedProjectId)?.contractNumber} · {selectedDirection}
+              {selectedProjectOption?.contractNumber} · {selectedDirection}
               {/* Only surfaced when it's not today — the common case needs
                   no reminder, but entering against a backdated work date
                   with nothing on screen showing which date that is would

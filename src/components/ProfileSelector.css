@@ -6,6 +6,22 @@
   color: #111111;
 }
 
+/* Wraps the expanded panel once a profile already exists (see
+   ProfileSelector.tsx) so tapping anywhere outside it collapses back to
+   the summary without touching the current profile — same backdrop
+   pattern as ModalSheet/PhotoCaptureForm's capture form, just centered
+   near the top instead of anchored to the bottom, since this is a small
+   picker, not a tall form. */
+.profile-selector-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  justify-content: center;
+  padding: 5rem 1rem 0;
+  z-index: 30;
+}
+
 .profile-selector {
   font-family: system-ui, sans-serif;
   background: #ffffff;
@@ -14,6 +30,9 @@
   overflow: hidden;
   margin-bottom: 1rem;
   position: relative;
+  width: 100%;
+  max-width: 360px;
+  align-self: flex-start;
 }
 
 .profile-selector-collapse {
@@ -52,6 +71,13 @@
 
 .profile-selector-chevron {
   font-size: 0.7rem;
+}
+
+/* Milling's live entry step (see ProfileSelector's interactive prop) —
+   same summary shape, just never clickable, no chevron affordance since
+   there's nothing to expand. */
+.profile-selector-summary-static {
+  cursor: default;
 }
 
 .profile-selector-warning {

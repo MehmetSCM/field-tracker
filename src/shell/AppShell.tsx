@@ -1,9 +1,17 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { ProfileSelector } from '../components/ProfileSelector'
 import { ProjectSelector } from '../components/ProjectSelector'
 import { useCurrentProfile } from '../lib/useCurrentProfile'
+import { useCurrentProject } from '../lib/useCurrentProject'
+import { useEntrySessionActive } from '../lib/useEntrySessionActive'
 import { useProjectAssignment } from '../lib/useProjectAssignment'
 import './AppShell.css'
+
+// The only route where both restrictions in the header doc comment below
+// apply — Milling's setup + live entry screens share this one route,
+// distinguished only by MillingEntryScreen's own internal step state (see
+// entrySessionActive.ts for how that reaches this component).
+const DATA_ENTRY_ROUTE = '/milling/new'
 
 // mobilePrimary marks the items shown in the mobile bottom bar — Milling
 // and Paving are already reached via Home's rows, and Tracker/History are
@@ -50,19 +58,40 @@ const NAV_ITEMS = [
  * person's assigned projects. Zero: a clear "contact your coordinator"
  * notice instead of an empty picker. Still loading/error: nothing, to
  * avoid a flash of the wrong state.
+ *
+ * Two further restrictions apply only on DATA_ENTRY_ROUTE (Milling's
+ * setup + live entry screens), never on Dashboard/Tracker/History/Home:
+ * Project always renders as the same plain pill a single-assignment
+ * person gets, even for a multi-project person like Mehmet — switching
+ * projects mid-entry has no legitimate use and risks attributing a
+ * reading to the wrong project. Profile stays switchable through setup
+ * (picking up a fresh device still starts there), but goes non-interactive
+ * once the live entry step is actually showing — switching identity
+ * mid-session on the same device serves no purpose; the real path for a
+ * new person continuing someone else's work is Home → pick their own
+ * profile → "Continue from here".
  */
 export function AppShell() {
   const profile = useCurrentProfile()
   const assignment = useProjectAssignment(profile?.id ?? null)
+  const currentProject = useCurrentProject()
+  const location = useLocation()
+  const entrySessionActive = useEntrySessionActive()
+
+  const onDataEntryRoute = location.pathname === DATA_ENTRY_ROUTE
+  const projectSwitchable = assignment.status === 'multi' && !onDataEntryRoute
+  const profileSwitchable = !(onDataEntryRoute && entrySessionActive)
 
   return (
     <div className="app-shell">
       <header className="app-header">
         <span className="app-wordmark">NOVACORE</span>
         <div className="app-header-controls">
-          {profile && assignment.status === 'multi' && <ProjectSelector projects={assignment.projects} />}
-          {profile && assignment.status === 'single' && (
-            <span className="app-project-static">{assignment.project.contractNumber}</span>
+          {profile && projectSwitchable && <ProjectSelector projects={assignment.projects} />}
+          {profile && !projectSwitchable && (assignment.status === 'single' || assignment.status === 'multi') && (
+            <span className="app-project-static">
+              {assignment.status === 'single' ? assignment.project.contractNumber : (currentProject?.contractNumber ?? '—')}
+            </span>
           )}
           {profile && assignment.status === 'none' && (
             <span className="app-project-unassigned">Not assigned to any project — contact your coordinator</span>
@@ -70,7 +99,7 @@ export function AppShell() {
           {profile && assignment.status === 'error' && (
             <span className="app-project-unassigned">{assignment.message}</span>
           )}
-          <ProfileSelector />
+          <ProfileSelector interactive={profileSwitchable} />
         </div>
       </header>
 

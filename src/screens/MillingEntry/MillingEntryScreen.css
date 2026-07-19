@@ -70,6 +70,12 @@
 .milling-field select,
 .milling-field input {
   width: 100%;
+  /* min-width: 0 overrides the flex item default of min-width: auto,
+     which sizes to intrinsic content when larger than the width set above
+     — a native date input's own calendar-widget content can be wide
+     enough to hit that on some browsers/OSes and push the field past its
+     container regardless of width: 100%. */
+  min-width: 0;
   box-sizing: border-box;
   font-size: var(--font-size-xl);
   padding: var(--space-3);
@@ -78,6 +84,16 @@
   min-height: var(--touch-standard);
   background: var(--color-input-bg);
   color: var(--color-text);
+}
+
+/* Starting Station and Date are standalone sibling fields directly under
+   .milling-screen (unlike Project/Direction, which share
+   .milling-selectors' flex gap) — without this they render with zero
+   vertical space between them. Scoped to direct children only so it
+   doesn't double up on top of .milling-selectors'/.milling-field-row's
+   own gap for their nested fields. */
+.milling-screen > .milling-field + .milling-field {
+  margin-top: var(--space-3);
 }
 
 .milling-field select:focus,

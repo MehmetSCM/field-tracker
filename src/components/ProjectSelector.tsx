@@ -46,25 +46,31 @@ export function ProjectSelector({ projects }: { projects: ProjectOption[] }) {
   }
 
   return (
-    <div className="project-selector">
-      <label>
-        <span>Project</span>
-        <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
-          <option value="">Select project…</option>
-          {projects.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.contractNumber} — {p.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <div className="project-selector-actions">
-        <button type="button" onClick={() => setExpanded(false)}>
-          Cancel
-        </button>
-        <button type="button" onClick={handleConfirm} disabled={!selectedId}>
-          Confirm
-        </button>
+    // Backdrop makes tapping anywhere outside the picker collapse it
+    // without changing the current project — same pattern ProfileSelector
+    // uses, stopPropagation on the panel itself so a tap inside doesn't
+    // bubble up and immediately close it again.
+    <div className="project-selector-backdrop" onClick={() => setExpanded(false)}>
+      <div className="project-selector" onClick={(e) => e.stopPropagation()}>
+        <label>
+          <span>Project</span>
+          <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
+            <option value="">Select project…</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.contractNumber} — {p.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="project-selector-actions">
+          <button type="button" onClick={() => setExpanded(false)}>
+            Cancel
+          </button>
+          <button type="button" onClick={handleConfirm} disabled={!selectedId}>
+            Confirm
+          </button>
+        </div>
       </div>
     </div>
   )

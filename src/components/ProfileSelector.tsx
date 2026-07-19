@@ -19,8 +19,14 @@ import './ProfileSelector.css'
  * nothing about it is removed, just its constant on-screen footprint.
  * There's nothing meaningful to collapse when no profile is set yet (the
  * picker itself has to stay visible), so that state always shows in full.
+ *
+ * `interactive=false` (set by AppShell during Milling's live entry step —
+ * see entrySessionActive.ts) collapses this to plain, non-interactive
+ * text unconditionally, regardless of any expanded/switching state left
+ * over from before it flipped — switching identity mid-session on the
+ * same device has no legitimate use.
  */
-export function ProfileSelector() {
+export function ProfileSelector({ interactive = true }: { interactive?: boolean }) {
   const profile = useCurrentProfile()
   const [crewMembers, setCrewMembers] = useState<ActiveCrewMember[]>([])
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -43,6 +49,24 @@ export function ProfileSelector() {
     setExpanded(false)
   }
 
+  // Also the outside-tap-to-close handler once a backdrop wraps the
+  // expanded panel below — collapsing never touches `profile` itself,
+  // only this component's own local UI state.
+  function handleCancel() {
+    setSwitching(false)
+    setExpanded(false)
+  }
+
+  if (!interactive) {
+    return (
+      <div className="profile-selector-collapsed">
+        <span className="profile-selector-summary profile-selector-summary-static">
+          {profile ? `${profile.name} (${profile.role})` : 'Not signed in'}
+        </span>
+      </div>
+    )
+  }
+
   const showPicker = !profile || switching
 
   if (!showPicker && !expanded) {
@@ -60,8 +84,8 @@ export function ProfileSelector() {
     )
   }
 
-  return (
-    <div className="profile-selector">
+  const panel = (
+    <div className="profile-selector" onClick={(e) => e.stopPropagation()}>
       {!showPicker && (
         <button
           type="button"
@@ -102,13 +126,7 @@ export function ProfileSelector() {
           {loadError && <p className="profile-selector-error">{loadError}</p>}
           <div className="profile-selector-actions">
             {profile && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSwitching(false)
-                  setExpanded(false)
-                }}
-              >
+              <button type="button" onClick={handleCancel}>
                 Cancel
               </button>
             )}
@@ -118,6 +136,18 @@ export function ProfileSelector() {
           </div>
         </div>
       )}
+    </div>
+  )
+
+  // Only dismissible by tapping outside once there's a valid collapsed
+  // state to fall back to — first-run "who are you" (no profile yet) has
+  // nothing to cancel back to, so it stays exactly as it always has:
+  // plain inline content, no backdrop, not dismissible.
+  if (!profile) return panel
+
+  return (
+    <div className="profile-selector-backdrop" onClick={handleCancel}>
+      {panel}
     </div>
   )
 }
