@@ -4,6 +4,7 @@ import { formatDayLabel, todayLocalDateString } from '../../lib/dateFormat'
 import type { EntryResumePayload } from '../../lib/entrySession'
 import { useCurrentProject } from '../../lib/useCurrentProject'
 import { fetchPastSessionGroups, type PastSessionGroup } from '../../lib/supabase/milling'
+import { fetchTonnageByDay } from '../../lib/supabase/truckTickets'
 import './MillingHomeScreen.css'
 
 function extractErrorMessage(err: unknown, fallback: string): string {
@@ -17,10 +18,12 @@ function extractErrorMessage(err: unknown, fallback: string): string {
 interface DayGroup {
   date: string
   totalArea: number
+  /** null for Milling (no truck tickets exist there) — distinct from 0, which means paving happened but logged no top-lift tonnage yet. */
+  totalTonnage: number | null
   sessions: PastSessionGroup[]
 }
 
-function groupByDay(sessions: PastSessionGroup[]): DayGroup[] {
+function groupByDay(sessions: PastSessionGroup[], tonnageByDate: Map<string, number> | null): DayGroup[] {
   const byDate = new Map<string, PastSessionGroup[]>()
   for (const session of sessions) {
     const existing = byDate.get(session.date)
@@ -31,6 +34,7 @@ function groupByDay(sessions: PastSessionGroup[]): DayGroup[] {
     .map(([date, dateSessions]) => ({
       date,
       totalArea: dateSessions.reduce((sum, s) => sum + s.area, 0),
+      totalTonnage: tonnageByDate ? (tonnageByDate.get(date) ?? 0) : null,
       sessions: dateSessions,
     }))
     .sort((a, b) => (a.date < b.date ? 1 : -1))
@@ -70,8 +74,11 @@ export function MillingHomeScreen({ activity }: { activity: 'milling' | 'paving'
     }
     setLoading(true)
     setError(null)
-    fetchPastSessionGroups(activity, todayLocalDateString(), currentProject.id)
-      .then((sessions) => setDays(groupByDay(sessions)))
+    Promise.all([
+      fetchPastSessionGroups(activity, todayLocalDateString(), currentProject.id),
+      activity === 'paving' ? fetchTonnageByDay(currentProject.id, todayLocalDateString()) : Promise.resolve(null),
+    ])
+      .then(([sessions, tonnageByDate]) => setDays(groupByDay(sessions, tonnageByDate)))
       .catch((err: unknown) => setError(extractErrorMessage(err, 'Failed to load previous days.')))
       .finally(() => setLoading(false))
   }, [activity, currentProject])
@@ -109,7 +116,12 @@ export function MillingHomeScreen({ activity }: { activity: 'milling' | 'paving'
             <li key={day.date} className="milling-home-day-group">
               <div className="milling-home-day-heading">
                 <span className="milling-home-day-date">{formatDayLabel(day.date)}</span>
-                <strong className="milling-home-day-area">{day.totalArea.toFixed(2)} m²</strong>
+                <span className="milling-home-day-totals">
+                  <strong className="milling-home-day-area">{day.totalArea.toFixed(2)} m²</strong>
+                  {day.totalTonnage !== null && (
+                    <strong className="milling-home-day-tonnage">{day.totalTonnage.toFixed(2)} t</strong>
+                  )}
+                </span>
               </div>
 
               <ul className="milling-home-session-list">

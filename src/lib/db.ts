@@ -90,10 +90,39 @@ export interface QueuedPhoto {
   createdAt: number
 }
 
+/**
+ * Local, offline-first store for truck_tickets (Paving only — Milling never
+ * produces these). Same "one local table is the whole source of truth"
+ * shape as widthReadingsQueue, mirrored deliberately rather than
+ * reinvented — see truckTicketsSync.ts.
+ */
+export interface QueuedTruckTicket {
+  localId?: number
+  /** truck_tickets.id once synced to Supabase; null while only queued locally. */
+  serverId: string | null
+  roadSegmentId: string
+  direction: string
+  /** paving_date, in YYYY-MM-DD form. */
+  date: string
+  arrivalSequence: number
+  vehicleNumber: string
+  ticketNumber: string
+  netTonnage: number
+  liftType: 'top_lift' | 'level_course'
+  isCorrection: boolean
+  /** serverId of the row that superseded this one, once known. */
+  supersededBy: string | null
+  correctionReason: string | null
+  status: 'queued' | 'synced' | 'error'
+  lastError: string | null
+  createdAt: number
+}
+
 const db = new Dexie('novacore') as Dexie & {
   widthReadingsQueue: EntityTable<QueuedWidthReading, 'localId'>
   extraAreaQueue: EntityTable<QueuedExtraAreaEntry, 'localId'>
   photosQueue: EntityTable<QueuedPhoto, 'localId'>
+  truckTicketsQueue: EntityTable<QueuedTruckTicket, 'localId'>
 }
 
 db.version(1).stores({
@@ -115,6 +144,13 @@ db.version(4).stores({
   widthReadingsQueue: '++localId, serverId, activity, roadSegmentId, date, status',
   extraAreaQueue: '++localId, serverId, roadSegmentId, date, status',
   photosQueue: '++localId, serverId, projectId, workDate, status',
+})
+
+db.version(5).stores({
+  widthReadingsQueue: '++localId, serverId, activity, roadSegmentId, date, status',
+  extraAreaQueue: '++localId, serverId, roadSegmentId, date, status',
+  photosQueue: '++localId, serverId, projectId, workDate, status',
+  truckTicketsQueue: '++localId, serverId, roadSegmentId, date, status',
 })
 
 export { db }

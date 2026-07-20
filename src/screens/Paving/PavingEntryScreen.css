@@ -7,3 +7,9 @@
   color: var(--color-muted);
   font-weight: var(--font-weight-normal);
 }
+
+.paving-truck-ticket-hint {
+  margin-top: 1.5rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+}

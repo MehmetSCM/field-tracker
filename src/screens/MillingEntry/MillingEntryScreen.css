@@ -398,9 +398,14 @@
 /* Per-row "⋮" menu (Review Readings screen) — same trigger-button footprint
    as .milling-edit-button so rows keep a consistent right-edge width
    whether they end up with a menu or a bare edit button. */
+/* margin-left: auto has no visible effect inside .milling-entry-status
+   (already shrink-wrapped, no spare width to push into) but is what keeps
+   this pinned to the row's right edge in TruckTicketForm's badges row,
+   whose flex parent stretches it to the card's full width. */
 .milling-row-menu-wrap {
   position: relative;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .milling-row-menu-button {

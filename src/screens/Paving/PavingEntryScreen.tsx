@@ -32,6 +32,7 @@ import { useLiveQuery } from '../../lib/sync/useLiveQuery'
 import { useCurrentProfile } from '../../lib/useCurrentProfile'
 import { useCurrentProject } from '../../lib/useCurrentProject'
 import { useEntrySession } from '../../lib/useEntrySession'
+import { TruckTicketForm } from '../../components/TruckTicketForm'
 import { CorrectionForm } from '../MillingEntry/CorrectionForm'
 // No new base layout CSS — this screen intentionally reuses Milling's
 // setup/entry styling verbatim (same .milling-* classes throughout), same
@@ -694,6 +695,18 @@ export function PavingEntryScreen() {
                 })}
               </ul>
             </section>
+          )}
+
+          {activeSegment && (
+            <TruckTicketForm
+              roadSegmentId={activeSegment.id}
+              direction={selectedDirection}
+              date={workDate}
+              hasIdentity={hasIdentity}
+            />
+          )}
+          {!activeSegment && hasIdentity && !session.blocked && session.direction !== null && (
+            <p className="paving-truck-ticket-hint">Log a width reading first to start logging truck tickets for this segment.</p>
           )}
         </>
       )}
